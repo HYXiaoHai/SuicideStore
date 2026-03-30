@@ -1,6 +1,8 @@
-using UnityEngine;
-using UnityEngine.UI;
 using DG.Tweening;
+using UnityEngine;
+using UnityEngine.Playables;
+using UnityEngine.Timeline;
+using UnityEngine.UI;
 
 /// <summary>
 /// 水洼顺序交互管理器（透明度控制版）
@@ -13,6 +15,11 @@ public class SimpleWaterPuddleManager : MonoBehaviour
 
     [Header("透明度动画时长")]
     [SerializeField] private float fadeDuration = 1f;
+
+    [Header("启动Timeline的按钮")]
+    public Button switchButton;//切换画面的按钮
+    public PlayableDirector timeline;
+
 
     private int currentIndex = 0;      // 当前等待被点击的水洼索引
     private bool isComplete = false;    // 是否已完成所有交互
@@ -95,46 +102,34 @@ public class SimpleWaterPuddleManager : MonoBehaviour
         {
             // 所有水洼都已点击完成
             isComplete = true;
-            Debug.Log("所有水洼已踩完！");
+            OnAllPuddlesCompleted();
             // 可在此触发完成事件
         }
     }
-
-    /// <summary>
-    /// 重置流程（外部调用，用于重新开始）
-    /// </summary>
-    public void ResetSequence()
+    public void OnAllPuddlesCompleted()
     {
-        // 停止所有进行中的淡入淡出动画，避免冲突
-        foreach (var btn in puddles)
+        if (switchButton != null)
         {
-            if (btn != null)
-            {
-                Image img = btn.GetComponent<Image>();
-                if (img != null) img.DOKill();
-            }
+            switchButton.gameObject.SetActive(true);
+            switchButton.onClick.AddListener(OnSwitchButtonClick);
         }
-
-        currentIndex = 0;
-        isComplete = false;
-
-        // 重置所有水洼透明度为0，交互关闭
-        for (int i = 0; i < puddles.Length; i++)
-        {
-            if (puddles[i] != null)
-            {
-                puddles[i].interactable = false;
-                Image img = puddles[i].GetComponent<Image>();
-                if (img != null)
-                {
-                    Color c = img.color;
-                    c.a = 0f;
-                    img.color = c;
-                }
-            }
-        }
-
-        // 激活第一个水洼
-        SetPuddleActive(0, true);
     }
+    private void OnSwitchButtonClick()
+    {
+        if (timeline != null)
+        {
+            timeline.stopped += OnTimelineStopped;
+            timeline.Play();
+        }
+        // 隐藏按钮或其他操作
+        switchButton.gameObject.SetActive(false);
+    }
+
+    private void OnTimelineStopped(PlayableDirector director)
+    {
+        director.stopped -= OnTimelineStopped;
+        // 调用场景2对话启动
+        DefendManage.Instance.StartScene2Dialogue();
+    }
+
 }
