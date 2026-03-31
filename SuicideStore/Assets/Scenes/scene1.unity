@@ -277,7 +277,7 @@ GameObject:
   - component: {fileID: 173650594}
   - component: {fileID: 173650593}
   - component: {fileID: 173650592}
-  m_Layer: 3
+  m_Layer: 6
   m_Name: Platform (1)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -641,11 +641,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   moveSpeed: 5
   jumpForce: 10
-  groundCheck: {fileID: 0}
+  groundCheck: {fileID: 1566024181}
   groundCheckRadius: 0.2
   groundLayer:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 64
 --- !u!61 &562041222
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -1497,7 +1497,7 @@ GameObject:
   - component: {fileID: 1351309814}
   - component: {fileID: 1351309813}
   - component: {fileID: 1351309812}
-  m_Layer: 3
+  m_Layer: 6
   m_Name: Platform
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1627,7 +1627,7 @@ GameObject:
   - component: {fileID: 1461020642}
   - component: {fileID: 1461020641}
   - component: {fileID: 1461020640}
-  m_Layer: 3
+  m_Layer: 6
   m_Name: Platform (2)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
