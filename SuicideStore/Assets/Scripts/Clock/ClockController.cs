@@ -9,7 +9,10 @@ public class ClockController : MonoBehaviour
     public Transform minuteHand;
     public Transform hourHand;
     [SerializeField] private float startAngle = 0f;      // 初始角度
-    [SerializeField] private float handZeroOffset = 90f;  // 贴图补偿偏移（横着指向3点则填90）
+    [SerializeField] private float handZeroOffset = 90;  // 贴图补偿偏移（横着指向3点则填90）
+
+    [Header("中心偏移（像素）")]
+    public Vector2 handCenterOffset = Vector2.zero;   // 指针旋转中心的偏移量
 
     [Header("WhiteMask 目标")]
     public Graphic maskGraphic;
@@ -38,6 +41,7 @@ public class ClockController : MonoBehaviour
         }
 
         UpdateAspectRatio();
+        UpdateHandPosition();   // 初始化指针位置偏移
         UpdateHand();
         UpdateShader();
     }
@@ -64,14 +68,27 @@ public class ClockController : MonoBehaviour
         UpdateHand();
         UpdateShader();
     }
-
+    // 每帧更新指针的位置（让指针围绕偏移后的中心旋转）
+    private void UpdateHandPosition()
+    {
+        if (minuteHand != null && minuteHand is RectTransform minuteRect)
+        {
+            minuteRect.anchoredPosition = handCenterOffset;
+        }
+        if (hourHand != null && hourHand is RectTransform hourRect)
+        {
+            hourRect.anchoredPosition = handCenterOffset;
+        }
+    }
     private void HandleInput()
     {
         // 1. 按下鼠标：判断是否点中了分针
         if (Input.GetMouseButtonDown(0))
         {
+            Debug.Log("鼠标摁下");
             if (IsMouseOverMinuteHand())
             {
+                Debug.Log("点中了");
                 isDragging = true;
             }
         }
@@ -82,7 +99,6 @@ public class ClockController : MonoBehaviour
             float mouseAngle = GetAngleFromMouse();
 
             // 逻辑限制：
-            // 我们只允许顺时针增加，且不能逆向越过 0 度（12点左侧）
             // 如果玩家拖拽的角度小于当前自动转动的角度，则视为“想往回拨”，我们不予理睬或释放拖拽
             if (mouseAngle >= currentAngle && mouseAngle <= 360f)
             {
@@ -98,6 +114,7 @@ public class ClockController : MonoBehaviour
         if (Input.GetMouseButtonUp(0))
         {
             isDragging = false;
+            Debug.Log("松开了");
         }
     }
 
@@ -118,6 +135,7 @@ public class ClockController : MonoBehaviour
     // 检测鼠标是否在分针附近
     private bool IsMouseOverMinuteHand()
     {
+        Debug.Log("检测鼠标位置");
         if (minuteHand == null) return false;
 
         Vector2 localMousePos;
@@ -148,7 +166,7 @@ public class ClockController : MonoBehaviour
     {
         if (minuteHand != null)
         {
-            float rot = -currentAngle + 90f;
+            float rot = -currentAngle + handZeroOffset;
             minuteHand.localRotation = Quaternion.Euler(0, 0, rot);
         }
 
@@ -156,7 +174,7 @@ public class ClockController : MonoBehaviour
         {
             // 时针联动（可选）：12倍速度差
             float hourRot = -currentAngle / 12f + handZeroOffset;
-            hourHand.localRotation = Quaternion.Euler(0, 0, hourRot+90f);
+            hourHand.localRotation = Quaternion.Euler(0, 0, hourRot + 90f);
         }
     }
 

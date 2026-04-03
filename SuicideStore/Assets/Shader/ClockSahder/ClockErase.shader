@@ -5,6 +5,8 @@ Shader "Custom/ClockEraseWorld"
         _MainTex ("Main Texture", 2D) = "white" {}
         _SecondTex ("Second Texture", 2D) = "white" {}
         _Angle ("Angle", Range(0,360)) = 0
+        _CenterX ("Center X", Range(0,1)) = 0.5
+        _CenterY ("Center Y", Range(0,1)) = 0.5
     }
 
     SubShader
@@ -36,6 +38,8 @@ Shader "Custom/ClockEraseWorld"
             sampler2D _MainTex;
             sampler2D _SecondTex;
             float _Angle;
+            float _CenterX;
+            float _CenterY;
 
             v2f vert (appdata v)
             {
@@ -47,14 +51,17 @@ Shader "Custom/ClockEraseWorld"
 
             fixed4 frag (v2f i) : SV_Target
             {
-                float2 dir = i.uv - float2(0.5,0.5);
+                // 使用可调节的中心点
+                float2 center = float2(_CenterX, _CenterY);
+                float2 dir = i.uv - center;
+
                 float ang = degrees(atan2(dir.x, dir.y));
                 ang = (ang + 360) % 360;
 
                 if (ang < _Angle)
-                    return tex2D(_SecondTex, i.uv);   // 擦除区域显示第二张纹理
+                    return tex2D(_SecondTex, i.uv);
                 else
-                    return tex2D(_MainTex, i.uv);      // 未擦除区域显示原纹理
+                    return tex2D(_MainTex, i.uv);
             }
             ENDCG
         }
