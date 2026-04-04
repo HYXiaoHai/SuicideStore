@@ -13,6 +13,12 @@ public class SimpleWaterPuddleManager : MonoBehaviour
     [Header("水洼按钮（按顺序索引0,1,2）")]
     [SerializeField] private Button[] puddles = new Button[3];
 
+    [Header("脚印")]
+    public Image footprint1;
+    public Image footprint2;
+    public Image footprint3;
+    public Image footprint4;
+
     [Header("透明度动画时长")]
     [SerializeField] private float fadeDuration = 1f;
 
