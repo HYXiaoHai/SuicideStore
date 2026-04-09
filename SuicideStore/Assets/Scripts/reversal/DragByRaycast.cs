@@ -21,28 +21,28 @@ public class DragByRaycast : MonoBehaviour
             transform.position = mouseWorld + offset;
     }
 
-    // 碰撞进入时，记录接触状态
-    private void OnCollisionEnter2D(Collision2D collision)
-    {
-        //if (collision.gameObject.CompareTag("Player"))
-        //{
-        //    isTouchPlayer = true;
-        //    Debug.Log("碰到了" + isTouchPlayer);
-        //    // 如果拖动过程中碰到 Player，强制停止拖动（可选）
-        //    if (isDragging)
-        //    {
-        //        isDragging = false;
-        //    }
-        //}
-    }
+    //// 碰撞进入时，记录接触状态
+    //private void OnCollisionEnter2D(Collision2D collision)
+    //{
+    //    //if (collision.gameObject.CompareTag("Player"))
+    //    //{
+    //    //    isTouchPlayer = true;
+    //    //    Debug.Log("碰到了" + isTouchPlayer);
+    //    //    // 如果拖动过程中碰到 Player，强制停止拖动（可选）
+    //    //    if (isDragging)
+    //    //    {
+    //    //        isDragging = false;
+    //    //    }
+    //    //}
+    //}
 
-    // 碰撞退出时，清除接触状态
-    private void OnCollisionExit2D(Collision2D collision)
-    {
-        Debug.Log("出去了");
-        if (collision.gameObject.CompareTag("Player"))
-        {
-            isTouchPlayer = false;
-        }
-    }
+    //// 碰撞退出时，清除接触状态
+    //private void OnCollisionExit2D(Collision2D collision)
+    //{
+    //    //Debug.Log("出去了");
+    //    //if (collision.gameObject.CompareTag("Player"))
+    //    //{
+    //    //    isTouchPlayer = false;
+    //    //}
+    //}
 }

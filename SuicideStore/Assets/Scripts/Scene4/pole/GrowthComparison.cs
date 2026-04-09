@@ -23,6 +23,12 @@ public class GrowthComparison : MonoBehaviour
 
     //private Vector3 childInitialScale;
     //private Vector3 adultInitialScale;
+
+    [Header("关卡切换")]
+    public int nextLevelIndex = 2;//第2关
+    public float changeDelay = 1f;//完成后多久切换镜头（延迟）
+    private bool hasTriggeredSwitch = false; //防止重复触发
+
     private Tween activeTween1, activeTween2, activeTween3;
     void Start()
     {
@@ -88,6 +94,33 @@ public class GrowthComparison : MonoBehaviour
             float height = Mathf.Lerp(minHeight, maxHeight, value);
             heightText.text = $"{height:F0}cm";
         }
+
+        // 检查是否完成（value 达到 1）
+        if (!hasTriggeredSwitch && Mathf.Approximately(value, 1f))
+        {
+            hasTriggeredSwitch = true;
+            OnGrowthComplete();
+        }
+
+    }
+
+    //进入下一关
+    private void OnGrowthComplete()
+    {
+        Debug.Log("成长完成，切换至下一关卡");
+
+        if (Scene4Manage.Instance != null)
+        {
+            Scene4Manage.Instance.ChangeCamera(nextLevelIndex,changeDelay);
+        }
+        else
+        {
+            Debug.LogError("Scene4Manage.Instance 不存在，请确保场景中有 Scene4Manage 组件");
+        }
+
+        //禁用滑块交互，防止再次拖动
+        if (growthSlider != null)
+            growthSlider.interactable = false;
     }
 
     private void AnimateAlpha(CanvasGroup cg, float targetAlpha, ref Tween activeTween)
