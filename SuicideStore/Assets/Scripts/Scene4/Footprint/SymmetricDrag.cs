@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using DG.Tweening;
+using UnityEngine.UI;
 
 public class SymmetricDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
@@ -11,9 +12,14 @@ public class SymmetricDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
     public RectTransform target;//终点的RectTransform
     public float offestRedius = 0.1f;//允许的过关偏移量
     [Header("图片进度条")]
-    public Transform ImageSgil;//物品索引
-    public Transform startPoint;//开始位置
-    public Transform endPoint;//结束位置
+    public RectTransform ImageSlider;//物品索引
+    public RectTransform startPoint;//开始位置
+    public RectTransform endPoint;//结束位置
+    public float maxValue;//终点到起始点的距离
+    public float currentValue;//当前移动的距离
+    public RectTransform startPosition;
+    
+
     [Header("脚印偏移")]
     public float lateralOffsetDistance = 0.2f;   // 横向偏移距离
     private int currentOffsetSign_lele = 1;           // 1=右, -1=左（交替）
@@ -26,10 +32,10 @@ public class SymmetricDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
     public float needDistance;//每移动多少距离就会诞生一个脚印
     public float currentDistance;//当前移动的距离  
     public float duration;//显隐的时间
-    private Vector3 lastObject2Position;  // 物体2的上一帧位置
-    private Vector3 lastPosition;            // 上一帧位置（用于计算移动距离）
-    private int parentFootGroup = 0;         // 0=爸爸组, 1=妈妈组
-    private int parentFootCountInGroup = 0;  // 当前组已生成的数量（最多2）
+    private Vector3 lastObject2Position;  //物体2的上一帧位置
+    private Vector3 lastPosition;            //上一帧位置（用于计算移动距离）
+    private int parentFootGroup = 0;         //0=爸爸组, 1=妈妈组
+    private int parentFootCountInGroup = 0;  //当前组已生成的数量（最多2）
 
 
     [Header("对称轴设置")]
@@ -70,6 +76,12 @@ public class SymmetricDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
         if (object2 != null)
             object2.position = rectTransform.position;
         lastObject2Position = object2.position;
+
+        //计算进度条的value
+        ImageSlider.position = startPoint.position;
+        startPosition = rectTransform;
+        maxValue = target.position.x - rectTransform.position.x;
+        currentValue = 0;
     }
 
     //计算鼠标在 Canvas 平面上的世界坐标
@@ -143,6 +155,9 @@ public class SymmetricDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
                 lastObject2Position = object2.position;
             }
 
+            currentValue = rectTransform.position.x - startPosition.position.x;
+            UpdateImageSlider();
+
             //胜利检测
             if (!isWin && target != null)
             {
@@ -158,6 +173,13 @@ public class SymmetricDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
     public void OnEndDrag(PointerEventData eventData)
     {
         isDragging = false;
+    }
+
+    void UpdateImageSlider()
+    {
+        float v = currentValue / maxValue;
+        float x = startPoint.position.x + (endPoint.position.x - startPoint.position.x) * v;
+        ImageSlider.position = new Vector3(x,0, 0);
     }
 
     private void UpdateObject2Position()
