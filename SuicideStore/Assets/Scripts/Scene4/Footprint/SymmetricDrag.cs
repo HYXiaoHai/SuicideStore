@@ -17,8 +17,8 @@ public class SymmetricDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
     public RectTransform endPoint;//结束位置
     public float maxValue;//终点到起始点的距离
     public float currentValue;//当前移动的距离
-    public RectTransform startPosition;
-    
+    private float startX;          // 物品1起始 X 坐标
+    private bool moveRight;        // 物品1是否需要向右移动才能到达终点
 
     [Header("脚印偏移")]
     public float lateralOffsetDistance = 0.2f;   // 横向偏移距离
@@ -77,11 +77,15 @@ public class SymmetricDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
             object2.position = rectTransform.position;
         lastObject2Position = object2.position;
 
-        //计算进度条的value
+        // 初始化进度条位置
         ImageSlider.position = startPoint.position;
-        startPosition = rectTransform;
-        maxValue = target.position.x - rectTransform.position.x;
-        currentValue = 0;
+
+        // 记录起始 X 和目标 X
+        startX = rectTransform.position.x;
+        float targetX = target.position.x;
+        moveRight = targetX > startX;               // 终点在右侧则为 true
+        maxValue = Mathf.Abs(targetX - startX);     // 总水平移动距离（正数）
+        currentValue = 0f;
     }
 
     //计算鼠标在 Canvas 平面上的世界坐标
@@ -128,43 +132,43 @@ public class SymmetricDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
         if (GetMouseWorldPositionOnCanvas(out mouseWorld))
         {
             Vector3 newPos = mouseWorld + dragOffset;
-
             newPos.x = Mathf.Clamp(newPos.x, boundaryLeft, boundaryRight);
             newPos.y = Mathf.Clamp(newPos.y, boundaryBottom, boundaryTop);
             rectTransform.position = newPos;
             UpdateObject2Position();
 
-            // 计算物体1的移动方向和距离
+            // 计算移动方向和脚印生成（略）
             Vector3 moveDir1 = (rectTransform.position - lastPosition).normalized;
             float delta1 = Vector3.Distance(rectTransform.position, lastPosition);
-
-            // 计算物体2的移动方向和距离
             Vector3 moveDir2 = (object2.position - lastObject2Position).normalized;
             float delta2 = Vector3.Distance(object2.position, lastObject2Position);
             if (delta1 > 0)
             {
                 currentDistance += delta1;
-                // 当累积距离达到阈值时，生成脚印（可能一次移动触发多个脚印，用 while 循环）
                 while (currentDistance >= needDistance && !isWin)
                 {
                     currentDistance -= needDistance;
-                    SpawnLeleFootprint(moveDir1);      // 传递物体1的移动方向
-                    SpawnParentFootprint(moveDir2);    // 传递物体2的移动方向
+                    SpawnLeleFootprint(moveDir1);
+                    SpawnParentFootprint(moveDir2);
                 }
                 lastPosition = rectTransform.position;
                 lastObject2Position = object2.position;
             }
 
-            currentValue = rectTransform.position.x - startPosition.position.x;
+            // ========== 进度条更新（新代码） ==========
+            float deltaX = rectTransform.position.x - startX;
+            currentValue = moveRight ? deltaX : -deltaX;
+            currentValue = Mathf.Clamp(currentValue, 0f, maxValue);
             UpdateImageSlider();
+            // ======================================
 
-            //胜利检测
+            // 胜利检测
             if (!isWin && target != null)
             {
                 float distToTarget = Vector3.Distance(rectTransform.position, target.position);
                 if (distToTarget <= offestRedius)
                 {
-                    GetTarget(); //触发胜利
+                    GetTarget();
                 }
             }
         }
@@ -177,9 +181,15 @@ public class SymmetricDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 
     void UpdateImageSlider()
     {
-        float v = currentValue / maxValue;
-        float x = startPoint.position.x + (endPoint.position.x - startPoint.position.x) * v;
-        ImageSlider.position = new Vector3(x,0, 0);
+        // 计算进度比例（0~1）
+        float progress = currentValue / maxValue;
+        progress = Mathf.Clamp01(progress);
+
+        // 根据 startPoint 和 endPoint 进行线性插值（同时改变 X 和 Y）
+        Vector3 newPos = Vector3.Lerp(startPoint.position, endPoint.position, progress);
+        // 保持 Z 轴与 startPoint 一致（通常为 0）
+        newPos.z = startPoint.position.z;
+        ImageSlider.position = newPos;
     }
 
     private void UpdateObject2Position()
