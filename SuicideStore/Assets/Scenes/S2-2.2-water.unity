@@ -1731,6 +1731,7 @@ GameObject:
   - component: {fileID: 524233116}
   - component: {fileID: 524233115}
   - component: {fileID: 524233114}
+  - component: {fileID: 524233117}
   m_Layer: 0
   m_Name: Rain
   m_TagString: Untagged
@@ -6550,6 +6551,27 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: -90, y: 0, z: 0}
+--- !u!95 &524233117
+Animator:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 524233113}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 0}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1001 &541862198
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -8901,6 +8923,7 @@ MonoBehaviour:
   defendButton: {fileID: 128965760}
   specialDefendButton: {fileID: 20156392}
   defendNum: 0
+  nextSceneName: scene2
 --- !u!1 &1568164202
 GameObject:
   m_ObjectHideFlags: 0
@@ -9928,6 +9951,8 @@ PlayableDirector:
     value: {fileID: 1356915843}
   - key: {fileID: 4128325336820943781, guid: e3eafc4ddb0dff942bfe67d3fd3abc37, type: 2}
     value: {fileID: 1226454896}
+  - key: {fileID: 2917484240895188977, guid: e3eafc4ddb0dff942bfe67d3fd3abc37, type: 2}
+    value: {fileID: 524233117}
   m_ExposedReferences:
     m_References:
     - e8b5731b927a3ad41b6bde36fc860bfa: {fileID: 1250398409}

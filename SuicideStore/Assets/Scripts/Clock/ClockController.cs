@@ -1,9 +1,17 @@
+using DG.Tweening;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 
 [RequireComponent(typeof(RectTransform))]
 public class ClockController : MonoBehaviour
 {
+    [Header("转场")]
+    public CanvasGroup clockCanvasGroup;
+    public string nextSceneName;
+    private CanvasGroup minuteHandCG;
+    private CanvasGroup hourHandCG;
+
     [Header("指针")]
     public Transform minuteHand;
     public Transform hourHand;
@@ -34,6 +42,11 @@ public class ClockController : MonoBehaviour
 
         if (maskGraphic != null)
             targetMaterial = maskGraphic.material;
+
+        if (minuteHand != null)
+            minuteHandCG = minuteHand.GetComponent<CanvasGroup>();
+        if (hourHand != null)
+            hourHandCG = hourHand.GetComponent<CanvasGroup>();
 
         UpdateAspectRatio();
         UpdateHandPosition();
@@ -136,9 +149,52 @@ public class ClockController : MonoBehaviour
 
     private void Complete()
     {
+        if (isComplete) return;
         isComplete = true;
-        if (minuteHand != null) minuteHand.gameObject.SetActive(false);
-        if (hourHand != null) hourHand.gameObject.SetActive(false);
-        if (targetMaterial != null) targetMaterial.SetFloat("_Angle", 360f);
+
+        // 停止自动旋转（已经不会再更新）
+        // 确保材质角度为360
+        if (targetMaterial != null)
+            targetMaterial.SetFloat("_Angle", 360f);
+
+        // 开始转场动画
+        StartCoroutine(TransitionRoutine());
+    }
+    private IEnumerator TransitionRoutine()
+    {
+        // 同时淡出表盘 CanvasGroup 和指针 CanvasGroup
+        float duration = 1f;
+
+        // 使用 DOTween 并行播放动画
+        if (clockCanvasGroup != null)
+            clockCanvasGroup.DOFade(0f, duration);
+
+        if (minuteHandCG != null)
+            minuteHandCG.DOFade(0f, duration);
+
+        if (hourHandCG != null)
+            hourHandCG.DOFade(0f, duration);
+
+        yield return new WaitForSeconds(duration);
+
+        // 可选：彻底禁用指针交互（防止残留点击）
+        if (minuteHandCG != null) minuteHandCG.interactable = false;
+        if (hourHandCG != null) hourHandCG.interactable = false;
+        if (clockCanvasGroup != null) clockCanvasGroup.interactable = false;
+
+        // 加载场景
+        LoadScene();
+    }
+
+    public void LoadScene()
+    {
+        if (!string.IsNullOrEmpty(nextSceneName))
+        {
+            UnityEngine.SceneManagement.SceneManager.LoadScene(nextSceneName);
+        }
+        else
+        {
+            Debug.LogWarning("Next scene name is not set!");
+        }
     }
 }
