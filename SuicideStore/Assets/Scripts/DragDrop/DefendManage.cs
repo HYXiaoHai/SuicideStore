@@ -27,6 +27,9 @@ public class DefendManage : MonoBehaviour
     public Button specialDefendButton;   // 特殊辩解按钮（第三次出现）
     public int defendNum = 0;
 
+    [Header("转场")]
+    public string nextSceneName;
+
     private Coroutine randomBubbleCoroutine; // 右侧随机气泡协程
     private bool isScene2Started = false; // 是否已开始场景2流程
     private GameObject finalBubble;     // 存储最终气泡引用，用于排除清除
@@ -262,6 +265,8 @@ public class DefendManage : MonoBehaviour
         {
             p.enabled = false; // 禁用脚本，阻止拖拽
         }
+
+        LoadScene();
     }
     public void ShowFinalBubble()
     {
@@ -319,5 +324,17 @@ public class DefendManage : MonoBehaviour
         string[] interruptionTexts = { "我...", "可是...", "那个...", "但是..." };
         string msg = interruptionTexts[Random.Range(0, interruptionTexts.Length)];
         SendBubble(leftFather, msg,false);
+    }
+
+    public void LoadScene()
+    {
+        if (!string.IsNullOrEmpty(nextSceneName))
+        {
+            UnityEngine.SceneManagement.SceneManager.LoadScene(nextSceneName);
+        }
+        else
+        {
+            Debug.LogWarning("Next scene name is not set!");
+        }
     }
 }
