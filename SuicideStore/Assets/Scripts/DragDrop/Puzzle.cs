@@ -10,6 +10,7 @@ public class Puzzle : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
 {
     public int id = 0;
     public Slot currentSlot;
+    public RectTransform currentSlotPosition;
 
     private RectTransform rectTransform;
     private Canvas parentCanvas;
@@ -17,7 +18,6 @@ public class Puzzle : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
     public bool isDragging;
 
     [Header("每轮切换对应的图片")]
-    public Sprite[] sprites;
     public Transform defaultPosition;
 
     [Header("动画设置")]
@@ -49,6 +49,11 @@ public class Puzzle : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
     {
         ResetDirection();
     }
+    public void SetRandomRotation()
+    {
+        float randomZ = Random.Range(-30f, 30f);
+        transform.localEulerAngles = new Vector3(0, 0, randomZ);
+    }
 
     private void ResetDirection()
     {
@@ -62,7 +67,7 @@ public class Puzzle : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
         floatingCoroutine = StartCoroutine(FloatingMovement());
     }
 
-    private void StopFloating()
+    public void StopFloating()
     {
         if (floatingCoroutine != null)
         {
@@ -155,8 +160,10 @@ public class Puzzle : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
     public void OnSnappedToSlot()
     {
         StopFloating();
+        // 使用 DOTween 动画旋转回正
+        transform.DORotate(Vector3.zero, 0.3f).SetEase(Ease.OutBack);
+        transform.DOScale(originalScale, animationDuration);
     }
-
     public void OnRemovedFromSlot()
     {
         if (currentSlot == null && !isDragging)
@@ -166,12 +173,20 @@ public class Puzzle : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
     // 悬停动画
     public void OnPointerEnter(PointerEventData eventData)
     {
+        if (currentSlot != null)
+        {
+            return;
+        }
         transform.DOKill();
         transform.DOScale(originalScale * scaleMultiplier, animationDuration);
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
+        if(currentSlot!=null)
+        {
+            return;
+        }
         transform.DOKill();
         transform.DOScale(originalScale, animationDuration);
     }
