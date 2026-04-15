@@ -7,7 +7,12 @@ public class DefendManage : MonoBehaviour
 {
     [Header("气泡对话")]
     public Transform leftFather;//左气泡出生父物体
+    public RectTransform leftDialogueShotStart;//左气泡出生位置
+    public RectTransform leftDialogueShotEnd;//左气泡到达位置
     public Transform rightFather;//右气泡出生父物体
+    public RectTransform rightDialogueShotStart;//左气泡出生位置
+    public RectTransform rightDialogueShotEnd;//左气泡到达位置
+
     public GameObject bubblePrefab_right;//气泡预制体
     public GameObject bubblePrefab_left;//气泡预制体
     public float minInterval = 1f;//右侧持续生成气泡的最小时间间隔
@@ -17,9 +22,11 @@ public class DefendManage : MonoBehaviour
     public string specicalDialogue1 = "懒得跟你犟";
     public string specicalDialogue2 = "好了，别讲了！赶紧回家";
 
-    [Header("开场气泡")]
-    public GameObject initialBubble;    //预先放在右侧的“乐乐！！！”气泡
-    public GameObject initialBubble2;    //预先放在右侧的"你怎么右踩”气泡
+    [Header("特殊气泡")]
+    public GameObject initialBubble;    //预先放在右侧的气泡
+    public GameObject initialBubble2;    //预先放在右侧的气泡
+    public GameObject finalBubblePrefab_right;//最终气泡预制体
+
 
     [Header("辩解模块")]
     public static DefendManage Instance;
@@ -64,51 +71,75 @@ public class DefendManage : MonoBehaviour
         if (isScene2Started) return;
         isScene2Started = true;
 
-        // 1. 让初始“乐乐！！！”气泡飘动并消失
+        StartCoroutine(OpeningBubblesSequence());
+    }
+    private IEnumerator OpeningBubblesSequence()
+    {
+        yield return new WaitForSeconds(0.5f);
+
         if (initialBubble != null)
         {
-            DialogueBubble bubble = initialBubble.GetComponent<DialogueBubble>();
-            if (bubble != null)
+            DialogueBubble bubble1 = initialBubble.GetComponent<DialogueBubble>();
+            if (bubble1 != null)
             {
-                Debug.Log("开场气泡");
-                initialBubble.GetComponent<CanvasGroup>().DOFade(0f, 0.5f);
-
+                bool moveComplete = false;
+                bubble1.PlayMoveAnimation(rightDialogueShotEnd, 2f, () => moveComplete = true);
+                yield return new WaitUntil(() => moveComplete);
             }
             else
             {
-                // 如果没有脚本，直接销毁
-                Destroy(initialBubble, 0.5f);
+                initialBubble.GetComponent<CanvasGroup>().DOFade(0, 0.5f);
+                yield return new WaitForSeconds(0.5f);
+                Destroy(initialBubble);
             }
         }
 
-        // 2. 延迟一段时间后生成第二个气泡“你这孩子...”
-        StartCoroutine(SpawnSecondBubbleAndStartGame());
-    }
-    private IEnumerator SpawnSecondBubbleAndStartGame()
-    {
-        // 等待第一个气泡飘动结束（可根据动画时长适当调整）
-        yield return new WaitForSeconds(0.6f);
+        //显示 initialBubble2（入场动画 → 停留1秒 → 上升）
+        if (initialBubble2 != null)
+        {
+            RectTransform start = rightDialogueShotStart;
+            RectTransform end = rightDialogueShotEnd;
+            RectTransform bubble2Rect = initialBubble2.GetComponent<RectTransform>();
+            if (bubble2Rect != null && start != null)
+            {
+                bubble2Rect.anchoredPosition = start.anchoredPosition;
+            }
 
-        // 生成第二个气泡（静止显示）
-        initialBubble2.GetComponent<CanvasGroup>().DOFade(1f,1f);
-        DialogueBubble bubble = initialBubble2.GetComponent<DialogueBubble>();
+            DialogueBubble bubble2 = initialBubble2.GetComponent<DialogueBubble>();
+            if (bubble2 != null)
+            {
+                bubble2.PlayEnterAnimation(() =>
+                {
+                    // 停留1秒后开始上升
+                    DOVirtual.DelayedCall(1f, () =>
+                    {
+                        bubble2.PlayMoveAnimation(end, 2f);
+                    });
+                });
+                // 等待 initialBubble2 被销毁（动画结束）
+                yield return new WaitUntil(() => initialBubble2 == null);
+            }
+            else
+            {
+             
+                CanvasGroup cg = initialBubble2.GetComponent<CanvasGroup>();
+                cg.alpha = 0;
+                cg.DOFade(1, 0.3f);
+                yield return new WaitForSeconds(1f);
+                cg.DOFade(0, 0.5f);
+                yield return new WaitForSeconds(0.5f);
+                Destroy(initialBubble2);
+            }
+        }
 
-        // 等待2秒，让玩家看到文字
-        yield return new WaitForSeconds(1f);
-
-        initialBubble2.GetComponent<CanvasGroup>().DOFade(0f, 1f);
-
-        yield return new WaitForSeconds(1.5f);
-        // 启用拼图区域
+        // 3. 后续流程：启用拼图区域、启动随机对话
         if (PuzzleManage.Instance != null)
         {
             PuzzleManage.Instance.ShowPuzzleArea();
         }
-
-        // 启动右侧随机对话（从第二个气泡之后开始持续发送）
         StartRandomRightBubblesAfterFirstTwo();
     }
-
+ 
     //启动随机气泡（跳过开头的两个特定对话）
     private void StartRandomRightBubblesAfterFirstTwo()
     {
@@ -125,7 +156,7 @@ public class DefendManage : MonoBehaviour
             if (dialogues != null && dialogues.Length > 0)
             {
                 string randomMsg = dialogues[Random.Range(0, dialogues.Length)];
-                SendBubble(rightFather, randomMsg,true);
+                SendBubble(rightFather, randomMsg,true,1f);
             }
             yield return new WaitForSeconds(Random.Range(minInterval, maxInterval));
         }
@@ -133,7 +164,7 @@ public class DefendManage : MonoBehaviour
 
 
     //生成气泡
-    public DialogueBubble SendBubble(Transform parent, string content,bool isright)
+    public DialogueBubble SendBubble(Transform parent, string content,bool isright,float scale)
     {
         if ((isright && bubblePrefab_right == null) || (!isright && bubblePrefab_left == null) || parent == null)
             return null;
@@ -142,11 +173,15 @@ public class DefendManage : MonoBehaviour
         DialogueBubble bubble = bubbleObj.GetComponent<DialogueBubble>();
         if (bubble != null)
         {
-            bubble.ShowBubble(content, 0.5f); // 停留0.5秒，上浮4秒（默认参数）
+            // 根据左右选择起始点和终点
+            RectTransform start = isright ? rightDialogueShotStart : leftDialogueShotStart;
+            RectTransform end = isright ? rightDialogueShotEnd : leftDialogueShotEnd;
+            // 动画时长可调，这里设为 1 秒
+            bubble.AnimateBubble(content, start, end, 2f, scale);
         }
         else
         {
-            Destroy(bubbleObj, 2f);
+            Destroy(bubbleObj, 3f);
         }
         return bubble;
     }
@@ -212,17 +247,17 @@ public class DefendManage : MonoBehaviour
         HideDefendButton();
 
         // 3. 发送左侧打断气泡（不等待，因为它不影响右侧）
-        SendLeftBubbleWithInterruption();
+        SendLeftBubbleWithInterruption(defendNum);
 
         // 4. 发送右侧特殊语句，并记录气泡对象
         DialogueBubble specialBubble = null;
         if (defendNum == 0) // 第一次辩解
         {
-            specialBubble = SendBubble(rightFather, specicalDialogue0, true);
+            specialBubble = SendBubble(rightFather, specicalDialogue0, true,1.3f);
         }
         else if (defendNum == 1) // 第二次辩解
         {
-            specialBubble = SendBubble(rightFather, specicalDialogue1, true);
+            specialBubble = SendBubble(rightFather, specicalDialogue1, true,1.4f);
         }
 
         // 增加辩解次数
@@ -252,7 +287,7 @@ public class DefendManage : MonoBehaviour
         // AudioSource.PlayClipAtPoint(successClip, Camera.main.transform.position);
 
         // 发送左侧对话框 "....."
-        SendBubble(leftFather, ".....",false);
+        SendBubble(leftFather, ".....",false,1f);
 
         // 游戏结束或不再重置拼图，可禁用所有交互
         HideSpecialDefendButton();
@@ -276,25 +311,23 @@ public class DefendManage : MonoBehaviour
         // 2. 清除所有现有气泡（包括左右两侧的动态气泡，以及预设的 initialBubble/initialBubble2）
         ClearAllBubbles();
 
-        // 3. 动态生成最终气泡
-        if (bubblePrefab_right != null && rightFather != null)
+        // 3. 使用 finalBubblePrefab_right 生成最终气泡
+        if (finalBubblePrefab_right != null && rightFather != null)
         {
-            GameObject finalBubbleObj = Instantiate(bubblePrefab_right, rightFather);
+            GameObject finalBubbleObj = Instantiate(finalBubblePrefab_right, rightFather);
             DialogueBubble bubble = finalBubbleObj.GetComponent<DialogueBubble>();
             if (bubble != null)
             {
-                // 使用新的显示流程：渐显 → 停留2秒 → 上浮
-                bubble.ShowBubble(specicalDialogue2, stayDuration: 2f, moveDistance: 80f, floatDuration: 0.5f);
+                bubble.AnimateBubble(specicalDialogue2, rightDialogueShotStart, rightDialogueShotEnd, 3f,1.5f);
             }
             else
             {
-                Debug.LogError("bubblePrefab 没有 DialogueBubble 脚本！");
                 Destroy(finalBubbleObj, 2f);
             }
         }
         else
         {
-            Debug.LogWarning("bubblePrefab 或 rightFather 未赋值，无法生成最终气泡！");
+            Debug.LogWarning("finalBubblePrefab_right 或 rightFather 未赋值，无法生成最终气泡！");
         }
     }
     ///清除所有在场的气泡（动态生成的 + 预设的 initialBubble, initialBubble2）
@@ -314,16 +347,17 @@ public class DefendManage : MonoBehaviour
             DialogueBubble bubble = child.GetComponent<DialogueBubble>();
             if (bubble != null)
             {
+                child.DOKill();
                 Destroy(child.gameObject);
             }
         }
     }
     //发送一个表示被打断的左侧气泡（可选）
-    private void SendLeftBubbleWithInterruption()
+    private void SendLeftBubbleWithInterruption(int n)
     {
-        string[] interruptionTexts = { "我...", "可是...", "那个...", "但是..." };
-        string msg = interruptionTexts[Random.Range(0, interruptionTexts.Length)];
-        SendBubble(leftFather, msg,false);
+        string[] interruptionTexts = { "动画片里....","妈妈我....", "......"};
+        string msg = interruptionTexts[n];
+        SendBubble(leftFather, msg,false, 1f);
     }
 
     public void LoadScene()

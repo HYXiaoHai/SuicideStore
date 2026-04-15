@@ -48,6 +48,7 @@ public class Puzzle : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
     private void Start()
     {
         ResetDirection();
+
     }
     public void SetRandomRotation()
     {
@@ -125,6 +126,7 @@ public class Puzzle : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
         RectTransformUtility.ScreenPointToLocalPointInRectangle(
             parentRect, eventData.position, eventData.pressEventCamera, out localPointerPos);
         dragOffset = localPointerPos - rectTransform.anchoredPosition;
+
     }
 
     public void OnDrag(PointerEventData eventData)
@@ -132,10 +134,12 @@ public class Puzzle : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
         isDragging = true;
         RectTransform parentRect = rectTransform.parent as RectTransform;
         if (parentRect == null) return;
+
         Vector2 localPointerPos;
         RectTransformUtility.ScreenPointToLocalPointInRectangle(
             parentRect, eventData.position, eventData.pressEventCamera, out localPointerPos);
         Vector2 newPosition = localPointerPos - dragOffset;
+
         rectTransform.anchoredPosition = newPosition;
     }
 

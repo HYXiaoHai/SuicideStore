@@ -106,8 +106,6 @@ public class PuzzleManage : MonoBehaviour
         }
 
         // 激活下一轮拼图
-        // roundIndex 是已经点击辩解的次数，第一次点击后 roundIndex=1，应激活第二轮（索引1）
-        // 第二次点击后 roundIndex=2，应激活第三轮（索引2）
         int nextRound = Mathf.Clamp(roundIndex, 0, 2);
         ActivateRound(nextRound);
 
