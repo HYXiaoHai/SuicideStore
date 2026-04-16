@@ -21,6 +21,8 @@ public class SimpleWaterPuddleManager : MonoBehaviour
 
     [Header("启动Timeline的按钮")]
     public Button switchButton;
+    public float switchButtonTargetScale = 1.7542f;  // 目标缩放值
+    public float switchButtonAnimDuration = 0.5f;    // 动画时长
     public PlayableDirector timeline;
 
     private int currentIndex = 0;      // 当前等待被点击的水洼索引
@@ -59,7 +61,10 @@ public class SimpleWaterPuddleManager : MonoBehaviour
 
         // 隐藏切换按钮
         if (switchButton != null)
+        {
+            switchButton.transform.localScale = Vector3.zero;
             switchButton.gameObject.SetActive(false);
+        }
 
         // 开始只显示第一个水洼
         SetPuddleActive(0, true);
@@ -122,7 +127,7 @@ public class SimpleWaterPuddleManager : MonoBehaviour
         if (isComplete || clickedIndex != currentIndex) return;
 
         // 1. 播放水坑动画（一次性）
-        OrdinaryButton btnCtrl = puddles[clickedIndex].GetComponent<OrdinaryButton>();
+        WaterPuddleButton btnCtrl = puddles[clickedIndex].GetComponent<WaterPuddleButton>();
         if (btnCtrl != null)
         {
             btnCtrl.PlayAnimation();   // 播放 Animator 动画
@@ -145,7 +150,7 @@ public class SimpleWaterPuddleManager : MonoBehaviour
                 break;
             case 2: // 点击第三个水坑 → 显示脚印4，之后显示切换按钮
                 ShowFootprint(footprint4);
-                StartCoroutine(ShowSwitchButtonAfterDelay(0.3f));
+                StartCoroutine(ShowSwitchButtonAfterDelay(0.5f));
                 break;
         }
 
@@ -168,12 +173,19 @@ public class SimpleWaterPuddleManager : MonoBehaviour
         ShowFootprint(footprint);
     }
 
+    //
     private IEnumerator ShowSwitchButtonAfterDelay(float delay)
     {
         yield return new WaitForSeconds(delay);
         if (switchButton != null)
         {
             switchButton.gameObject.SetActive(true);
+            // 设置初始缩放为 0（动画起点）
+            switchButton.transform.localScale = Vector3.zero;
+            // 设置初始缩放为0，然后播放放大动画
+            switchButton.transform.DOScale(switchButtonTargetScale, switchButtonAnimDuration)
+                .SetEase(Ease.OutBack);  // 使用弹性缓动，更有活力
+
             switchButton.onClick.RemoveAllListeners(); // 避免重复添加
             switchButton.onClick.AddListener(OnSwitchButtonClick);
         }

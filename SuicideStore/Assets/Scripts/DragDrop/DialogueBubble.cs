@@ -87,4 +87,16 @@ public class DialogueBubble : MonoBehaviour
             .SetEase(Ease.OutQuad);
         canvasGroup.DOFade(0, duration - 2f).SetDelay(delay).OnComplete(() => Destroy(gameObject));
     }
+    public void DestroyBubble()
+    {
+        // 停止所有正在进行的 DOTween 动画
+        transform.DOKill();
+        canvasGroup.DOKill();
+        // 开始渐隐动画（0.5秒）
+        canvasGroup.DOFade(0f, 0.5f).SetEase(Ease.InExpo).OnComplete(() =>
+        {
+            Debug.Log("消除气泡");
+            Destroy(gameObject);
+        });
+    }
 }

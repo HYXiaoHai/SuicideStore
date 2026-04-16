@@ -306,7 +306,7 @@ public class DefendManage : MonoBehaviour
             p.enabled = false; // ½ûÓÃ½Å±¾£¬×èÖ¹ÍÏ×§
         }
         defendCanvasGroup.DOFade(0f,3.5f).SetEase(Ease.InExpo);
-        yield return new WaitForSeconds(3.5f);
+        yield return new WaitForSeconds(4.5f);
         if (!string.IsNullOrEmpty(nextSceneName))
         {
             UnityEngine.SceneManagement.SceneManager.LoadScene(nextSceneName);
@@ -360,8 +360,9 @@ public class DefendManage : MonoBehaviour
             DialogueBubble bubble = child.GetComponent<DialogueBubble>();
             if (bubble != null)
             {
-                bubble.transform.DOKill();
-                Destroy(child.gameObject);
+                bubble.DestroyBubble();
+
+                //Destroy(child.gameObject);
             }
         }
     }
