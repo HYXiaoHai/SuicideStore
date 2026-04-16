@@ -140,6 +140,12 @@ public class Puzzle : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
             parentRect, eventData.position, eventData.pressEventCamera, out localPointerPos);
         Vector2 newPosition = localPointerPos - dragOffset;
 
+        // ========== 边界限制 ==========
+        if (PuzzleManage.Instance != null && PuzzleManage.Instance.dragBoundary != null)
+        {
+            newPosition = ClampPositionToBoundary(newPosition, PuzzleManage.Instance.dragBoundary, parentRect);
+        }
+
         rectTransform.anchoredPosition = newPosition;
     }
 
@@ -159,7 +165,23 @@ public class Puzzle : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
         if (currentSlot == null)
             StartFloating();
     }
+    private Vector2 ClampPositionToBoundary(Vector2 targetPos, RectTransform boundary, RectTransform parentRect)
+    {
+        if (boundary == null) return targetPos;
 
+        // 获取边界矩形的世界坐标四个角
+        Vector3[] worldCorners = new Vector3[4];
+        boundary.GetWorldCorners(worldCorners);
+
+        // 转换到父级局部坐标
+        Vector2 min = parentRect.InverseTransformPoint(worldCorners[0]); // 左下角
+        Vector2 max = parentRect.InverseTransformPoint(worldCorners[2]); // 右上角
+
+        float clampedX = Mathf.Clamp(targetPos.x, min.x, max.x);
+        float clampedY = Mathf.Clamp(targetPos.y, min.y, max.y);
+
+        return new Vector2(clampedX, clampedY);
+    }
     // 插槽交互
     public void OnSnappedToSlot()
     {

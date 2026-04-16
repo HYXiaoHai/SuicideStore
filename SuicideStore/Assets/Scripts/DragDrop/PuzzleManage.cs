@@ -16,10 +16,19 @@ public class PuzzleManage : MonoBehaviour
     public Puzzle[] puzzles2;//第二轮拼图
     public Puzzle[] puzzles3;//第三轮拼图
 
+    [Header("拼图边界")]
+    public RectTransform dragBoundary; // 拖拽限制区域
+
     [Header("插槽")]
     public Slot slot0;
     public Slot slot1;
     public Slot slot2;
+
+    [Header("默认出生位置")]
+    public Transform rectTransform1;//第一个默认出生位置
+    public Transform rectTransform2;//第二个默认出生位置
+    public Transform rectTransform3;//第三个默认出生位置
+
 
     private Puzzle[] currentPuzzles;   // 当前激活的拼图数组
     private int currentRound = 0;      // 0=第一轮, 1=第二轮, 2=第三轮
@@ -141,6 +150,18 @@ public class PuzzleManage : MonoBehaviour
         currentPuzzles = newPuzzles;
         currentRound = round;
 
+        // 准备三个默认出生点（必须已赋值）
+        Transform[] spawnPoints = { rectTransform1, rectTransform2, rectTransform3 };
+        // 随机打乱出生点顺序（用于随机分配）
+        System.Random rng = new System.Random();
+        for (int i = spawnPoints.Length - 1; i > 0; i--)
+        {
+            int j = rng.Next(i + 1);
+            Transform temp = spawnPoints[i];
+            spawnPoints[i] = spawnPoints[j];
+            spawnPoints[j] = temp;
+        }
+
         // 建立 id -> Slot 的映射
         var slotMap = new Dictionary<int, Slot>
     {
@@ -150,19 +171,17 @@ public class PuzzleManage : MonoBehaviour
     };
 
         // 遍历当前轮次的拼图，根据其 id 设置对应插槽的位置
-        foreach (Puzzle puzzle in currentPuzzles)
+        for (int i = 0; i < currentPuzzles.Length; i++)
         {
+            Puzzle puzzle = currentPuzzles[i];
             if (puzzle == null) continue;
 
             // 根据拼图的 id 找到对应的插槽
             if (slotMap.TryGetValue(puzzle.id, out Slot targetSlot) && targetSlot != null)
             {
-                // 如果拼图配置了 currentSlotPosition，则将插槽移动到该位置
                 if (puzzle.currentSlotPosition != null)
                 {
                     targetSlot.transform.position = puzzle.currentSlotPosition.position;
-                    // 如果需要同步旋转，可以取消注释下一行
-                    // targetSlot.transform.rotation = puzzle.currentSlotPosition.rotation;
                     Debug.Log($"设置插槽 {puzzle.id} 的位置到 {puzzle.currentSlotPosition.position}");
                 }
                 else
@@ -179,15 +198,29 @@ public class PuzzleManage : MonoBehaviour
             puzzle.gameObject.SetActive(true);
             puzzle.currentSlot = null;
 
-            // 移动到默认位置（漂浮起始点）
-            if (puzzle.defaultPosition != null)
+            // 分配到随机出生点（使用打乱后的 spawnPoints[i]）
+            Transform spawnPoint = spawnPoints[i];
+            if (spawnPoint != null)
             {
-                RectTransform targetRect = puzzle.defaultPosition.GetComponent<RectTransform>();
+                RectTransform targetRect = spawnPoint.GetComponent<RectTransform>();
                 if (targetRect != null)
                     puzzle.GetComponent<RectTransform>().anchoredPosition = targetRect.anchoredPosition;
                 else
-                    puzzle.transform.position = puzzle.defaultPosition.position;
+                    puzzle.transform.position = spawnPoint.position;
             }
+            else
+            {
+                Debug.LogWarning($"出生点 {i} 未赋值！使用拼图自身的 defaultPosition 作为后备");
+                if (puzzle.defaultPosition != null)
+                {
+                    RectTransform targetRect = puzzle.defaultPosition.GetComponent<RectTransform>();
+                    if (targetRect != null)
+                        puzzle.GetComponent<RectTransform>().anchoredPosition = targetRect.anchoredPosition;
+                    else
+                        puzzle.transform.position = puzzle.defaultPosition.position;
+                }
+            }
+
             // 设置随机旋转
             puzzle.SetRandomRotation();
             // 重置运动方向并开始漂浮
