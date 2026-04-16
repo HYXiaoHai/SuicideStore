@@ -2,6 +2,7 @@ using DG.Tweening;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting.Antlr3.Runtime.Misc;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 //拼图系统
@@ -9,15 +10,20 @@ public class PuzzleManage : MonoBehaviour
 {
     public static PuzzleManage Instance;
     public CanvasGroup puzzleArea;//用来控制拼图区域显示的
-
     
     [Header("拼图")]
     public Puzzle[] puzzles1;//第一轮拼图
     public Puzzle[] puzzles2;//第二轮拼图
     public Puzzle[] puzzles3;//第三轮拼图
 
-    [Header("拼图边界")]
-    public RectTransform dragBoundary; // 拖拽限制区域
+    [Header("拖拽边界（相对于拼图父级局部坐标）")]
+    public float dragLeft = -500f;
+    public float dragRight = 500f;
+    public float dragTop = 300f;
+    public float dragBottom = -300f;
+    // 需要手动指定拼图的父级 RectTransform（用于可视化，如果不指定则无法显示边界）
+    [Header("可视化参考（拼图的父级 RectTransform）")]
+    public RectTransform puzzleParentReference;
 
     [Header("插槽")]
     public Slot slot0;
@@ -248,4 +254,39 @@ public class PuzzleManage : MonoBehaviour
             }
         }
     }
+
+#if UNITY_EDITOR
+    private void OnDrawGizmos()
+    {
+        if (puzzleParentReference == null) return;
+
+        // 定义局部坐标下的四个角（左下、左上、右上、右下）
+        Vector3 localMin = new Vector3(dragLeft, dragBottom, 0);
+        Vector3 localMax = new Vector3(dragRight, dragTop, 0);
+        Vector3[] localCorners = new Vector3[]
+        {
+            new Vector3(localMin.x, localMin.y, 0), // 左下
+            new Vector3(localMin.x, localMax.y, 0), // 左上
+            new Vector3(localMax.x, localMax.y, 0), // 右上
+            new Vector3(localMax.x, localMin.y, 0)  // 右下
+        };
+
+        // 转换到世界坐标
+        Vector3[] worldCorners = new Vector3[4];
+        for (int i = 0; i < 4; i++)
+        {
+            worldCorners[i] = puzzleParentReference.TransformPoint(localCorners[i]);
+        }
+
+        Gizmos.color = Color.green;
+        // 绘制线框
+        Gizmos.DrawLine(worldCorners[0], worldCorners[1]);
+        Gizmos.DrawLine(worldCorners[1], worldCorners[2]);
+        Gizmos.DrawLine(worldCorners[2], worldCorners[3]);
+        Gizmos.DrawLine(worldCorners[3], worldCorners[0]);
+
+        // 绘制半透明填充（需要 Handles）
+        Handles.DrawSolidRectangleWithOutline(worldCorners, new Color(0, 1, 0, 0.1f), Color.green);
+    }
+#endif
 }

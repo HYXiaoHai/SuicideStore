@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using DG.Tweening;
 using System.Collections;
+using UnityEditor.ShaderGraph.Internal;
 
 public class DefendManage : MonoBehaviour
 {
@@ -36,6 +37,7 @@ public class DefendManage : MonoBehaviour
 
     [Header("转场")]
     public string nextSceneName;
+    public CanvasGroup defendCanvasGroup;
 
     private Coroutine randomBubbleCoroutine; // 右侧随机气泡协程
     private bool isScene2Started = false; // 是否已开始场景2流程
@@ -164,7 +166,7 @@ public class DefendManage : MonoBehaviour
 
 
     //生成气泡
-    public DialogueBubble SendBubble(Transform parent, string content,bool isright,float scale)
+    public DialogueBubble SendBubble(Transform parent, string content,bool isright,float scale,float time = 2f)
     {
         if ((isright && bubblePrefab_right == null) || (!isright && bubblePrefab_left == null) || parent == null)
             return null;
@@ -177,7 +179,7 @@ public class DefendManage : MonoBehaviour
             RectTransform start = isright ? rightDialogueShotStart : leftDialogueShotStart;
             RectTransform end = isright ? rightDialogueShotEnd : leftDialogueShotEnd;
             // 动画时长可调，这里设为 1 秒
-            bubble.AnimateBubble(content, start, end, 2f, scale);
+            bubble.AnimateBubble(content, start, end, time, scale);
         }
         else
         {
@@ -282,12 +284,15 @@ public class DefendManage : MonoBehaviour
     public void OnSpecialDefendButtonClick()
     {
         Debug.Log("特殊辩解按钮被点击");
-
         // 播放音效（预留）
         // AudioSource.PlayClipAtPoint(successClip, Camera.main.transform.position);
-
         // 发送左侧对话框 "....."
-        SendBubble(leftFather, ".....",false,1f);
+
+        StartCoroutine(loadScence());
+    }
+    public IEnumerator loadScence()
+    {
+        SendBubble(leftFather, ".....", false, 1f,3.5f);
 
         // 游戏结束或不再重置拼图，可禁用所有交互
         HideSpecialDefendButton();
@@ -300,8 +305,16 @@ public class DefendManage : MonoBehaviour
         {
             p.enabled = false; // 禁用脚本，阻止拖拽
         }
-
-        LoadScene();
+        defendCanvasGroup.DOFade(0f,3.5f).SetEase(Ease.InExpo);
+        yield return new WaitForSeconds(3.5f);
+        if (!string.IsNullOrEmpty(nextSceneName))
+        {
+            UnityEngine.SceneManagement.SceneManager.LoadScene(nextSceneName);
+        }
+        else
+        {
+            Debug.LogWarning("Next scene name is not set!");
+        }
     }
     public void ShowFinalBubble()
     {
@@ -347,7 +360,7 @@ public class DefendManage : MonoBehaviour
             DialogueBubble bubble = child.GetComponent<DialogueBubble>();
             if (bubble != null)
             {
-                child.DOKill();
+                bubble.transform.DOKill();
                 Destroy(child.gameObject);
             }
         }
@@ -360,15 +373,4 @@ public class DefendManage : MonoBehaviour
         SendBubble(leftFather, msg,false, 1f);
     }
 
-    public void LoadScene()
-    {
-        if (!string.IsNullOrEmpty(nextSceneName))
-        {
-            UnityEngine.SceneManagement.SceneManager.LoadScene(nextSceneName);
-        }
-        else
-        {
-            Debug.LogWarning("Next scene name is not set!");
-        }
-    }
 }
