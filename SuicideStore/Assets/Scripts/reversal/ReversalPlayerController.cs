@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class Move : MonoBehaviour
+public class ReversalPlayerController : MonoBehaviour
 {
     public GameObject Player;
     public float moveSpeed = 5f;
