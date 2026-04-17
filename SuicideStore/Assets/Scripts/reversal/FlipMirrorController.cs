@@ -5,61 +5,93 @@ using UnityEngine;
 public class FlipMirrorController : MonoBehaviour
 {
     [Header("蒙版层")]
-    public GameObject currentMidleObject;//中间翻转层
-    public GameObject currentUnderObject;//底部翻转层
-    public GameObject currentUpObject;//上层翻转层
-    public int isDefaultState = 1;//当前翻转镜模式 1：默认模式  -1：拍照模式
+    public GameObject currentOuterLayer;// 外层线稿（有碰撞体，不可见但碰撞体有效）
+    public GameObject currentMiddleLayer;// 中层正常场景（障碍物）
+    public GameObject currentInnerLayer;// 内层透视提示（文字等）
+    public bool isDefaultMode = true;//当前翻转镜模式
     [Header("翻转镜移动")]
     private Vector3 offset;
     private Camera mainCamera;
     public bool canMove = true;
-
+    [Header("玩家控制")]
+    public ReversalPlayerController playerController;
     void Start()
     {
         mainCamera = Camera.main;
+
+        isDefaultMode = true;
+        canMove = isDefaultMode;
+        ApplyMode(isDefaultMode);
     }
 
     //跟随鼠标移动
     void Update()
     {
-        MirrorMove();
-        if(Input.GetMouseButtonDown(0))
+        // 普通模式下镜子跟随鼠标
+        if (canMove)
         {
-            
-            if (isDefaultState == -1)
-            {
-                //切回默认模式
-                currentUpObject.SetActive(true);
-                currentUpObject.GetComponent<SpriteRenderer>().maskInteraction = SpriteMaskInteraction.VisibleOutsideMask;
-                currentMidleObject.SetActive(true);
-                currentMidleObject.GetComponent<SpriteRenderer>().maskInteraction = SpriteMaskInteraction.None;
-                currentUnderObject.SetActive(false);
-                isDefaultState = 1;
-                canMove = true;
-                Time.timeScale = 1f;
-            }
-            else
-            {
-                //切回拍照模式
-                currentUpObject.SetActive(false);
-                currentMidleObject.SetActive(true);
-                currentMidleObject.GetComponent<SpriteRenderer>().maskInteraction = SpriteMaskInteraction.VisibleOutsideMask;
-                currentUnderObject.SetActive(true);
-                isDefaultState = -1;
-                canMove = false;
-                Time.timeScale = 0f;
-            }
+            MirrorMove();
+        }
+
+        //切换模式
+        if (Input.GetMouseButtonDown(0))
+        {
+            SwitchMode();
         }
     }
 
     public void MirrorMove()
     {
-        if(canMove == false)
-        {
-            return;
-        }
         Vector3 mouseWorld = mainCamera.ScreenToWorldPoint(Input.mousePosition);
         mouseWorld.z = 0;
         transform.position = mouseWorld + offset;
+    }
+    public void SwitchMode()
+    {
+        isDefaultMode = !isDefaultMode;
+        ApplyMode(isDefaultMode);
+
+        canMove = isDefaultMode;
+
+        // 控制玩家移动权限（拍照模式玩家不可操控）
+        if (playerController != null)
+            playerController.SetCanMove(isDefaultMode);
+
+        // 拍照模式时间暂停（也可只禁用玩家输入，这里按需求暂停时间）
+        Time.timeScale = isDefaultMode ? 1f : 0f;
+    }
+
+    void ApplyMode(bool defaultMode)
+    {
+        if (defaultMode == true)
+        {
+            //切回默认模式
+            currentOuterLayer.SetActive(true);//开启外层图层
+            currentOuterLayer.GetComponent<SpriteRenderer>().maskInteraction = SpriteMaskInteraction.VisibleOutsideMask;
+
+            currentMiddleLayer.SetActive(true);
+            foreach (var item in currentMiddleLayer.GetComponentsInChildren<SpriteRenderer>())
+            {
+                item.maskInteraction = SpriteMaskInteraction.None;
+            }
+            //currentMiddleLayer.GetComponent<SpriteRenderer>().maskInteraction = SpriteMaskInteraction.None;
+
+            currentInnerLayer.SetActive(false);//关闭内层图层以及文字提示
+
+        }
+        else
+        {
+            //切回拍照模式
+            currentOuterLayer.SetActive(false);//关闭外层图层
+
+            currentMiddleLayer.SetActive(true);
+            foreach (var item in currentMiddleLayer.GetComponentsInChildren<SpriteRenderer>())
+            {
+                item.maskInteraction = SpriteMaskInteraction.VisibleOutsideMask;
+            }
+            //currentMiddleLayer.GetComponent<SpriteRenderer>().maskInteraction = SpriteMaskInteraction.VisibleOutsideMask;
+
+            currentInnerLayer.SetActive(true);//
+        }
     }
 }

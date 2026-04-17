@@ -15,6 +15,7 @@ public class ReversalPlayerController : MonoBehaviour
     private Rigidbody2D rb;
     private int currentDirection = 1;       // 1: 右, -1: 左
     private bool isGrounded;
+    private bool canControl = true;
 
     void Start()
     {
@@ -29,9 +30,18 @@ public class ReversalPlayerController : MonoBehaviour
         if (groundCheck == null)
             Debug.LogWarning("请为 groundCheck 赋值一个 Transform（玩家脚底的空物体）");
     }
-
+    public void SetCanMove(bool canMove)
+    {
+        canControl = canMove;
+        // 可选：停止刚体速度，避免惯性
+        if (!canMove && rb != null)
+        {
+            rb.velocity = Vector2.zero;
+        }
+    }
     void Update()
     {
+        if (!canControl) return;
         // 地面检测
         isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
 
@@ -60,6 +70,7 @@ public class ReversalPlayerController : MonoBehaviour
 
     private void FixedUpdate()
     {
+        if (!canControl) return;
         // 水平移动（使用物理速度，保持平滑）
         float h = Input.GetAxis("Horizontal");
         Vector2 targetVelocity = new Vector2(h * moveSpeed, rb.velocity.y);

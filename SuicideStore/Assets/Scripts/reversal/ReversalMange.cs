@@ -9,9 +9,12 @@ public class ReversalMange : MonoBehaviour
     public int currentLevel = 1;//当前的关卡
     
     [Header("交互相关")]
-    public GameObject showInteractionObject1;//第一关获得所有金币后的呈现物品
-    public GameObject showInteractionObject2;//第二关获得所有金币后的呈现物品
-    public GameObject showInteractionObject3;//第三关获得所有金币后的呈现物品
+    public GameObject showInteractionObject1;//第一关获得金币后的呈现物品（修改图片）
+    public Sprite sprite1;
+    public GameObject showInteractionObject2;//第二关获得金币后的呈现物品（修改图片）
+    public Sprite sprite2;
+    public GameObject showInteractionObject3;//第三关获得金币后的呈现物品（修改图片）
+    public Sprite sprite3;
 
     [Header("传送门")]
     public Portal portal1;//传送门1 完成交互后开启
