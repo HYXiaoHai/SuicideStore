@@ -5,15 +5,15 @@ using UnityEngine;
 public class FlipMirrorController : MonoBehaviour
 {
     [Header("蒙版层")]
-    public GameObject currentMidleObject;//当前的翻转层
-    public GameObject currentUpObject;//当前的翻转层
-    public bool isUP;
+    public GameObject currentMidleObject;//中间翻转层
+    public GameObject currentUnderObject;//底部翻转层
+    public GameObject currentUpObject;//上层翻转层
+    public int isDefaultState = 1;//当前翻转镜模式 1：默认模式  -1：拍照模式
     [Header("翻转镜移动")]
     private Vector3 offset;
     private Camera mainCamera;
     public bool canMove = true;
 
-    public int isDefaultState  = 1;//当前翻转镜模式 1：默认模式  2：拍照模式
     void Start()
     {
         mainCamera = Camera.main;
@@ -26,21 +26,28 @@ public class FlipMirrorController : MonoBehaviour
         if(Input.GetMouseButtonDown(0))
         {
             
-            if (isUP)
+            if (isDefaultState == -1)
             {
-                currentUpObject.SetActive(false);
+                //切回默认模式
+                currentUpObject.SetActive(true);
+                currentUpObject.GetComponent<SpriteRenderer>().maskInteraction = SpriteMaskInteraction.VisibleOutsideMask;
                 currentMidleObject.SetActive(true);
-                isUP = false;
-                canMove = false;
-                Time.timeScale = 0f;
+                currentMidleObject.GetComponent<SpriteRenderer>().maskInteraction = SpriteMaskInteraction.None;
+                currentUnderObject.SetActive(false);
+                isDefaultState = 1;
+                canMove = true;
+                Time.timeScale = 1f;
             }
             else
             {
-                currentUpObject.SetActive(true);
-                currentMidleObject.SetActive(false);
-                isUP = true;
-                canMove = true;
-                Time.timeScale = 1f;
+                //切回拍照模式
+                currentUpObject.SetActive(false);
+                currentMidleObject.SetActive(true);
+                currentMidleObject.GetComponent<SpriteRenderer>().maskInteraction = SpriteMaskInteraction.VisibleOutsideMask;
+                currentUnderObject.SetActive(true);
+                isDefaultState = -1;
+                canMove = false;
+                Time.timeScale = 0f;
             }
         }
     }
