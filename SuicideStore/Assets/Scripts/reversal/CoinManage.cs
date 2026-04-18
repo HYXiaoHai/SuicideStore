@@ -43,7 +43,6 @@ public class CoinManage : MonoBehaviour
         Debug.Log(originalBaseOffset + " " + originalChainOffset);
         Vector3 actualBaseOffset = new Vector3(baseOffset.x * direction, originalBaseOffset.y, originalBaseOffset.z);
         Vector3 actualChainOffset = new Vector3(chainOffset.x * direction, originalChainOffset.y, originalChainOffset.z);
-        Debug.Log(actualBaseOffset+" "+actualChainOffset);
         for (int i = 0; i < coins.Count; i++)
         {
             if (i == 0)

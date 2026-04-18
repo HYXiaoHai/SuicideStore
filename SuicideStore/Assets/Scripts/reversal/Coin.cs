@@ -16,7 +16,8 @@ public class Coin : MonoBehaviour
     public bool canTrack = false;
 
     private Tweener moveTweener;   // 当前移动动画的引用
-
+    private bool isCollected = false;          // 防止重复触发
+    private bool isLevelCoin = false;           // 是否是关卡完成金币
     void Start()
     {
         
@@ -26,6 +27,12 @@ public class Coin : MonoBehaviour
     {
         if (collision.CompareTag("Player") && !canTrack)
         {
+            isCollected = true;
+
+            // 如果是关卡完成金币，通知管理器
+            if (isLevelCoin && ReversalMange.Instance != null)
+                ReversalMange.Instance.OnLevelCoinCollected();
+
             Add();
             StartTrack();
         }
@@ -48,7 +55,11 @@ public class Coin : MonoBehaviour
         trackObject = target;
         offset = off;
     }
-
+    // 外部调用，标记这是关卡完成金币
+    public void SetIsLevelCoin(bool value)
+    {
+        isLevelCoin = value;
+    }
     void Update()
     {
         if (!canTrack || trackObject == null) return;

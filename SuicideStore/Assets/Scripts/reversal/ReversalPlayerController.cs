@@ -3,61 +3,148 @@ using UnityEngine;
 public class ReversalPlayerController : MonoBehaviour
 {
     public GameObject Player;
-    public float moveSpeed = 5f;
-    public float jumpForce = 10f;          // 跳跃力度
-    public LayerMask groundLayer;           // 地面层（用于检测是否在地面）
-    public Transform groundCheck;           // 地面检测点（通常放在玩家脚底）
-    public float groundCheckRadius = 0.2f;  // 检测半径
 
-    public CoinManage coinChainManager;     // 金币管理器（注意类名与你代码中一致）
+    [Header("移动参数")]
+    public float moveSpeed = 8f;
+    public float acceleration = 50f;
+    public float deceleration = 40f;
+    public float velPower = 1.2f;
+    public float frictionAmount = 15f;
+
+    [Header("跳跃参数")]
+    public float jumpForce = 12f;
+    public float coyoteTime = 0.1f;
+    public float jumpBufferTime = 0.1f;
+    public float jumpCutMultiplier = 0.5f;   // 建议 0.3~0.7
+    public float fallGravityMultiplier = 2f;
+    public float gravityScale = 1f;
+    public float lastJumpTime;               // 记录最后一次跳跃的时间
+
+    [Header("地面检测")]
+    public LayerMask groundLayer;
+    public Transform groundCheck;
+    public float groundCheckRadius = 0.2f;
+
+    [Header("引用")]
+    public CoinManage coinChainManager;
 
     private SpriteRenderer spriteRenderer;
     private Rigidbody2D rb;
-    private int currentDirection = 1;       // 1: 右, -1: 左
-    private bool isGrounded;
+    private int currentDirection = 1;
     private bool canControl = true;
+
+    private float moveInput;
+    private float coyoteTimer = 0f;
+    private float jumpBufferTimer = 0f;
+    private bool isJumping = false;
+    private bool jumpInputReleased = false;
 
     void Start()
     {
-        // 获取组件
         spriteRenderer = Player.GetComponent<SpriteRenderer>();
         rb = Player.GetComponent<Rigidbody2D>();
 
         if (rb == null)
-            Debug.LogError("Player 需要添加 Rigidbody2D 组件！");
-        if (spriteRenderer == null)
-            Debug.LogWarning("Player 没有 SpriteRenderer，无法翻转");
+            Debug.LogError("需要 Rigidbody2D 组件！");
         if (groundCheck == null)
-            Debug.LogWarning("请为 groundCheck 赋值一个 Transform（玩家脚底的空物体）");
+            Debug.LogWarning("请指定 groundCheck (玩家脚底的空物体)");
+
+        rb.gravityScale = gravityScale;
     }
+
     public void SetCanMove(bool canMove)
     {
         canControl = canMove;
-        // 可选：停止刚体速度，避免惯性
         if (!canMove && rb != null)
-        {
             rb.velocity = Vector2.zero;
-        }
     }
+
     void Update()
     {
         if (!canControl) return;
-        // 地面检测
-        isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
 
-        // 水平输入
-        float h = Input.GetAxis("Horizontal");
+        moveInput = Input.GetAxisRaw("Horizontal");
+        //地面检测
+        UpdateGroundDetection();
 
-        // 跳跃输入（只有在地面时才能跳跃）
-        if (Input.GetButtonDown("Jump") && isGrounded)
+        if (Input.GetButtonDown("Jump"))
         {
-            rb.velocity = new Vector2(rb.velocity.x, jumpForce);
+            jumpBufferTimer = jumpBufferTime;
+            jumpInputReleased = false;
         }
-
-        // 处理方向翻转（左右翻转）
-        if (h != 0)
+        if (jumpBufferTimer > 0 && coyoteTimer > 0)
         {
-            int newDir = h > 0 ? 1 : -1;
+            OnJump();
+        }
+        HandleJumpUp();
+        UpdateGravity();
+        HandleFlip();
+
+        if (jumpBufferTimer > 0)
+            jumpBufferTimer -= Time.deltaTime;
+    }
+
+    private void UpdateGroundDetection()
+    {
+        bool isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
+        if (isGrounded)
+        {
+            coyoteTimer = coyoteTime;
+            isJumping = false;
+        }
+        else
+        {
+            coyoteTimer -= Time.deltaTime;
+        }
+    }
+
+    private void OnJump()
+    {
+        rb.velocity = new Vector2(rb.velocity.x, 0f);
+        rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
+        isJumping = true;
+        lastJumpTime = Time.time;          // 记录跳跃时刻
+        jumpBufferTimer = 0;
+        coyoteTimer = 0;
+    }
+
+    private void HandleJumpUp()
+    {
+        if (Input.GetButtonUp("Jump") && isJumping && rb.velocity.y > 0)
+        {
+            OnJumpUp();
+        }
+    }
+
+    private void OnJumpUp()
+    {
+        if (rb.velocity.y > 0 && isJumping)
+        {
+            // 施加向下的冲量，减少上升速度
+            rb.AddForce(Vector2.down * rb.velocity.y * (1 - jumpCutMultiplier), ForceMode2D.Impulse);
+        }
+        jumpInputReleased = true;
+        lastJumpTime = 0;
+        isJumping = false;
+    }
+
+    private void UpdateGravity()
+    {
+        if (rb.velocity.y < 0)
+        {
+            rb.gravityScale = gravityScale * fallGravityMultiplier;
+        }
+        else
+        {
+            rb.gravityScale = gravityScale;
+        }
+    }
+
+    private void HandleFlip()
+    {
+        if (moveInput != 0)
+        {
+            int newDir = moveInput > 0 ? 1 : -1;
             if (newDir != currentDirection)
             {
                 currentDirection = newDir;
@@ -66,15 +153,6 @@ public class ReversalPlayerController : MonoBehaviour
                     coinChainManager.UpdateDirection(currentDirection);
             }
         }
-    }
-
-    private void FixedUpdate()
-    {
-        if (!canControl) return;
-        // 水平移动（使用物理速度，保持平滑）
-        float h = Input.GetAxis("Horizontal");
-        Vector2 targetVelocity = new Vector2(h * moveSpeed, rb.velocity.y);
-        rb.velocity = targetVelocity;
     }
 
     private void FlipPlayer()
@@ -87,7 +165,25 @@ public class ReversalPlayerController : MonoBehaviour
         }
     }
 
-    // 可选：在 Scene 视图中可视化地面检测半径
+    private void FixedUpdate()
+    {
+        if (!canControl) return;
+
+        float targetSpeed = moveInput * moveSpeed;
+        float speedDif = targetSpeed - rb.velocity.x;
+        float accelRate = (Mathf.Abs(targetSpeed) > 0.01f) ? acceleration : deceleration;
+        float movement = Mathf.Pow(Mathf.Abs(speedDif) * accelRate, velPower) * Mathf.Sign(speedDif);
+        rb.AddForce(movement * Vector2.right);
+
+        bool isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
+        if (isGrounded && Mathf.Abs(moveInput) < 0.01f)
+        {
+            float frictionForce = Mathf.Min(Mathf.Abs(rb.velocity.x), frictionAmount);
+            frictionForce *= Mathf.Sign(rb.velocity.x);
+            rb.AddForce(Vector2.right * -frictionForce, ForceMode2D.Impulse);
+        }
+    }
+
     private void OnDrawGizmosSelected()
     {
         if (groundCheck != null)

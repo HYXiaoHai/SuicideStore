@@ -23,7 +23,16 @@ public class FlipMirrorController : MonoBehaviour
         canMove = isDefaultMode;
         ApplyMode(isDefaultMode);
     }
+    public void InitMirror(GameObject outlayer,GameObject middlelayer,GameObject innerlayer)
+    {
+        currentOuterLayer = outlayer;
+        currentMiddleLayer = middlelayer;
+        currentInnerLayer = innerlayer;
 
+        isDefaultMode = true;
+        canMove = isDefaultMode;
+        ApplyMode(isDefaultMode);
+    }
     //∏˙ÀÊ Û±Í“∆∂Ø
     void Update()
     {
