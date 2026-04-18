@@ -16,11 +16,11 @@ public class ReversalMange : MonoBehaviour
     [Header("地图层级2")]
     public GameObject level2OuterLayer;// 外层线稿（有碰撞体，不可见但碰撞体有效）
     public GameObject level2MiddleLayer;// 中层正常场景（障碍物）
-    public GameObject level2InnerLayer;// 内层透视提示（文字等）
+    public GameObject level2InnerLayer;//内层透视提示（文字等）
     [Header("地图层级3")]
-    public GameObject level3OuterLayer;// 外层线稿（有碰撞体，不可见但碰撞体有效）
-    public GameObject level3MiddleLayer;// 中层正常场景（障碍物）
-    public GameObject level3InnerLayer;// 内层透视提示（文字等）
+    public GameObject level3OuterLayer;//外层线稿（有碰撞体，不可见但碰撞体有效）
+    public GameObject level3MiddleLayer;//中层正常场景（障碍物）
+    public GameObject level3InnerLayer;//内层透视提示（文字等）
 
 
     [Header("交互相关")]
@@ -30,18 +30,23 @@ public class ReversalMange : MonoBehaviour
     public Sprite sprite2;
     public SpriteRenderer showInteractionObject3;//第三关获得金币后的呈现物品（修改图片）
     public Sprite sprite3;
-    [Header("交互相关")]
-    public int requiredInteractions = 3;          // 本关所需交互数量
-    private int completedInteractions = 0;        // 已完成交互数
-    
+    [Header("交互检测")]
+    public int requiredInteractions = 3;//本关所需交互数量
+    private int completedInteractions = 0;//已完成交互数
+    public bool canInteractItems = false;
+    [Header("交互显示")]
+    public GameObject[] interactPrompt1;//第一层提示
+    public GameObject[] interactPrompt2;//第二层提示
+    public GameObject[] interactPrompt3;//第三层提示
+
     [Header("金币")]
-    public GameObject coinPrefab;                 // 金币预制体
-    public Transform currentcoinSpawnPoint;              // 金币生成位置（可在场景中放一个空物体）
-    public Transform coinSpawnPoint1;              // 金币生成位置（可在场景中放一个空物体）
-    public Transform coinSpawnPoint2;              // 金币生成位置（可在场景中放一个空物体）
-    public Transform coinSpawnPoint3;              // 金币生成位置（可在场景中放一个空物体）
-    private GameObject spawnedCoin;               // 生成的金币实例
-    private bool coinSpawned = false;             // 是否已生成金币
+    public GameObject coinPrefab;                 //金币预制体
+    public Transform currentcoinSpawnPoint;       //金币生成位置（可在场景中放一个空物体）
+    public Transform coinSpawnPoint1;             //金币生成位置（可在场景中放一个空物体）
+    public Transform coinSpawnPoint2;             //金币生成位置（可在场景中放一个空物体）
+    public Transform coinSpawnPoint3;             //金币生成位置（可在场景中放一个空物体）
+    private GameObject spawnedCoin;               //生成的金币实例
+    private bool coinSpawned = false;             //是否已生成金币
 
     [Header("传送门")]
     public Portal currentPortal;//当前关卡的传送门
@@ -59,13 +64,28 @@ public class ReversalMange : MonoBehaviour
     void Start()
     {
         currentLevel = 1;
-        InitLevel(1);
+        InitLevel(currentLevel);
     }
     //初始化配置
     public void InitLevel(int level)
     {
+        Debug.Log("切换关卡"+level);
+        // 销毁上一层的金币（如果存在）
+        if (spawnedCoin != null)
+        {
+            Destroy(spawnedCoin);
+            spawnedCoin = null;
+        }
+        // 清空 CoinManage 中的金币列表，避免残留
+        if (CoinManage.instance != null)
+        {
+            CoinManage.instance.ClearCoins();
+        }
+        canInteractItems = false;   // 重置物品交互权限
+        currentLevel = level;   // 更新当前关卡编号
         completedInteractions = 0;
-        coinSpawned = false;    
+        coinSpawned = false;
+        EnableItemHints(currentLevel,false);
         switch (level)
         {
             case 1:
@@ -87,6 +107,38 @@ public class ReversalMange : MonoBehaviour
         }
         if (currentPortal != null)
             currentPortal.canTeleport = false;
+    }
+    public IEnumerator SetItemsInteractable(bool value)
+    {
+        yield return new WaitForSeconds(1f);
+        canInteractItems = value;
+        // 可选：同步显示/隐藏所有物品的交互提示（见下方说明）
+        EnableItemHints(currentLevel,value);
+    }
+    // 可选：控制场景中所有物品的提示显示（如果每个物品都挂载了 InteractableItem）
+    private void EnableItemHints(int level,bool enable)
+    {
+        switch (level)
+        {
+            case 1:
+               for(int i=0;i<3;i++)
+                {
+                    interactPrompt1[i].SetActive(enable);
+                }
+                break;
+            case 2:
+                for (int i = 0; i < 3; i++)
+                {
+                    interactPrompt2[i].SetActive(enable);
+                }
+                break;
+            case 3:
+                for (int i = 0; i < 3; i++)
+                {
+                    interactPrompt3[i].SetActive(enable);
+                }
+                break;
+        }
     }
     public void RegisterInteraction()
     {

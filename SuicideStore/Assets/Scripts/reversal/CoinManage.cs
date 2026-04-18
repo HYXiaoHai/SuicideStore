@@ -57,6 +57,10 @@ public class CoinManage : MonoBehaviour
             }
         }
     }
+    public void ClearCoins()
+    {
+        coins.Clear();
+    }
     public void AddCoin(Coin coin)
     {
         coins.Add(coin);
