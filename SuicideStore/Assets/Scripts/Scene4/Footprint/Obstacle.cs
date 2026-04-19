@@ -107,7 +107,18 @@ public class Obstacle : MonoBehaviour
             }
         }
     }
-
+    public void ResetVisibility()
+    {
+        // 重置出现标志
+        hasAppeared = false;
+        // 立即设置透明度为消失状态（无动画）
+        SetAlphaImmediate(disappearAlpha);
+        // 杀死正在进行的淡入淡出动画，防止残留
+        if (spriteRenderer != null)
+            spriteRenderer.DOKill();
+        else if (image != null)
+            image.DOKill();
+    }
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.red;

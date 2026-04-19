@@ -7,6 +7,9 @@ using UnityEngine.UI;
 
 public class SymmetricDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
+    private Vector3 startPosition;   // 起始位置
+    private bool gameStarted = false; // 是否已开始
+
     [Header("物体引用")]
     public RectTransform object2;//物体2的RectTransform
     public RectTransform target;//终点的RectTransform
@@ -84,9 +87,13 @@ public class SymmetricDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
         if (object2 != null)
             object2.position = rectTransform.position;
         lastObject2Position = object2.position;
-
+        startPosition = rectTransform.position; 
+                                                
+        gameStarted = false; // 初始时禁止交互，等待 StartGame 调用
         // 初始化进度条位置
         ImageSlider.position = startPoint.position;
+
+
 
         // 记录起始 X 和目标 X
         startX = rectTransform.position.x;
@@ -97,7 +104,37 @@ public class SymmetricDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 
         obstacles = new List<Obstacle>(FindObjectsOfType<Obstacle>());
     }
+    public void StartGame()
+    {
+        if (gameStarted) return;
+        gameStarted = true;
 
+        // 重置胜利标志
+        isWin = false;
+        hasTriggeredSwitch = false;
+
+        // 重置物体位置
+        rectTransform.position = startPosition;
+        if (object2 != null)
+            object2.position = GetObject2Position(startPosition);
+
+        // 重置进度条
+        currentValue = 0f;
+        UpdateImageSlider();
+
+
+        // 重置障碍物可见性（如果障碍物脚本有 ResetVisibility 方法）
+        if (enableObstacle && obstacles != null)
+        {
+            foreach (var obs in obstacles)
+            {
+                    obs.ResetVisibility();
+            }
+        }
+
+        // 确保拖拽标志重置
+        isDragging = false;
+    }
     //计算鼠标在 Canvas 平面上的世界坐标
     private bool GetMouseWorldPositionOnCanvas(out Vector3 worldPos)
     {
@@ -117,7 +154,7 @@ public class SymmetricDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 
     public void OnBeginDrag(PointerEventData eventData)
     {
-        if (isWin) return;
+        if (!gameStarted || isWin) return;
         isDragging = true;
         Vector3 mouseWorld;
         if (GetMouseWorldPositionOnCanvas(out mouseWorld))

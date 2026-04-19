@@ -111,7 +111,18 @@ public class GrowthComparison : MonoBehaviour
 
         if (Scene4Manage.Instance != null)
         {
-            Scene4Manage.Instance.ChangeCamera(nextLevelIndex,changeDelay);
+            // 假设 changeDelay = 2f，相机切换完成后启动第二关
+            Scene4Manage.Instance.ChangeCamera(nextLevelIndex, changeDelay, () =>
+            {
+                if (Scene4Manage.Instance.level2Manage != null)
+                {
+                    Scene4Manage.Instance.level2Manage.BeginGame();
+                }
+                else
+                {
+                    Debug.LogError("level2Manage 未在 Scene4Manage 中赋值！");
+                }
+            });
         }
         else
         {
