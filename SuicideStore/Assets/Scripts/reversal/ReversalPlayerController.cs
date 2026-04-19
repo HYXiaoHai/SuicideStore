@@ -4,28 +4,28 @@ public class ReversalPlayerController : MonoBehaviour
 {
     public GameObject Player;
 
-    [Header("ÒÆ¶¯²ÎÊý")]
+    [Header("ï¿½Æ¶ï¿½ï¿½ï¿½ï¿½ï¿½")]
     public float moveSpeed = 8f;
     public float acceleration = 50f;
     public float deceleration = 40f;
     public float velPower = 1.2f;
     public float frictionAmount = 15f;
 
-    [Header("ÌøÔ¾²ÎÊý")]
+    [Header("ï¿½ï¿½Ô¾ï¿½ï¿½ï¿½ï¿½")]
     public float jumpForce = 12f;
     public float coyoteTime = 0.1f;
     public float jumpBufferTime = 0.1f;
-    public float jumpCutMultiplier = 0.5f;   // ½¨Òé 0.3~0.7
+    public float jumpCutMultiplier = 0.5f;   // ï¿½ï¿½ï¿½ï¿½ 0.3~0.7
     public float fallGravityMultiplier = 2f;
     public float gravityScale = 1f;
-    public float lastJumpTime;               // ¼ÇÂ¼×îºóÒ»´ÎÌøÔ¾µÄÊ±¼ä
+    public float lastJumpTime;               // ï¿½ï¿½Â¼ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½Ô¾ï¿½ï¿½Ê±ï¿½ï¿½
 
-    [Header("µØÃæ¼ì²â")]
+    [Header("ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½")]
     public LayerMask groundLayer;
     public Transform groundCheck;
     public float groundCheckRadius = 0.2f;
 
-    [Header("ÒýÓÃ")]
+    [Header("ï¿½ï¿½ï¿½ï¿½")]
     public CoinManage coinChainManager;
 
     private SpriteRenderer spriteRenderer;
@@ -37,7 +37,6 @@ public class ReversalPlayerController : MonoBehaviour
     private float coyoteTimer = 0f;
     private float jumpBufferTimer = 0f;
     private bool isJumping = false;
-    private bool jumpInputReleased = false;
 
     void Start()
     {
@@ -45,9 +44,9 @@ public class ReversalPlayerController : MonoBehaviour
         rb = Player.GetComponent<Rigidbody2D>();
 
         if (rb == null)
-            Debug.LogError("ÐèÒª Rigidbody2D ×é¼þ£¡");
+            Debug.LogError("ï¿½ï¿½Òª Rigidbody2D ï¿½ï¿½ï¿½ï¿½ï¿½");
         if (groundCheck == null)
-            Debug.LogWarning("ÇëÖ¸¶¨ groundCheck (Íæ¼Ò½Åµ×µÄ¿ÕÎïÌå)");
+            Debug.LogWarning("ï¿½ï¿½Ö¸ï¿½ï¿½ groundCheck (ï¿½ï¿½Ò½Åµ×µÄ¿ï¿½ï¿½ï¿½ï¿½ï¿½)");
 
         rb.gravityScale = gravityScale;
     }
@@ -64,13 +63,12 @@ public class ReversalPlayerController : MonoBehaviour
         if (!canControl) return;
 
         moveInput = Input.GetAxisRaw("Horizontal");
-        //µØÃæ¼ì²â
+        //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         UpdateGroundDetection();
 
         if (Input.GetButtonDown("Jump"))
         {
             jumpBufferTimer = jumpBufferTime;
-            jumpInputReleased = false;
         }
         if (jumpBufferTimer > 0 && coyoteTimer > 0)
         {
@@ -103,7 +101,7 @@ public class ReversalPlayerController : MonoBehaviour
         rb.velocity = new Vector2(rb.velocity.x, 0f);
         rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
         isJumping = true;
-        lastJumpTime = Time.time;          // ¼ÇÂ¼ÌøÔ¾Ê±¿Ì
+        lastJumpTime = Time.time;          // ï¿½ï¿½Â¼ï¿½ï¿½Ô¾Ê±ï¿½ï¿½
         jumpBufferTimer = 0;
         coyoteTimer = 0;
     }
@@ -120,10 +118,8 @@ public class ReversalPlayerController : MonoBehaviour
     {
         if (rb.velocity.y > 0 && isJumping)
         {
-            // Ê©¼ÓÏòÏÂµÄ³åÁ¿£¬¼õÉÙÉÏÉýËÙ¶È
             rb.AddForce(Vector2.down * rb.velocity.y * (1 - jumpCutMultiplier), ForceMode2D.Impulse);
         }
-        jumpInputReleased = true;
         lastJumpTime = 0;
         isJumping = false;
     }

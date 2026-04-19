@@ -17,6 +17,7 @@ public class PhotoSystem : MonoBehaviour
     public float dialogueDuration = 2f;
 
     private SpriteRenderer[] photoRenderers;
+    private PhotoGlow[] photoGlowComponents;
     private bool[] photoTriggered;
 
     void Start()
@@ -28,6 +29,7 @@ public class PhotoSystem : MonoBehaviour
     void InitializePhotos()
     {
         photoRenderers = new SpriteRenderer[photos.Length];
+        photoGlowComponents = new PhotoGlow[photos.Length];
         photoTriggered = new bool[photos.Length];
 
         for (int i = 0; i < photos.Length; i++)
@@ -35,11 +37,16 @@ public class PhotoSystem : MonoBehaviour
             if (photos[i] != null)
             {
                 photoRenderers[i] = photos[i].GetComponent<SpriteRenderer>();
+                photoGlowComponents[i] = photos[i].GetComponent<PhotoGlow>();
                 photoTriggered[i] = false;
+
+                if (photoGlowComponents[i] != null)
+                {
+                    photoGlowComponents[i].StartGlow();
+                }
             }
         }
 
-        // 隐藏对话面板
         if (dialoguePanel != null)
         {
             dialoguePanel.SetActive(false);
@@ -48,7 +55,6 @@ public class PhotoSystem : MonoBehaviour
 
     void HighlightCurrentPhoto()
     {
-        // 重置所有照片
         for (int i = 0; i < photos.Length; i++)
         {
             if (photoRenderers[i] != null)
@@ -57,7 +63,6 @@ public class PhotoSystem : MonoBehaviour
             }
         }
 
-        // 高亮当前照片
         if (currentPhotoIndex < photos.Length && photoRenderers[currentPhotoIndex] != null)
         {
             photoRenderers[currentPhotoIndex].color = new Color(highlightIntensity, highlightIntensity, highlightIntensity);
@@ -83,7 +88,11 @@ public class PhotoSystem : MonoBehaviour
             dialoguePanel.SetActive(true);
         }
 
-        // 恢复正常颜色
+        if (photoGlowComponents[photoIndex] != null)
+        {
+            photoGlowComponents[photoIndex].StopGlow();
+        }
+
         if (photoRenderers[photoIndex] != null)
         {
             photoRenderers[photoIndex].color = Color.white;
@@ -94,13 +103,11 @@ public class PhotoSystem : MonoBehaviour
     {
         yield return new WaitForSeconds(dialogueDuration);
 
-        // 隐藏对话面板
         if (dialoguePanel != null)
         {
             dialoguePanel.SetActive(false);
         }
 
-        // 移动到下一个照片
         currentPhotoIndex = (currentPhotoIndex + 1) % photos.Length;
         HighlightCurrentPhoto();
     }
