@@ -47,6 +47,10 @@ public class FlipMirrorController : MonoBehaviour
         {
             SwitchMode();
         }
+        //if (Input.GetMouseButtonUp(0))
+        //{
+        //    SwitchMode();
+        //}
     }
 
     public void MirrorMove()
