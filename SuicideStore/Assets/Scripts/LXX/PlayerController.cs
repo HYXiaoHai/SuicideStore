@@ -11,13 +11,20 @@ public class PlayerController : MonoBehaviour
     public float groundCheckRadius = 0.2f;
     public LayerMask groundLayer;
 
+    [Header("平台跳跃设置")]
+    public KeyCode jumpDownKey = KeyCode.S;
+    public float jumpCooldown = 0.5f;
+
     private Rigidbody2D rb;
     private bool isGrounded;
     private bool canJump;
+    private float lastJumpTime = 0f;
+    private PlatformManager platformManager;
 
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
+        platformManager = FindObjectOfType<PlatformManager>();
     }
 
     void Update()
@@ -35,6 +42,31 @@ public class PlayerController : MonoBehaviour
         {
             rb.AddForce(new Vector2(0, jumpForce), ForceMode2D.Impulse);
             canJump = false;
+        }
+
+        // 平台跳跃（S键）
+        if (Input.GetKeyDown(jumpDownKey))
+        {
+            TryJumpDown();
+        }
+    }
+
+    void TryJumpDown()
+    {
+        if (Time.time - lastJumpTime < jumpCooldown)
+        {
+            return;
+        }
+
+        if (platformManager == null)
+        {
+            return;
+        }
+
+        bool jumped = platformManager.TryJumpToLowerPlatform();
+        if (jumped)
+        {
+            lastJumpTime = Time.time;
         }
     }
 }
