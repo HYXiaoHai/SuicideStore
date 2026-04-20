@@ -4,14 +4,14 @@ public class ReversalPlayerController : MonoBehaviour
 {
     public GameObject Player;
 
-    [Header("�ƶ�����")]
+    [Header("角色移动")]
     public float moveSpeed = 8f;
     public float acceleration = 50f;
     public float deceleration = 40f;
     public float velPower = 1.2f;
     public float frictionAmount = 15f;
 
-    [Header("��Ծ����")]
+    [Header("角色跳跃")]
     public float jumpForce = 12f;
     public float coyoteTime = 0.1f;
     public float jumpBufferTime = 0.1f;
@@ -20,12 +20,15 @@ public class ReversalPlayerController : MonoBehaviour
     public float gravityScale = 1f;
     public float lastJumpTime;               // ��¼���һ����Ծ��ʱ��
 
-    [Header("������")]
+    [Header("地面检测")]
     public LayerMask groundLayer;
     public Transform groundCheck;
     public float groundCheckRadius = 0.2f;
 
-    [Header("����")]
+    [Header("动画")]
+    public Animator playerAnimitor;
+    private bool isFalling = false;
+    [Header("金币")]
     public CoinManage coinChainManager;
 
     private SpriteRenderer spriteRenderer;
@@ -63,8 +66,9 @@ public class ReversalPlayerController : MonoBehaviour
         if (!canControl) return;
 
         moveInput = Input.GetAxisRaw("Horizontal");
-        //������
         UpdateGroundDetection();
+        //移动动画
+        playerAnimitor.SetBool("isMoving", Mathf.Abs(moveInput) > 0);
 
         if (Input.GetButtonDown("Jump"))
         {
@@ -85,10 +89,13 @@ public class ReversalPlayerController : MonoBehaviour
     private void UpdateGroundDetection()
     {
         bool isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
+        playerAnimitor.SetBool("isGrounded", isGrounded);
         if (isGrounded)
         {
             coyoteTimer = coyoteTime;
             isJumping = false;
+            isFalling = false;          // 落地重置
+            playerAnimitor.SetBool("isFalling", false);
         }
         else
         {
@@ -98,12 +105,19 @@ public class ReversalPlayerController : MonoBehaviour
 
     private void OnJump()
     {
+        //动画切换
+        playerAnimitor.SetTrigger("JumpTrigger");
+        Debug.Log("跳跃");
+        //施加力
         rb.velocity = new Vector2(rb.velocity.x, 0f);
         rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
         isJumping = true;
         lastJumpTime = Time.time;          // ��¼��Ծʱ��
         jumpBufferTimer = 0;
         coyoteTimer = 0;
+
+        // 重置下降标志（动画器会等待 isFalling 变为 true）
+        playerAnimitor.SetBool("isFalling", false);
     }
 
     private void HandleJumpUp()
@@ -116,6 +130,9 @@ public class ReversalPlayerController : MonoBehaviour
 
     private void OnJumpUp()
     {
+        playerAnimitor.SetTrigger("JumpTrigger");
+        // 重置下降标志（动画器会等待 isFalling 变为 true）
+        playerAnimitor.SetBool("isFalling", false);
         if (rb.velocity.y > 0 && isJumping)
         {
             rb.AddForce(Vector2.down * rb.velocity.y * (1 - jumpCutMultiplier), ForceMode2D.Impulse);
@@ -128,11 +145,16 @@ public class ReversalPlayerController : MonoBehaviour
     {
         if (rb.velocity.y < 0)
         {
+            Debug.Log("下落");
             rb.gravityScale = gravityScale * fallGravityMultiplier;
+            isFalling = true;
+            playerAnimitor.SetBool("isFalling", true);
         }
         else
         {
             rb.gravityScale = gravityScale;
+            isFalling = false;
+            playerAnimitor.SetBool("isFalling", false);
         }
     }
 
