@@ -43,6 +43,8 @@ public class RowManage : MonoBehaviour
         // 初始状态：禁用碰撞体，防止提前交互
         if (playerCollider != null) playerCollider.enabled = false;
         playerRb.gravityScale = 0f;
+
+        canMove = false;
     }
     // 供外部调用的公开方法，开始第二关
     public void BeginGame()

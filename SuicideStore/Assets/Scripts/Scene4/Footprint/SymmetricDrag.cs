@@ -33,6 +33,8 @@ public class SymmetricDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
     public GameObject momFoot_Prefab;//妈妈的脚印
     public GameObject dadFoot_Prefab;//父亲的脚印
     public float needDistance;//每移动多少距离就会诞生一个脚印
+    public float needTime;//诞生一个脚印的时间限制
+    private float lastSpawnTime;  // 新增
     public float currentDistance;//当前移动的距离  
     public float duration;//显隐的时间
     private Vector3 lastObject2Position;  //物体2的上一帧位置
@@ -131,7 +133,7 @@ public class SymmetricDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
                     obs.ResetVisibility();
             }
         }
-
+        lastSpawnTime = Time.time - needTime;
         // 确保拖拽标志重置
         isDragging = false;
     }
@@ -198,11 +200,12 @@ public class SymmetricDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
             if (delta1 > 0)
             {
                 currentDistance += delta1;
-                while (currentDistance >= needDistance && !isWin)
+                while (currentDistance >= needDistance && Time.time - lastSpawnTime >= needTime &&!isWin)
                 {
                     currentDistance -= needDistance;
                     SpawnLeleFootprint(moveDir1);
                     SpawnParentFootprint(moveDir2);
+                    lastSpawnTime = Time.time;
                 }
                 lastPosition = rectTransform.position;
                 lastObject2Position = object2.position;
@@ -285,20 +288,45 @@ public class SymmetricDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
         }
     }
 
-    //进入下一关的转场
+    ////进入下一关的转场
+    //private void OnGrowthComplete()
+    //{
+    //    if (hasTriggeredSwitch) return;
+    //    hasTriggeredSwitch = true;
+    //    if (Scene4Manage.Instance != null)
+    //    {
+    //        Scene4Manage.Instance.ChangeCamera(nextLevelIndex, changeDelay);
+    //    }
+    //    else
+    //    {
+    //        Debug.LogError("Scene4Manage.Instance 不存在，请确保场景中有 Scene4Manage 组件");
+    //    }
+    //}
+    //进入下一关
     private void OnGrowthComplete()
     {
-        if (hasTriggeredSwitch) return;
-        hasTriggeredSwitch = true;
+        Debug.Log("成长完成，切换至下一关卡");
+
         if (Scene4Manage.Instance != null)
         {
-            Scene4Manage.Instance.ChangeCamera(nextLevelIndex, changeDelay);
+            Scene4Manage.Instance.ChangeCamera(nextLevelIndex, changeDelay, () =>
+            {
+                if (Scene4Manage.Instance.level4Manage != null)
+                {
+                    Scene4Manage.Instance.level4Manage.BeginGame();
+                }
+                else
+                {
+                    Debug.LogError("level4Manage 未在 Scene4Manage 中赋值！");
+                }
+            });
         }
         else
         {
             Debug.LogError("Scene4Manage.Instance 不存在，请确保场景中有 Scene4Manage 组件");
         }
     }
+
     // 生成乐乐脚印（在物体1位置）
     private void SpawnLeleFootprint(Vector3 direction)
     {

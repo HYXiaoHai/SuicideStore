@@ -11,6 +11,7 @@ public class Scene4Manage : MonoBehaviour
     public GrowthComparison level1Mange;//第一关控制器（默认初始关卡）
     public RowManage level2Manage;//第二关控制器
     public SymmetricDrag level3Manage;//第三关控制器
+    public RowManage level4Manage;//第二关控制器
 
     [Header("用于切换相机")]
     public CinemachineVirtualCamera[] levelCameras;
