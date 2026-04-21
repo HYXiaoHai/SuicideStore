@@ -1,38 +1,58 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using DG.Tweening;
 
 public class RowManage : MonoBehaviour
 {
-    [Header("Íæ¼Ò")]
-    public Rigidbody2D playerRb;        // Íæ¼Ò¸ÕÌå
-    public SpriteRenderer playerSprite;   // ÓÃÓÚÍ¸Ã÷¶È¿ØÖÆ
+    [Header("ç©å®¶")]
+    public Rigidbody2D playerRb;        // ç©å®¶åˆšä½“
+    public SpriteRenderer playerSprite;   // ç”¨äºé€æ˜åº¦æ§åˆ¶
     public Collider2D playerCollider;
-    public Animator playerAnimator;       // ÓÃÓÚ²¥·ÅĞĞ×ß¶¯»­
+    public Animator playerAnimator;       // ç”¨äºæ’­æ”¾è¡Œèµ°åŠ¨ç”»
     public float walkSpeed = 3f;
-    [Header("¶¯»­")]
-    public Transform aniStartPosition;     // ¿ª³¡ÆğÊ¼Î»ÖÃ
-    public Transform gameStartPosition;    // ÓÎÏ·ÕıÊ½¿ªÊ¼Î»ÖÃ
-    public Transform gameEndPosition;    // ÓÎÏ·ÕıÊ½¿ªÊ¼Î»ÖÃ
-    public float fadeDuration = 1f;        // ½¥ÏÔÊ±¼ä£¨ÓëÒÆ¶¯Ê±¼äÍ¬²½£©
 
-    [Header("ĞĞÊı¾İ")]
-    public RowController[] rows;         // °´Ë³ĞòÍÏÈëÈıĞĞµÄ RowController
+    [Header("è§’è‰²è·³è·ƒ")]
+    public float jumpForce = 12f;
+    public float coyoteTime = 0.1f;
+    public float jumpBufferTime = 0.1f;
+    public float jumpCutMultiplier = 0.5f;   // ï¿½ï¿½ï¿½ï¿½ 0.3~0.7
+    public float fallGravityMultiplier = 2f;
+    public float gravityScale = 1f;
+    public float lastJumpTime;               // ï¿½ï¿½Â¼ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½Ô¾ï¿½ï¿½Ê±ï¿½ï¿½
+
+    [Header("åœ°é¢æ£€æµ‹")]
+    public LayerMask groundLayer;
+    public Transform groundCheck;
+    public float groundCheckRadius = 0.2f;
+
+    [Header("åŠ¨ç”»")]
+    public Transform aniStartPosition;     // å¼€åœºèµ·å§‹ä½ç½®
+    public Transform gameStartPosition;    // æ¸¸æˆæ­£å¼å¼€å§‹ä½ç½®
+    public Transform gameEndPosition;    // æ¸¸æˆæ­£å¼å¼€å§‹ä½ç½®
+    public float fadeDuration = 1f;        // æ¸æ˜¾æ—¶é—´ï¼ˆä¸ç§»åŠ¨æ—¶é—´åŒæ­¥ï¼‰
+
+    [Header("è¡Œæ•°æ®")]
+    public RowController[] rows;         // æŒ‰é¡ºåºæ‹–å…¥ä¸‰è¡Œçš„ RowController
     public int currentRowIndex = 0;
-    [Header("¹Ø¿¨ÇĞ»»")]
-    public int nextLevelIndex = 2;//µÚ2¹Ø
-    public float changeDelay = 1f;//Íê³Éºó¶à¾ÃÇĞ»»¾µÍ·£¨ÑÓ³Ù£©
-    private bool hasTriggeredSwitch = false; //·ÀÖ¹ÖØ¸´´¥·¢
-    // ×´Ì¬»ú
+    [Header("å…³å¡åˆ‡æ¢")]
+    public int nextLevelIndex = 2;//ç¬¬2å…³
+    public float changeDelay = 1f;//å®Œæˆåå¤šä¹…åˆ‡æ¢é•œå¤´ï¼ˆå»¶è¿Ÿï¼‰
+    private bool hasTriggeredSwitch = false; //é˜²æ­¢é‡å¤è§¦å‘
+    // çŠ¶æ€æœº
     private enum GameState { OnWords, OnLine }
     private GameState currentState;
 
-    // µ±Ç°ĞĞµÄ±ß½ç£¨ÎÄ×ÖĞĞ×ßÊ±ÓÃ£©
+    // å½“å‰è¡Œçš„è¾¹ç•Œï¼ˆæ–‡å­—è¡Œèµ°æ—¶ç”¨ï¼‰
     private float leftBoundX, rightBoundX;
-    // µ±Ç°ĞĞµÄºáÏß±ß½ç£¨ºáÏßĞĞ×ßÊ±ÓÃ£©
+    // å½“å‰è¡Œçš„æ¨ªçº¿è¾¹ç•Œï¼ˆæ¨ªçº¿è¡Œèµ°æ—¶ç”¨ï¼‰
     private float lineLeftX, lineRightX;
 
-    // ¿ØÖÆÊÇ·ñÔÊĞíÊäÈë
+    // æ§åˆ¶æ˜¯å¦å…è®¸è¾“å…¥
     private bool canMove = true;
+
+    private float moveInput;
+    private float coyoteTimer = 0f;
+    private float jumpBufferTimer = 0f;
+    private bool isJumping = false;
 
     void Start()
     {
@@ -40,57 +60,57 @@ public class RowManage : MonoBehaviour
         if (playerSprite == null) playerSprite = GetComponent<SpriteRenderer>();
         if (playerAnimator == null) playerAnimator = GetComponent<Animator>();
 
-        // ³õÊ¼×´Ì¬£º½ûÓÃÅö×²Ìå£¬·ÀÖ¹ÌáÇ°½»»¥
+        // åˆå§‹çŠ¶æ€ï¼šç¦ç”¨ç¢°æ’ä½“ï¼Œé˜²æ­¢æå‰äº¤äº’
         if (playerCollider != null) playerCollider.enabled = false;
         playerRb.gravityScale = 0f;
 
         canMove = false;
     }
-    // ¹©Íâ²¿µ÷ÓÃµÄ¹«¿ª·½·¨£¬¿ªÊ¼µÚ¶ş¹Ø
+    // ä¾›å¤–éƒ¨è°ƒç”¨çš„å…¬å¼€æ–¹æ³•ï¼Œå¼€å§‹ç¬¬äºŒå…³
     public void BeginGame()
     {
-        // ÖØÖÃÓÎÏ·×´Ì¬£¨¿É¶à´Îµ÷ÓÃ£©
+        // é‡ç½®æ¸¸æˆçŠ¶æ€ï¼ˆå¯å¤šæ¬¡è°ƒç”¨ï¼‰
         currentRowIndex = 0;
         canMove = false;
         playerRb.velocity = Vector2.zero;
 
-        // ÖØÖÃËùÓĞĞĞµÄ×´Ì¬£¨Ìî³ä¡¢Åö×²ÌåµÈ£©
+        // é‡ç½®æ‰€æœ‰è¡Œçš„çŠ¶æ€ï¼ˆå¡«å……ã€ç¢°æ’ä½“ç­‰ï¼‰
         foreach (var row in rows)
         {
             row.ResetRow();
         }
         SetupCurrentRowForWords();
 
-        // ¿ªÊ¼¿ª³¡¶¯»­
+        // å¼€å§‹å¼€åœºåŠ¨ç”»
         PlayOpeningAnimation();
     }
     public void  PlayOpeningAnimation()
     {
-        // ½ûÓÃÍæ¼ÒÅö×²Ìå£¬·ÀÖ¹¶¯»­ÆÚ¼ä´¥·¢ÎïÀíÅö×²
+        // ç¦ç”¨ç©å®¶ç¢°æ’ä½“ï¼Œé˜²æ­¢åŠ¨ç”»æœŸé—´è§¦å‘ç‰©ç†ç¢°æ’
         if (playerCollider != null) playerCollider.enabled = false;
 
-        // ÉèÖÃÆğÊ¼Î»ÖÃºÍÍ¸Ã÷¶È
+        // è®¾ç½®èµ·å§‹ä½ç½®å’Œé€æ˜åº¦
         playerRb.position = aniStartPosition.position;
         playerRb.velocity = Vector2.zero;
         Color color = playerSprite.color;
         color.a = 0f;
         playerSprite.color = color;
 
-        // ²¥·ÅĞĞ×ß¶¯»­£¨¼ÙÉè¶¯»­×´Ì¬ÃûÎª "Xiang_Walk"£©
+        // æ’­æ”¾è¡Œèµ°åŠ¨ç”»ï¼ˆå‡è®¾åŠ¨ç”»çŠ¶æ€åä¸º "Xiang_Walk"ï¼‰
         if (playerAnimator != null)
             playerAnimator.Play("Xiang_Walk");
 
-        // ´´½¨¶¯»­ĞòÁĞ
+        // åˆ›å»ºåŠ¨ç”»åºåˆ—
         Sequence sequence = DOTween.Sequence();
 
-        // Í¬Ê±ÒÆ¶¯Î»ÖÃºÍ½¥ÏÔ
+        // åŒæ—¶ç§»åŠ¨ä½ç½®å’Œæ¸æ˜¾
         sequence.Join(playerRb.DOMove(gameStartPosition.position, fadeDuration).SetEase(Ease.Linear));
         sequence.Join(playerSprite.DOFade(1f, fadeDuration));
 
-        // ¶¯»­½áÊøºóÖ´ĞĞ³õÊ¼»¯
+        // åŠ¨ç”»ç»“æŸåæ‰§è¡Œåˆå§‹åŒ–
         sequence.OnComplete(() =>
         {
-            // ¶¯»­½áÊø£¬ÆôÓÃÅö×²Ìå£¬ÔÊĞíÒÆ¶¯
+            // åŠ¨ç”»ç»“æŸï¼Œå¯ç”¨ç¢°æ’ä½“ï¼Œå…è®¸ç§»åŠ¨
             if (playerCollider != null) playerCollider.enabled = true;
             playerRb.gravityScale = 1f;
             currentState = GameState.OnWords;
@@ -101,12 +121,33 @@ public class RowManage : MonoBehaviour
     {
         if (!canMove) return;
 
-        // »ñÈ¡Ë®Æ½ÊäÈë£¨A/D »ò ×ó/ÓÒ¼ıÍ·£©
+        // è·å–æ°´å¹³è¾“å…¥ï¼ˆA/D æˆ– å·¦/å³ç®­å¤´ï¼‰
         float horizontal = Input.GetAxisRaw("Horizontal");
-        // Íæ¼Ò×ªÏò£¨¸ù¾İÊäÈë·½Ïò£©
+        // ç©å®¶è½¬å‘ï¼ˆæ ¹æ®è¾“å…¥æ–¹å‘ï¼‰
         if (horizontal != 0)
             playerSprite.flipX = horizontal < 0;
-        // ¸ù¾İµ±Ç°×´Ì¬´¦ÀíÒÆ¶¯
+
+        //++++++++++
+        //ç§»åŠ¨åŠ¨ç”»
+        playerAnimator.SetBool("isMoving", Mathf.Abs(moveInput) > 0);
+
+        if (Input.GetButtonDown("Jump"))
+        {
+            jumpBufferTimer = jumpBufferTime;
+        }
+        if (jumpBufferTimer > 0 && coyoteTimer > 0)
+        {
+            //OnJump();
+        }
+        //HandleJumpUp();
+        //UpdateGravity();
+        //HandleFlip();
+
+        if (jumpBufferTimer > 0)
+            jumpBufferTimer -= Time.deltaTime;
+
+
+        // æ ¹æ®å½“å‰çŠ¶æ€å¤„ç†ç§»åŠ¨
         switch (currentState)
         {
             case GameState.OnWords:
@@ -118,58 +159,58 @@ public class RowManage : MonoBehaviour
         }
     }
 
-    // ÔÚÎÄ×ÖÉÏĞĞ×ßÊ±µÄÂß¼­
+    // åœ¨æ–‡å­—ä¸Šè¡Œèµ°æ—¶çš„é€»è¾‘
     private void HandleMovementOnWords(float horizontal)
     {
-        // ¸ÕÌåÒÆ¶¯£¨Ë®Æ½ËÙ¶È£©
+        // åˆšä½“ç§»åŠ¨ï¼ˆæ°´å¹³é€Ÿåº¦ï¼‰
         float targetSpeed = horizontal * walkSpeed;
         playerRb.velocity = new Vector2(targetSpeed, playerRb.velocity.y);
 
       
-        // ¸üĞÂµ±Ç°ĞĞµÄÌî³ä£¨¸ù¾İÍæ¼ÒÊµ¼Ê X£©
+        // æ›´æ–°å½“å‰è¡Œçš„å¡«å……ï¼ˆæ ¹æ®ç©å®¶å®é™… Xï¼‰
         rows[currentRowIndex].UpdateFillByPlayerX(playerRb.position.x);
 
-        // µ½´ïÓÒ±ß½ç ¡ú ´¥·¢Íê³ÉÎÄ×ÖĞĞ
+        // åˆ°è¾¾å³è¾¹ç•Œ â†’ è§¦å‘å®Œæˆæ–‡å­—è¡Œ
         if (playerRb.position.x >= rightBoundX)
         {
             CompleteCurrentRow();
         }
     }
 
-    // ÔÚºáÏßÉÏĞĞ×ßÊ±µÄÂß¼­
+    // åœ¨æ¨ªçº¿ä¸Šè¡Œèµ°æ—¶çš„é€»è¾‘
     private void HandleMovementOnLine(float horizontal)
     {
-        // ºáÏßÉÏÖ»ÔÊĞíÏò×óÒÆ¶¯£¨°´ A »ò ×ó¼ıÍ·£©£¬Ò²¿ÉÒÔÔÊĞíË«Ïò£¬µ«µ½´ï×ó±ß½ç²ÅÇĞ»»
-        // ÕâÀïÎªÁË·ûºÏĞèÇó£¬ÔÊĞíË«ÏòÒÆ¶¯£¬µ«µ½´ï×ó±ß½çºó×Ô¶¯ÇĞ»»
+        // æ¨ªçº¿ä¸Šåªå…è®¸å‘å·¦ç§»åŠ¨ï¼ˆæŒ‰ A æˆ– å·¦ç®­å¤´ï¼‰ï¼Œä¹Ÿå¯ä»¥å…è®¸åŒå‘ï¼Œä½†åˆ°è¾¾å·¦è¾¹ç•Œæ‰åˆ‡æ¢
+        // è¿™é‡Œä¸ºäº†ç¬¦åˆéœ€æ±‚ï¼Œå…è®¸åŒå‘ç§»åŠ¨ï¼Œä½†åˆ°è¾¾å·¦è¾¹ç•Œåè‡ªåŠ¨åˆ‡æ¢
         float targetSpeed = horizontal * walkSpeed;
         playerRb.velocity = new Vector2(targetSpeed, playerRb.velocity.y);
 
-        // ÏŞÖÆÔÚºáÏß±ß½çÄÚ
+        // é™åˆ¶åœ¨æ¨ªçº¿è¾¹ç•Œå†…
         Vector2 pos = playerRb.position;
         float newX = Mathf.Clamp(pos.x, lineLeftX, lineRightX);
         if (newX != pos.x)
             playerRb.position = new Vector2(newX, pos.y);
 
-        // µ½´ï×ó±ß½ç ¡ú ´¥·¢Íê³ÉºáÏßĞĞ×ß£¬µôÂäµ½ÏÂÒ»ĞĞ
+        // åˆ°è¾¾å·¦è¾¹ç•Œ â†’ è§¦å‘å®Œæˆæ¨ªçº¿è¡Œèµ°ï¼Œæ‰è½åˆ°ä¸‹ä¸€è¡Œ
         if (playerRb.position.x <= lineLeftX)
         {
             CompleteCurrentLine();
         }
     }
 
-    // Íê³Éµ±Ç°ÎÄ×ÖĞĞ£¨ÓÒ±ß½ç´¥·¢£©
+    // å®Œæˆå½“å‰æ–‡å­—è¡Œï¼ˆå³è¾¹ç•Œè§¦å‘ï¼‰
     private void CompleteCurrentRow()
     {
         canMove = false;
-        playerRb.velocity = Vector2.zero;   // Í£Ö¹ÒÆ¶¯
-        // Í¨Öªµ±Ç°ĞĞ£ºÎÄ×Ö²¿·ÖÍê³É£¬¿ªÆôºáÏßÅö×²Ìå
+        playerRb.velocity = Vector2.zero;   // åœæ­¢ç§»åŠ¨
+        // é€šçŸ¥å½“å‰è¡Œï¼šæ–‡å­—éƒ¨åˆ†å®Œæˆï¼Œå¼€å¯æ¨ªçº¿ç¢°æ’ä½“
         rows[currentRowIndex].CompleteRow();
         if (currentRowIndex == rows.Length - 1)
         {
-            Debug.Log("Í¨¹Ø£¡");
+            Debug.Log("é€šå…³ï¼");
             playerRb.gravityScale = 0f;
             canMove = false;
-            TriggerLevelComplete();  // ´¥·¢Í¨¹ØÍê³É
+            TriggerLevelComplete();  // è§¦å‘é€šå…³å®Œæˆ
             return;
         }
         Invoke(nameof(StartLinePhase), 0.5f);
@@ -177,7 +218,7 @@ public class RowManage : MonoBehaviour
 
     private void StartLinePhase()
     {
-        // ¸üĞÂºáÏß±ß½ç
+        // æ›´æ–°æ¨ªçº¿è¾¹ç•Œ
         lineLeftX = rows[currentRowIndex].GetLineLeftX();
         lineRightX = rows[currentRowIndex].GetLineRightX();
 
@@ -185,17 +226,17 @@ public class RowManage : MonoBehaviour
         canMove = true;
     }
 
-    // Íê³Éµ±Ç°ºáÏßĞĞ×ß£¨×ó±ß½ç´¥·¢£©
+    // å®Œæˆå½“å‰æ¨ªçº¿è¡Œèµ°ï¼ˆå·¦è¾¹ç•Œè§¦å‘ï¼‰
     private void CompleteCurrentLine()
     {
         canMove = false;
         playerRb.velocity = Vector2.zero;
 
-        // Í¨Öªµ±Ç°ĞĞ£ººáÏß½×¶ÎÍê³É£¬¹Ø±ÕºáÏßÅö×²Ìå£¨ÈÃÍæ¼ÒµôÂä£©
+        // é€šçŸ¥å½“å‰è¡Œï¼šæ¨ªçº¿é˜¶æ®µå®Œæˆï¼Œå…³é—­æ¨ªçº¿ç¢°æ’ä½“ï¼ˆè®©ç©å®¶æ‰è½ï¼‰
         rows[currentRowIndex].CompleteLine();
 
       
-        // ÇĞ»»µ½ÏÂÒ»ĞĞ
+        // åˆ‡æ¢åˆ°ä¸‹ä¸€è¡Œ
         SwitchToNextRow();
     }
 
@@ -203,61 +244,61 @@ public class RowManage : MonoBehaviour
     {
         currentRowIndex++;
 
-        // ÖØÖÃĞÂĞĞµÄ×´Ì¬£¨ÎÄ×ÖÅö×²Ìå¿ªÆô£¬ºáÏßÅö×²Ìå¹Ø±Õ£¬Ìî³äÖØÖÃ£©
+        // é‡ç½®æ–°è¡Œçš„çŠ¶æ€ï¼ˆæ–‡å­—ç¢°æ’ä½“å¼€å¯ï¼Œæ¨ªçº¿ç¢°æ’ä½“å…³é—­ï¼Œå¡«å……é‡ç½®ï¼‰
         rows[currentRowIndex].ResetRow();
 
-        // ÖØĞÂÉèÖÃÎÄ×ÖĞĞ×ßµÄ±ß½ç
+        // é‡æ–°è®¾ç½®æ–‡å­—è¡Œèµ°çš„è¾¹ç•Œ
         SetupCurrentRowForWords();
 
         currentState = GameState.OnWords;
         canMove = true;
     }
-    //´¥·¢Í¨¹ØÍê³É£¨½¥Òş+ÇĞ»»£©
+    //è§¦å‘é€šå…³å®Œæˆï¼ˆæ¸éš+åˆ‡æ¢ï¼‰
     private void TriggerLevelComplete()
     {
         if (hasTriggeredSwitch) return;
         hasTriggeredSwitch = true;
-        // Í£Ö¹ÒÆ¶¯
+        // åœæ­¢ç§»åŠ¨
         playerRb.velocity = Vector2.zero;
-        // ½ûÓÃÅö×²Ìå
+        // ç¦ç”¨ç¢°æ’ä½“
         if (playerCollider != null) playerCollider.enabled = false;
-        // ´´½¨¶¯»­ĞòÁĞ
+        // åˆ›å»ºåŠ¨ç”»åºåˆ—
         Sequence sequence = DOTween.Sequence();
 
-        // Í¬Ê±ÒÆ¶¯Î»ÖÃºÍ½¥Òş²Ø
+        // åŒæ—¶ç§»åŠ¨ä½ç½®å’Œæ¸éšè—
         sequence.Join(playerRb.DOMove(gameEndPosition.position, 2f));
-        sequence.Join(playerSprite.DOFade(0f, 2f));//½¥Òş
+        sequence.Join(playerSprite.DOFade(0f, 2f));//æ¸éš
         //OnGrowthComplete();
-        //¶¯»­½áÊøºóÖ´ĞĞ³õÊ¼»¯
+        //åŠ¨ç”»ç»“æŸåæ‰§è¡Œåˆå§‹åŒ–
         sequence.OnComplete(() =>
         {
             OnGrowthComplete();
         });
     }
-    //½øÈëÏÂÒ»¹Ø
+    //è¿›å…¥ä¸‹ä¸€å…³
     private void OnGrowthComplete()
     {
-        Debug.Log("³É³¤Íê³É£¬ÇĞ»»ÖÁÏÂÒ»¹Ø¿¨");
+        Debug.Log("æˆé•¿å®Œæˆï¼Œåˆ‡æ¢è‡³ä¸‹ä¸€å…³å¡");
 
         if (Scene4Manage.Instance != null)
         {
-            // ¼ÙÉè changeDelay = 2f£¬Ïà»úÇĞ»»Íê³ÉºóÆô¶¯µÚ¶ş¹Ø
+            // å‡è®¾ changeDelay = 2fï¼Œç›¸æœºåˆ‡æ¢å®Œæˆåå¯åŠ¨ç¬¬äºŒå…³
             Scene4Manage.Instance.ChangeCamera(nextLevelIndex, changeDelay, () =>
             {
                 if (Scene4Manage.Instance.level3Manage != null)
                 {
-                    //ÏÂÒ»¹ØµÄmanage
+                    //ä¸‹ä¸€å…³çš„manage
                     Scene4Manage.Instance.level3Manage.StartGame();
                 }
                 else
                 {
-                    Debug.LogError("level2Manage Î´ÔÚ Scene4Manage ÖĞ¸³Öµ£¡");
+                    Debug.LogError("level2Manage æœªåœ¨ Scene4Manage ä¸­èµ‹å€¼ï¼");
                 }
             });
         }
         else
         {
-            Debug.LogError("Scene4Manage.Instance ²»´æÔÚ£¬ÇëÈ·±£³¡¾°ÖĞÓĞ Scene4Manage ×é¼ş");
+            Debug.LogError("Scene4Manage.Instance ä¸å­˜åœ¨ï¼Œè¯·ç¡®ä¿åœºæ™¯ä¸­æœ‰ Scene4Manage ç»„ä»¶");
         }
 
     }
