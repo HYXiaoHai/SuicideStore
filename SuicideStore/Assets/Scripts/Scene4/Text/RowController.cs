@@ -59,7 +59,6 @@ public class RowController : MonoBehaviour
         float progress = Mathf.Clamp01((playerX - leftX) / (rightX - leftX));
         blueImage.fillAmount = 1f - progress;   // 蓝色从右向左消失
         blackImage.fillAmount = progress;       // 黑色从左向右填充
-        Debug.Log("更新:"+ blackImage.fillAmount);
     }
 
     // 可选：强制完成（全黑）

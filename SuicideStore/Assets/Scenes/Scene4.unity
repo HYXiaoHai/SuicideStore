@@ -307,6 +307,18 @@ MonoBehaviour:
   playerCollider: {fileID: 151347357}
   playerAnimator: {fileID: 151347356}
   walkSpeed: 5
+  jumpForce: 12
+  coyoteTime: 0.1
+  jumpBufferTime: 0.1
+  jumpCutMultiplier: 0.5
+  fallGravityMultiplier: 2
+  gravityScale: 1
+  lastJumpTime: 0
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 64
+  groundCheck: {fileID: 1045792697}
+  groundCheckRadius: 0.2
   aniStartPosition: {fileID: 386744988}
   gameStartPosition: {fileID: 261950729}
   gameEndPosition: {fileID: 444657138}
@@ -514,7 +526,8 @@ Transform:
   m_LocalPosition: {x: -660, y: 290.8, z: 50.45174}
   m_LocalScale: {x: 7.1136513, y: 7.1136513, z: 7.1136513}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 1045792697}
   m_Father: {fileID: 120020750}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!95 &151347356
@@ -1240,7 +1253,7 @@ GameObject:
   - component: {fileID: 262182030}
   - component: {fileID: 262182029}
   - component: {fileID: 262182028}
-  m_Layer: 5
+  m_Layer: 6
   m_Name: line1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1361,7 +1374,7 @@ GameObject:
   - component: {fileID: 282410114}
   - component: {fileID: 282410113}
   - component: {fileID: 282410112}
-  m_Layer: 5
+  m_Layer: 6
   m_Name: line1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2090,7 +2103,7 @@ GameObject:
   - component: {fileID: 455713587}
   - component: {fileID: 455713589}
   - component: {fileID: 455713588}
-  m_Layer: 5
+  m_Layer: 6
   m_Name: Row2_1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2292,7 +2305,7 @@ GameObject:
   - component: {fileID: 492859366}
   - component: {fileID: 492859365}
   - component: {fileID: 492859364}
-  m_Layer: 5
+  m_Layer: 6
   m_Name: line0
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3115,7 +3128,7 @@ GameObject:
   - component: {fileID: 757162190}
   - component: {fileID: 757162189}
   - component: {fileID: 757162188}
-  m_Layer: 5
+  m_Layer: 6
   m_Name: line2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3590,7 +3603,7 @@ GameObject:
   - component: {fileID: 844006160}
   - component: {fileID: 844006159}
   - component: {fileID: 844006158}
-  m_Layer: 5
+  m_Layer: 6
   m_Name: line2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3774,6 +3787,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 858730297}
   m_CullTransparentMesh: 1
+--- !u!1 &862839183
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 862839184}
+  m_Layer: 0
+  m_Name: groundCheck
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &862839184
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 862839183}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: -0.29, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1107969493}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &873893846
 GameObject:
   m_ObjectHideFlags: 0
@@ -4085,7 +4129,7 @@ GameObject:
   - component: {fileID: 1016711366}
   - component: {fileID: 1016711368}
   - component: {fileID: 1016711367}
-  m_Layer: 5
+  m_Layer: 6
   m_Name: Row0
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4180,6 +4224,37 @@ MonoBehaviour:
   rightBound: {fileID: 201341535}
   lineLeftBound: {fileID: 1481524642}
   lineRightBound: {fileID: 201341535}
+--- !u!1 &1045792696
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1045792697}
+  m_Layer: 0
+  m_Name: groundCheck
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1045792697
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1045792696}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: -0.24, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 151347355}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1057693170
 GameObject:
   m_ObjectHideFlags: 0
@@ -4568,7 +4643,8 @@ Transform:
   m_LocalPosition: {x: -259.5, y: 239.5, z: 50.45174}
   m_LocalScale: {x: 7.1136513, y: 7.1136513, z: 7.1136513}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 862839184}
   m_Father: {fileID: 1699046545}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &1107969494
@@ -4946,7 +5022,7 @@ GameObject:
   - component: {fileID: 1227775747}
   - component: {fileID: 1227775749}
   - component: {fileID: 1227775748}
-  m_Layer: 5
+  m_Layer: 6
   m_Name: Row2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5088,7 +5164,7 @@ GameObject:
   - component: {fileID: 1268929433}
   - component: {fileID: 1268929432}
   - component: {fileID: 1268929434}
-  m_Layer: 5
+  m_Layer: 6
   m_Name: line0
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5821,7 +5897,7 @@ GameObject:
   - component: {fileID: 1453073815}
   - component: {fileID: 1453073817}
   - component: {fileID: 1453073816}
-  m_Layer: 5
+  m_Layer: 6
   m_Name: Row3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -6090,7 +6166,7 @@ GameObject:
   - component: {fileID: 1506248588}
   - component: {fileID: 1506248590}
   - component: {fileID: 1506248589}
-  m_Layer: 5
+  m_Layer: 6
   m_Name: Row1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -6721,7 +6797,7 @@ GameObject:
   - component: {fileID: 1619761924}
   - component: {fileID: 1619761923}
   - component: {fileID: 1619761922}
-  m_Layer: 5
+  m_Layer: 6
   m_Name: line3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -7152,6 +7228,18 @@ MonoBehaviour:
   playerCollider: {fileID: 1107969496}
   playerAnimator: {fileID: 1107969497}
   walkSpeed: 5
+  jumpForce: 12
+  coyoteTime: 0.1
+  jumpBufferTime: 0.1
+  jumpCutMultiplier: 0.5
+  fallGravityMultiplier: 2
+  gravityScale: 1
+  lastJumpTime: 0
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 64
+  groundCheck: {fileID: 862839184}
+  groundCheckRadius: 0.2
   aniStartPosition: {fileID: 306451655}
   gameStartPosition: {fileID: 1164347463}
   gameEndPosition: {fileID: 1401051817}
@@ -7914,7 +8002,7 @@ GameObject:
   - component: {fileID: 1900997140}
   - component: {fileID: 1900997142}
   - component: {fileID: 1900997141}
-  m_Layer: 5
+  m_Layer: 6
   m_Name: Row2_0
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -8020,7 +8108,7 @@ GameObject:
   - component: {fileID: 1941656627}
   - component: {fileID: 1941656629}
   - component: {fileID: 1941656628}
-  m_Layer: 5
+  m_Layer: 6
   m_Name: Row2_2
   m_TagString: Untagged
   m_Icon: {fileID: 0}

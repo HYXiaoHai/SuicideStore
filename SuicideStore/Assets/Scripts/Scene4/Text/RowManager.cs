@@ -29,6 +29,7 @@ public class RowManage : MonoBehaviour
     public Transform gameStartPosition;    // 游戏正式开始位置
     public Transform gameEndPosition;    // 游戏正式开始位置
     public float fadeDuration = 1f;        // 渐显时间（与移动时间同步）
+    private bool isFalling = false;
 
     [Header("行数据")]
     public RowController[] rows;         // 按顺序拖入三行的 RowController
@@ -47,12 +48,14 @@ public class RowManage : MonoBehaviour
     private float lineLeftX, lineRightX;
 
     // 控制是否允许输入
-    private bool canMove = true;
+    public bool canMove = true;
 
     private float moveInput;
     private float coyoteTimer = 0f;
     private float jumpBufferTimer = 0f;
     private bool isJumping = false;
+    private SpriteRenderer spriteRenderer;
+    private int currentDirection = 1;
 
     void Start()
     {
@@ -96,9 +99,10 @@ public class RowManage : MonoBehaviour
         color.a = 0f;
         playerSprite.color = color;
 
-        // 播放行走动画（假设动画状态名为 "Xiang_Walk"）
-        if (playerAnimator != null)
-            playerAnimator.Play("Xiang_Walk");
+        //// 播放行走动画（假设动画状态名为 "Xiang_Walk"）
+        //if (playerAnimator != null)
+        Debug.Log("设置开场行走动画");
+        playerAnimator.SetBool("isMoving", true);
 
         // 创建动画序列
         Sequence sequence = DOTween.Sequence();
@@ -123,13 +127,16 @@ public class RowManage : MonoBehaviour
 
         // 获取水平输入（A/D 或 左/右箭头）
         float horizontal = Input.GetAxisRaw("Horizontal");
+        Debug.Log("设置行走动画");
+        playerAnimator.SetBool("isMoving", Mathf.Abs(horizontal) > 0);
+
         // 玩家转向（根据输入方向）
         if (horizontal != 0)
             playerSprite.flipX = horizontal < 0;
 
         //++++++++++
-        //移动动画
-        playerAnimator.SetBool("isMoving", Mathf.Abs(moveInput) > 0);
+        //地面检测
+        UpdateGroundDetection();
 
         if (Input.GetButtonDown("Jump"))
         {
@@ -137,11 +144,11 @@ public class RowManage : MonoBehaviour
         }
         if (jumpBufferTimer > 0 && coyoteTimer > 0)
         {
-            //OnJump();
+            OnJump();
         }
-        //HandleJumpUp();
-        //UpdateGravity();
-        //HandleFlip();
+        HandleJumpUp();
+        UpdateGravity();
+        HandleFlip();
 
         if (jumpBufferTimer > 0)
             jumpBufferTimer -= Time.deltaTime;
@@ -308,5 +315,102 @@ public class RowManage : MonoBehaviour
         RowController row = rows[currentRowIndex];
         leftBoundX = row.leftBound.position.x;
         rightBoundX = row.rightBound.position.x;
+    }
+
+    //角色跳跃
+    private void UpdateGroundDetection()
+    {
+        bool isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
+        playerAnimator.SetBool("isGrounded", isGrounded);
+        if (isGrounded)
+        {
+            coyoteTimer = coyoteTime;
+            isJumping = false;
+            isFalling = false;          // 落地重置
+            playerAnimator.SetBool("isFalling", false);
+        }
+        else
+        {
+            coyoteTimer -= Time.deltaTime;
+        }
+    }
+
+    private void OnJump()
+    {
+        //动画切换
+        playerAnimator.SetTrigger("JumpTrigger");
+        Debug.Log("跳跃");
+        //施加力
+        playerRb.velocity = new Vector2(playerRb.velocity.x, 0f);
+        playerRb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
+        isJumping = true;
+        lastJumpTime = Time.time;          // ��¼��Ծʱ��
+        jumpBufferTimer = 0;
+        coyoteTimer = 0;
+
+        // 重置下降标志（动画器会等待 isFalling 变为 true）
+        playerAnimator.SetBool("isFalling", false);
+    }
+
+    private void HandleJumpUp()
+    {
+        if (Input.GetButtonUp("Jump") && isJumping && playerRb.velocity.y > 0)
+        {
+            OnJumpUp();
+        }
+    }
+
+    private void OnJumpUp()
+    {
+        playerAnimator.SetTrigger("JumpTrigger");
+        // 重置下降标志（动画器会等待 isFalling 变为 true）
+        playerAnimator.SetBool("isFalling", false);
+        if (playerRb.velocity.y > 0 && isJumping)
+        {
+            playerRb.AddForce(Vector2.down * playerRb.velocity.y * (1 - jumpCutMultiplier), ForceMode2D.Impulse);
+        }
+        lastJumpTime = 0;
+        isJumping = false;
+    }
+
+    private void UpdateGravity()
+    {
+        if (playerRb.velocity.y < 0)
+        {
+            Debug.Log("下落");
+            playerRb.gravityScale = gravityScale * fallGravityMultiplier;
+            isFalling = true;
+            playerAnimator.SetBool("isFalling", true);
+        }
+        else
+        {
+            playerRb.gravityScale = gravityScale;
+            isFalling = false;
+            playerAnimator.SetBool("isFalling", false);
+        }
+    }
+
+    private void HandleFlip()
+    {
+        if (moveInput != 0)
+        {
+            int newDir = moveInput > 0 ? 1 : -1;
+            if (newDir != currentDirection)
+            {
+                currentDirection = newDir;
+                FlipPlayer();
+               
+            }
+        }
+    }
+
+    private void FlipPlayer()
+    {
+        if (spriteRenderer != null)
+        {
+            Vector3 scale = playerRb.transform.localScale;
+            scale.x = Mathf.Abs(scale.x) * currentDirection;
+            playerRb.transform.localScale = scale;
+        }
     }
 }
