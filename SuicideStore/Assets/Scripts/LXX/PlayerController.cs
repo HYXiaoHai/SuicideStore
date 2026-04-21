@@ -1,34 +1,82 @@
 using UnityEngine;
-
+//注释的都是旧版的
+// 带//++的是新加的
 public class PlayerController : MonoBehaviour
 {
-    [Header("移动参数")]
-    public float moveSpeed = 5f;
-    public float jumpForce = 8f;
+    //[Header("移动参数")]
+    //public float moveSpeed = 5f;
+    //public float jumpForce = 8f;
 
+    public GameObject Player;
+    [Header("角色移动")]
+    public float moveSpeed = 8f;
+    public float acceleration = 50f;
+    public float deceleration = 40f;
+    public float velPower = 1.2f;
+    public float frictionAmount = 15f;
+
+    [Header("角色跳跃")]
+    public float jumpForce = 12f;
+    public float coyoteTime = 0.1f;
+    public float jumpBufferTime = 0.1f;
+    public float jumpCutMultiplier = 0.5f;
+    public float fallGravityMultiplier = 2f;
+    public float gravityScale = 1f;
+    public float lastJumpTime;
+
+    //旧版
     [Header("地面检测")]
     public Transform groundCheck;
     public float groundCheckRadius = 0.2f;
     public LayerMask groundLayer;
 
+    [Header("动画")]
+    public Animator playerAnimitor;
+    private bool isFalling = false;
+
     [Header("重生设置")]
     public Transform spawnPoint;
     public float groundY = -10f;
 
-    [Header("自由落体设置")]
-    public KeyCode fallDownKey = KeyCode.S;
-    public float fallDuration = 0.5f;
+    //[Header("自由落体设置")]
+    //public KeyCode fallDownKey = KeyCode.S;
+    //public float fallDuration = 0.5f;
+    //private bool isFalling = false;
 
+    [Header("平台穿透 (S键)")]
+    public KeyCode penetrateKey = KeyCode.S;        // 触发穿透的按键
+    public float penetrateDuration = 0.3f;          // 碰撞体禁用时长（秒）
+    public float penetrateCooldown = 0.5f;          // 穿透冷却时间
+
+    //private Rigidbody2D rb;
+    //private bool isGrounded;
+    //private bool canJump;
+    //private float fallTimer = 0f;
+    private SpriteRenderer spriteRenderer;
     private Rigidbody2D rb;
-    private bool isGrounded;
-    private bool canJump;
-    private bool isFalling = false;
-    private float fallTimer = 0f;
+    private Collider2D playerCollider;              // 玩家的碰撞体
+    private int currentDirection = 1;
+    private bool canControl = true;
+
+    private float moveInput;
+    private float coyoteTimer = 0f;
+    private float jumpBufferTimer = 0f;
+    private bool isJumping = false;
+    private bool isGrounded = false;                // 缓存地面状态
+
+    // 穿透状态
+    private bool isPenetrating = false;
+    private float penetrateTimer = 0f;
+    private float lastPenetrateTime = -10f;         // 上次穿透时间（用于冷却）
 
     void Start()
     {
-        rb = GetComponent<Rigidbody2D>();
+        rb = Player.GetComponent<Rigidbody2D>();
+        spriteRenderer = Player.GetComponent<SpriteRenderer>();//++
+        playerCollider = Player.GetComponent<Collider2D>();//++
+        rb.gravityScale = gravityScale;//++
 
+        //初始化重生点（旧）
         if (spawnPoint == null)
         {
             GameObject spawn = GameObject.FindGameObjectWithTag("SpawnPoint");
@@ -48,74 +96,118 @@ public class PlayerController : MonoBehaviour
     void Update()
     {
         // 地面检测
-        isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
-        canJump = isGrounded;
+        //isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
+        //canJump = isGrounded;
 
-        // 检查是否掉落到底部
+        // 检查是否掉落到底部  旧
         if (transform.position.y < groundY)
         {
             Respawn();
         }
 
-        // 水平移动
-        float moveX = Input.GetAxis("Horizontal");
-        rb.velocity = new Vector2(moveX * moveSpeed, rb.velocity.y);
+        //// 水平移动
+        //float moveX = Input.GetAxis("Horizontal");
+        //rb.velocity = new Vector2(moveX * moveSpeed, rb.velocity.y);
 
-        // 垂直移动（跳跃）
-        if (Input.GetButtonDown("Jump") && canJump)
+        //// 垂直移动（跳跃）
+        //if (Input.GetButtonDown("Jump") && canJump)
+        //{
+        //    rb.AddForce(new Vector2(0, jumpForce), ForceMode2D.Impulse);
+        //    canJump = false;
+        //}
+
+        //// 自由落体（S键）
+        //if (Input.GetKeyDown(fallDownKey) && !isFalling)
+        //{
+        //    StartFalling();
+        //}
+
+        //// 处理自由落体
+        //if (isFalling)
+        //{
+        //    HandleFalling();
+        //}
+
+        //以下都是新的
+        if (!canControl) return;
+
+        //水平按键输入
+        moveInput = Input.GetAxisRaw("Horizontal");
+        UpdateGroundDetection();
+
+        //移动动画
+        playerAnimitor.SetBool("isMoving", Mathf.Abs(moveInput) > 0);
+
+        //跳跃输入
+        if (Input.GetButtonDown("Jump"))
         {
-            rb.AddForce(new Vector2(0, jumpForce), ForceMode2D.Impulse);
-            canJump = false;
+            jumpBufferTimer = jumpBufferTime;
+        }
+        if (jumpBufferTimer > 0 && coyoteTimer > 0 && !isPenetrating) //穿透时禁止跳跃
+        {
+            OnJump();
+        }
+        HandleJumpUp();
+        UpdateGravity();
+        HandleFlip();
+
+        //平台穿透 S键
+        if (Input.GetKeyDown(penetrateKey) && !isPenetrating && isGrounded && Time.time - lastPenetrateTime >= penetrateCooldown)
+        {
+            StartPenetrate();
         }
 
-        // 自由落体（S键）
-        if (Input.GetKeyDown(fallDownKey) && !isFalling)
+        //更新穿透计时
+        if (isPenetrating)
         {
-            StartFalling();
+            penetrateTimer -= Time.deltaTime;
+            if (penetrateTimer <= 0f)
+            {
+                EndPenetrate();
+            }
         }
 
-        // 处理自由落体
-        if (isFalling)
-        {
-            HandleFalling();
-        }
+        if (jumpBufferTimer > 0)
+            jumpBufferTimer -= Time.deltaTime;
     }
 
-    void StartFalling()
-    {
-        isFalling = true;
-        fallTimer = 0f;
+    //旧逻辑
+    //void StartFalling()
+    //{
+    //    isFalling = true;
+    //    fallTimer = 0f;
         
-        // 暂时禁用碰撞（可选）
-        Collider2D collider = GetComponent<Collider2D>();
-        if (collider != null)
-        {
-            collider.enabled = false;
-        }
-    }
+    //    // 暂时禁用碰撞（可选）
+    //    Collider2D collider = GetComponent<Collider2D>();
+    //    if (collider != null)
+    //    {
+    //        collider.enabled = false;
+    //    }
+    //}
 
-    void HandleFalling()
-    {
-        fallTimer += Time.deltaTime;
+    //void HandleFalling()
+    //{
+    //    fallTimer += Time.deltaTime;
         
-        if (fallTimer >= fallDuration)
-        {
-            StopFalling();
-        }
-    }
+    //    if (fallTimer >= fallDuration)
+    //    {
+    //        StopFalling();
+    //    }
+    //}
 
-    void StopFalling()
-    {
-        isFalling = false;
+    //void StopFalling()
+    //{
+    //    isFalling = false;
         
-        // 重新启用碰撞
-        Collider2D collider = GetComponent<Collider2D>();
-        if (collider != null)
-        {
-            collider.enabled = true;
-        }
-    }
+    //    // 重新启用碰撞
+    //    Collider2D collider = GetComponent<Collider2D>();
+    //    if (collider != null)
+    //    {
+    //        collider.enabled = true;
+    //    }
+    //}
 
+    //回到出生点 旧
     void Respawn()
     {
         transform.position = spawnPoint.position;
@@ -127,7 +219,145 @@ public class PlayerController : MonoBehaviour
             rb.angularVelocity = 0f;
         }
     }
+    //更新地面检测状态
+    private void UpdateGroundDetection()
+    {
+        isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
+        playerAnimitor.SetBool("isGrounded", isGrounded);
+        if (isGrounded)
+        {
+            coyoteTimer = coyoteTime;
+            isJumping = false;
+            isFalling = false;
+            playerAnimitor.SetBool("isFalling", false);
+        }
+        else
+        {
+            coyoteTimer -= Time.deltaTime;
+        }
+    }
 
+    //跳跃
+    private void OnJump()
+    {
+        playerAnimitor.SetTrigger("JumpTrigger");
+        Debug.Log("跳跃");
+        rb.velocity = new Vector2(rb.velocity.x, 0f);
+        rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
+        isJumping = true;
+        lastJumpTime = Time.time;
+        jumpBufferTimer = 0;
+        coyoteTimer = 0;
+        playerAnimitor.SetBool("isFalling", false);
+    }
+
+    //
+    private void HandleJumpUp()
+    {
+        if (Input.GetButtonUp("Jump") && isJumping && rb.velocity.y > 0)
+        {
+            OnJumpUp();
+        }
+    }
+
+    private void OnJumpUp()
+    {
+        playerAnimitor.SetTrigger("JumpTrigger");
+        playerAnimitor.SetBool("isFalling", false);
+        if (rb.velocity.y > 0 && isJumping)
+        {
+            rb.AddForce(Vector2.down * rb.velocity.y * (1 - jumpCutMultiplier), ForceMode2D.Impulse);
+        }
+        lastJumpTime = 0;
+        isJumping = false;
+    }
+
+    private void UpdateGravity()
+    {
+        if (rb.velocity.y < 0)
+        {
+            Debug.Log("下落");
+            rb.gravityScale = gravityScale * fallGravityMultiplier;
+            isFalling = true;
+            playerAnimitor.SetBool("isFalling", true);
+        }
+        else
+        {
+            rb.gravityScale = gravityScale;
+            isFalling = false;
+            playerAnimitor.SetBool("isFalling", false);
+        }
+    }
+    //调转方向
+    private void HandleFlip()
+    {
+        if (moveInput != 0)
+        {
+            int newDir = moveInput > 0 ? 1 : -1;
+            if (newDir != currentDirection)
+            {
+                currentDirection = newDir;
+                FlipPlayer();
+            }
+        }
+    }
+
+    private void FlipPlayer()
+    {
+        if (spriteRenderer != null)
+        {
+            Vector3 scale = Player.transform.localScale;
+            scale.x = Mathf.Abs(scale.x) * currentDirection;
+            Player.transform.localScale = scale;
+        }
+    }
+    //角色移动逻辑
+    private void FixedUpdate()
+    {
+        if (!canControl) return;
+
+        float targetSpeed = moveInput * moveSpeed;
+        float speedDif = targetSpeed - rb.velocity.x;
+        float accelRate = (Mathf.Abs(targetSpeed) > 0.01f) ? acceleration : deceleration;
+        float movement = Mathf.Pow(Mathf.Abs(speedDif) * accelRate, velPower) * Mathf.Sign(speedDif);
+        rb.AddForce(movement * Vector2.right);
+
+        // 地面摩擦力（穿透期间也生效，无额外影响）
+        bool grounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
+        if (grounded && Mathf.Abs(moveInput) < 0.01f)
+        {
+            float frictionForce = Mathf.Min(Mathf.Abs(rb.velocity.x), frictionAmount);
+            frictionForce *= Mathf.Sign(rb.velocity.x);
+            rb.AddForce(Vector2.right * -frictionForce, ForceMode2D.Impulse);
+        }
+    }
+
+    //开始穿透：禁用碰撞体，让角色受重力自然下落
+    private void StartPenetrate()
+    {
+        if (playerCollider == null) return;
+
+        playerCollider.enabled = false;
+        isPenetrating = true;
+        penetrateTimer = penetrateDuration;
+        lastPenetrateTime = Time.time;
+
+        // 可选：给一点向下的初速度，加快下落（不强制，注释掉）
+        // rb.velocity = new Vector2(rb.velocity.x, -2f);
+
+        Debug.Log("穿透开始，碰撞体禁用");
+    }
+
+    //结束穿透：重新启用碰撞体
+    private void EndPenetrate()
+    {
+        if (playerCollider == null) return;
+
+        playerCollider.enabled = true;
+        isPenetrating = false;
+
+        Debug.Log("穿透结束，碰撞体恢复");
+    }
     private void OnDrawGizmosSelected()
     {
         if (groundCheck != null)
