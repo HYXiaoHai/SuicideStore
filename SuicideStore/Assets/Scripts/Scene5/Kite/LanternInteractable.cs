@@ -5,7 +5,7 @@ using UnityEngine;
 public class LanternInteractable : BaseInteractable
 {
     [Header("传送门设置")]
-    public Portal p; 
+    public LanternPortal p; 
 
     [Header("传送冷却")]
     public float teleportCooldown = 0.5f;
@@ -23,17 +23,4 @@ public class LanternInteractable : BaseInteractable
 
         Debug.Log("传送系统已激活！现在触碰灯笼（入口）即可传送");
     }
-
-    // 传送逻辑：直接挂载在灯笼物体上（作为入口传送门）
-    //void OnTriggerEnter2D(Collider2D other)
-    //{
-    //    if (!isTeleportSystemActive) return;          // 未激活时不可传送
-    //    if (exitPortal == null) return;
-    //    if (!other.CompareTag("Player")) return;
-    //    if (Time.time < lastTeleportTime + teleportCooldown) return;
-
-    //    lastTeleportTime = Time.time;
-    //    other.transform.position = exitPortal.position;
-    //    Debug.Log("玩家已传送至出口");
-    //}
 }
