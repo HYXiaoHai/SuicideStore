@@ -150,32 +150,49 @@ public class ReversalMange : MonoBehaviour
         if (completedInteractions == requiredInteractions && !coinSpawned)
         {
             //完成数量改变外观
-            UpdateInteractionAppearance();
+            //UpdateInteractionAppearance();
             SpawnCoin();
         }
     }
-    private void UpdateInteractionAppearance()
+    //private void UpdateInteractionAppearance()
+    //{
+    //    switch(currentLevel)
+    //    {
+    //        case 1://切换第一层的交互图片
+    //            showInteractionObject1.sprite = sprite1; break;
+    //        case 2://切换第二层的交互图片
+    //            showInteractionObject2.sprite = sprite2; break;
+    //        case 3://切换第三层的交互图片
+    //            showInteractionObject3.sprite = sprite3; break;
+    //    }
+    //}
+    private void SpawnCoin()
     {
+        SpriteRenderer gameObject = null;
+        Sprite sprite = null;
         switch(currentLevel)
         {
             case 1://切换第一层的交互图片
-                showInteractionObject1.sprite = sprite1; break;
+                gameObject = showInteractionObject1;
+                    sprite = sprite1; break;
             case 2://切换第二层的交互图片
-                showInteractionObject2.sprite = sprite2; break;
+                gameObject = showInteractionObject2;
+                    sprite = sprite2; break;
             case 3://切换第三层的交互图片
-                showInteractionObject3.sprite = sprite3; break;
+                gameObject = showInteractionObject3;
+                    sprite = sprite3; break;
         }
-    }
-    private void SpawnCoin()
-    {
+
         coinSpawned = true;
         if (coinPrefab != null && currentcoinSpawnPoint != null)
         {
             spawnedCoin = Instantiate(coinPrefab, currentcoinSpawnPoint.position, Quaternion.identity);
-            // 确保金币的 Coin 脚本能正确通知管理器
+            //确保金币的 Coin 脚本能正确通知管理器
             Coin coinScript = spawnedCoin.GetComponent<Coin>();
             if (coinScript != null)
             {
+                coinScript.currentInteractionObject = gameObject;
+                coinScript.nextSprite = sprite;
                 coinScript.SetIsLevelCoin(true); // 标记这是关卡完成金币（新增方法）
             }
         }

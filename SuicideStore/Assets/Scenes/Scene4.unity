@@ -307,7 +307,7 @@ MonoBehaviour:
   playerCollider: {fileID: 151347357}
   playerAnimator: {fileID: 151347356}
   walkSpeed: 5
-  jumpForce: 12
+  jumpForce: 6
   coyoteTime: 0.1
   jumpBufferTime: 0.1
   jumpCutMultiplier: 0.5
@@ -330,6 +330,7 @@ MonoBehaviour:
   currentRowIndex: 0
   nextLevelIndex: 5
   changeDelay: 0.5
+  canMove: 1
 --- !u!1 &124026281
 GameObject:
   m_ObjectHideFlags: 0
@@ -7228,8 +7229,8 @@ MonoBehaviour:
   playerCollider: {fileID: 1107969496}
   playerAnimator: {fileID: 1107969497}
   walkSpeed: 5
-  jumpForce: 12
-  coyoteTime: 0.1
+  jumpForce: 6
+  coyoteTime: 0.15
   jumpBufferTime: 0.1
   jumpCutMultiplier: 0.5
   fallGravityMultiplier: 2
@@ -7252,6 +7253,7 @@ MonoBehaviour:
   currentRowIndex: 0
   nextLevelIndex: 3
   changeDelay: 0.5
+  canMove: 1
 --- !u!1 &1707449803
 GameObject:
   m_ObjectHideFlags: 0
@@ -8261,7 +8263,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 78418f7cf90b17b4c844bb38bac7c8cb, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 2805595799e3f03489f34b6add542a62, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -8311,7 +8313,7 @@ CircleCollider2D:
   m_IsTrigger: 1
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: -1.84, y: 4.07}
+  m_Offset: {x: 0, y: 0}
   serializedVersion: 2
   m_Radius: 29.01
 --- !u!1 &2016478707
@@ -8537,7 +8539,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 78418f7cf90b17b4c844bb38bac7c8cb, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 2805595799e3f03489f34b6add542a62, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -8658,7 +8660,7 @@ CircleCollider2D:
   m_IsTrigger: 1
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: -2.83, y: 4.44}
+  m_Offset: {x: 0, y: 0}
   serializedVersion: 2
   m_Radius: 29.01
 --- !u!1660057539 &9223372036854775807

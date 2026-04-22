@@ -17,8 +17,11 @@ public class Portal : MonoBehaviour
         if(collision.tag=="Player")
         {
             collision.transform.position = targetPosition.position;
-            ReversalMange.Instance.ChangeCinemachine(virtualCamera);
-            ReversalMange.Instance.InitLevel(nextLevel);
+            if(ReversalMange.Instance!=null)
+            {
+                ReversalMange.Instance.ChangeCinemachine(virtualCamera);
+                ReversalMange.Instance.InitLevel(nextLevel);
+            }
         }
     }
 }
