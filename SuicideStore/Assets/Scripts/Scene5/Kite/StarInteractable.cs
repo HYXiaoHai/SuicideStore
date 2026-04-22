@@ -1,0 +1,40 @@
+using DG.Tweening;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class StarInteractable : BaseInteractable
+{
+    public GameObject branchToTransform; // 需要旋转和平移的树枝
+    public Vector3 targetPosition;
+    public Vector3 targetRotation;
+    public float duration = 0.8f;
+
+    public override void OnInteract()
+    {
+        if (branchToTransform == null)
+        {
+            Debug.LogError("StarInteractable: branchToTransform 未赋值！请在 Inspector 中指定需要变换的树枝。");
+            return;
+        }
+        // 星星消失
+        gameObject.SetActive(false);
+
+        // 同时播放移动和旋转动画
+        Sequence seq = DOTween.Sequence();
+        seq.Join(branchToTransform.transform.DOMove(targetPosition, duration));
+        seq.Join(branchToTransform.transform.DORotate(targetRotation, duration));
+
+        // 动画完成后关闭碰撞体
+        seq.OnComplete(() => DisableBranchCollider());
+    }
+    private void DisableBranchCollider()
+    {
+            Collider2D col = branchToTransform.GetComponent<Collider2D>();
+            if (col != null)
+            {
+                col.enabled = false;
+                Debug.Log($"自动禁用树枝上的碰撞体：{col.name}");
+            }
+    }
+}
