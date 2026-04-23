@@ -1,24 +1,42 @@
+using DG.Tweening;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+struct Interacrable
+{
+
+}
+
 
 public class NestInteractable : BaseInteractable
 {
-    public SpriteRenderer nestRenderer;
-    public Sprite newNestSprite; // 新贴图，如未指定则改变颜色
-    public Color newColor = Color.green;
+    public GameObject branchToTransform1; // 需要旋转和平移的树枝
+    public Vector3 target1Rotation;
+    public Vector3 target1Position;
+
+    public GameObject branchToTransform2; // 需要旋转和平移的树枝
+    public Vector3 target2Rotation;
+    public Vector3 target2Position;
+
+    public GameObject branchToTransform3; // 需要旋转和平移的树枝
+    public Vector3 target3Rotation;
+    public Vector3 target3Position;
+    
+    public float duration = 0.8f;
+
     public KiteController kite; // 关联的风筝
 
     public override void OnInteract()
     {
-        // 修改鸟巢贴图
-        if (nestRenderer != null)
-        {
-            if (newNestSprite != null)
-                nestRenderer.sprite = newNestSprite;
-            else
-                nestRenderer.color = newColor;
-        }
+        // 同时播放移动和旋转动画
+        Sequence seq = DOTween.Sequence();
+        seq.Join(branchToTransform1.transform.DOMove(target1Position, duration));
+        seq.Join(branchToTransform1.transform.DORotate(target1Rotation, duration));
+        seq.Join(branchToTransform2.transform.DOMove(target2Position, duration));
+        seq.Join(branchToTransform2.transform.DORotate(target2Rotation, duration));
+        seq.Join(branchToTransform3.transform.DOMove(target3Position, duration));
+        seq.Join(branchToTransform3.transform.DORotate(target3Rotation, duration));
+
 
         // 启用风筝交互
         if (kite != null)

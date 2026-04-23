@@ -18,14 +18,14 @@ public class StarInteractable : BaseInteractable
         }
         // 星星消失
         gameObject.SetActive(false);
-
+        DisableBranchCollider();
         // 同时播放移动和旋转动画
         Sequence seq = DOTween.Sequence();
         //seq.Join(branchToTransform.transform.DOMove(targetPosition, duration));
         seq.Join(branchToTransform.transform.DORotate(targetRotation, duration));
 
         // 动画完成后关闭碰撞体
-        seq.OnComplete(() => DisableBranchCollider());
+        //seq.OnComplete(() => DisableBranchCollider());
     }
     private void DisableBranchCollider()
     {

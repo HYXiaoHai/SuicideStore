@@ -2,6 +2,7 @@ using Cinemachine;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 public class Scene5Manage : MonoBehaviour
 {
@@ -14,6 +15,7 @@ public class Scene5Manage : MonoBehaviour
     public RowManage level4Manage;//第二关控制器
 
     [Header("用于切换相机")]
+    public CinemachineBrain CinemachineBrain;
     public CinemachineVirtualCamera[] levelCameras;
 
     [Header("优先级基数")]
@@ -41,12 +43,12 @@ public class Scene5Manage : MonoBehaviour
     }
 
     //转换镜头（关卡数1-5 ，延迟转换的时间）
-    public void ChangeCamera(int level,float delay = 0,System.Action onComplete = null)
+    public void ChangeCamera(int level,float delay = 0,float duration = 2,System.Action onComplete = null)
     {
-        StartCoroutine(DelayedSwitch(level, delay,onComplete));
+        StartCoroutine(DelayedSwitch(level, delay, duration, onComplete));
     }
 
-    IEnumerator DelayedSwitch(int level, float delay,System.Action onComplete)
+    IEnumerator DelayedSwitch(int level, float delay, float duration,System.Action onComplete)
     {
         yield return new WaitForSeconds(delay);
         if (level < 1 || level > levelCameras.Length)
