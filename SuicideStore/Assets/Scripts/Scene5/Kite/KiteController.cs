@@ -3,28 +3,37 @@ using UnityEngine;
 
 public class KiteController : MonoBehaviour
 {
-    public bool isActive = false;                      // 是否已激活（由鸟巢点击启用）
-    public Transform playerFixedPosition;              // 风筝上固定玩家的位置（空物体）
-    public Transform targetPosition;                     // 风筝最终移动到的目标位置
-    public Vector3 targetRotation;                     // 风筝最终的旋转角度（可选，例如飘落姿态）
-    public float rotateDuration = 0.8f;                // 旋转动画时长
-    public float moveDuration = 2f;                    // 移动动画时长
-    public Ease moveEase = Ease.InOutQuad;             // 移动曲线（可改为 InSine 等更柔和的曲线）
+    public bool isActive = false;
+    public Transform playerFixedPosition;
+    public Transform targetPosition;
+    public Vector3 targetRotation;
+    public float rotateDuration = 0.8f;
+    public float moveDuration = 2f;
+    public Ease moveEase = Ease.InOutQuad;
+
+    public Animator animator;
 
     private Transform player;
     private ReversalPlayerController playerController;
     private bool isFlying = false;
-
+    private bool isFollowing = false;
     public void ActivateKite()
     {
         isActive = true;
-        // 可在此添加视觉提示，如改变风筝颜色或播放粒子
         Debug.Log("风筝已激活，可触碰");
+    }
+
+    void Update()
+    {
+        if (isFollowing && player != null && playerFixedPosition != null)
+        {
+            player.position = playerFixedPosition.position;
+        }
     }
 
     void OnTriggerEnter2D(Collider2D other)
     {
-        if (!isActive || isFlying) return;      // 未激活 或 已经起飞，不再触发
+        if (!isActive || isFlying) return;
         if (!other.CompareTag("Player")) return;
 
         player = other.transform;
@@ -36,30 +45,58 @@ public class KiteController : MonoBehaviour
         }
 
         isFlying = true;
-        // 1. 禁用玩家操控
-        player.GetComponent<Rigidbody2D>().isKinematic = true;
-        player.GetComponent<Collider2D>().enabled = false;
 
+        // 1. 禁用玩家物理和操控
+        Rigidbody2D rb = player.GetComponent<Rigidbody2D>();
+        if (rb != null) rb.isKinematic = true;
+        Collider2D col = player.GetComponent<Collider2D>();
+        if (col != null) col.enabled = false;
         playerController.SetCanMove(false);
-
         Debug.Log("玩家控制已禁用");
 
-        // 2. 将玩家移动到风筝上的固定点，并设为风筝的子物体（同步移动旋转）
-        player.DOMove(playerFixedPosition.position, 1.5f).SetEase(Ease.OutQuad);
-        player.SetParent(transform);
-        // 3. 启动风筝动画序列：先旋转，后移动
-        Sequence kiteSequence = DOTween.Sequence();
+        // 2. 玩家移动到固定点，完成后启动风筝动画
+        player.DOMove(playerFixedPosition.position, 1.5f).SetEase(Ease.OutQuad)
+            .OnComplete(() => {
+                // 移动完成，翻转玩家面朝左
+                Vector3 scale = player.localScale;
+                scale.x = -Mathf.Abs(scale.x);
+                player.localScale = scale;
 
-        // 可选：同时播放风筝自身的飘动动画（Animator），这里旋转作为“调整方向”
-        kiteSequence.Append(transform.DORotate(targetRotation, rotateDuration).SetEase(Ease.InOutQuad));
-        kiteSequence.Append(transform.DOMove(targetPosition.position, moveDuration).SetEase(moveEase));
-        Scene5Manage.Instance.ChangeCamera(2,1f);
-        // 动画完成后回调
-        kiteSequence.OnComplete(() => OnFlyComplete());
+                // 开启跟踪模式
+                isFollowing = true;
+                Debug.Log("玩家已固定，开始风筝旋转");
+
+                // 3. 创建风筝动画序列：旋转 → 移动
+                Sequence kiteSequence = DOTween.Sequence();
+
+                kiteSequence.Append(transform.DORotate(targetRotation, rotateDuration).SetEase(Ease.InOutQuad));
+
+                kiteSequence.AppendCallback(() => {
+                    if (Scene5Manage.Instance != null)
+                    {
+                        Scene5Manage.Instance.ChangeCamera(2, 1f, () => {
+                            // 相机切换完成后，开始跳圈游戏
+                            if (JumpGameManager.Instance != null)
+                                JumpGameManager.Instance.StartJumpGame();
+                        });
+                    }
+                    else
+                        Debug.LogWarning("Scene5Manage.Instance 不存在");
+                });
+                kiteSequence.AppendCallback(() => {
+                    if (animator != null)
+                        animator.SetBool("IsFlying", true);
+                });
+                kiteSequence.Append(transform.DOMove(targetPosition.position, moveDuration).SetEase(moveEase));
+                //在这里播放动画
+
+                kiteSequence.OnComplete(() => OnFlyComplete());
+            });
     }
 
     private void OnFlyComplete()
     {
+        isFollowing = false;
         Destroy(gameObject);
     }
 }

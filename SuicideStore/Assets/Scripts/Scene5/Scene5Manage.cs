@@ -9,10 +9,7 @@ public class Scene5Manage : MonoBehaviour
     public static Scene5Manage Instance;
     public int currentLevel;
     [Header("关卡的控制器")]
-    public GrowthComparison level1Mange;//第一关控制器（默认初始关卡）
-    public RowManage level2Manage;//第二关控制器
-    public SymmetricDrag level3Manage;//第三关控制器
-    public RowManage level4Manage;//第二关控制器
+    public JumpGameManager level2;//第二关关卡控制器
 
     [Header("用于切换相机")]
     public CinemachineBrain CinemachineBrain;
@@ -43,12 +40,12 @@ public class Scene5Manage : MonoBehaviour
     }
 
     //转换镜头（关卡数1-5 ，延迟转换的时间）
-    public void ChangeCamera(int level,float delay = 0,float duration = 2,System.Action onComplete = null)
+    public void ChangeCamera(int level,float delay = 0,System.Action onComplete = null)
     {
-        StartCoroutine(DelayedSwitch(level, delay, duration, onComplete));
+        StartCoroutine(DelayedSwitch(level, delay, onComplete));
     }
 
-    IEnumerator DelayedSwitch(int level, float delay, float duration,System.Action onComplete)
+    IEnumerator DelayedSwitch(int level, float delay,System.Action onComplete)
     {
         yield return new WaitForSeconds(delay);
         if (level < 1 || level > levelCameras.Length)
