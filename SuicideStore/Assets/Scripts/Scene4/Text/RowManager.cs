@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.SceneManagement;
 using DG.Tweening;
 
 public class RowManage : MonoBehaviour
@@ -303,11 +304,10 @@ public class RowManage : MonoBehaviour
                 }
             });
         }
-        else
+        else if(Scene5Manage.Instance != null)
         {
-            Debug.LogError("Scene4Manage.Instance 不存在，请确保场景中有 Scene4Manage 组件");
+            SceneManager.LoadScene("Scene6_6.1_reversal");
         }
-
     }
 
     private void SetupCurrentRowForWords()

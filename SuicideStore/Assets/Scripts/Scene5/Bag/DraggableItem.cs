@@ -9,13 +9,21 @@ public class DraggableItem : MonoBehaviour
     private Rigidbody2D rb;
     private Collider2D itemCollider;
 
-    private Vector3 originalPosition;      // 拖拽前记录的位置（用于无效区域回退）
-    private bool wasInsideBagAtDragStart;  // 拖拽开始时是否在书包内（暂未使用但保留）
-    private bool isMoving = false;         // 防止动画期间重复拖拽
+    private Vector3 originalPosition;
+    private bool wasInsideBagAtDragStart;
+    private bool isMoving = false;
+    private Vector3 originalScale;          // 记录原始缩放
+    private Tween scaleTween;               // 缩放动画引用
 
-    public bool isInsideBag;      // 当前是否在书包内
-    public bool isOutsideSlot;    // 当前是否在外部展示区
-    public bool initialInside;    // 初始是否在书包内（由管理器设置）
+    [Header("拖拽手感")]
+    public float hoverScale = 1.2f;         // 点击时放大倍数
+    public float scaleDuration = 0.1f;      // 缩放动画时长
+
+    private readonly float zOffset = -0.04f;   // 固定 Z 偏移
+
+    public bool isInsideBag;
+    public bool isOutsideSlot;
+    public bool initialInside;
 
     void Start()
     {
@@ -23,12 +31,49 @@ public class DraggableItem : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         itemCollider = GetComponent<Collider2D>();
         originalPosition = transform.position;
+        originalScale = transform.localScale;
+        SetZOffset();
+        // 可选：自动调整碰撞体大小，使其略大于视觉范围（建议手动调整，这里仅作提示）
+        if (itemCollider != null && itemCollider is BoxCollider2D box)
+        {
+            // 如果你希望自动扩大碰撞体，可以取消注释，但一般建议在编辑器中手动调整
+            // box.size = Vector2.one * 0.8f;
+        }
+    }
+    private void SetZOffset()
+    {
+        Vector3 pos = transform.position;
+        pos.z = zOffset;
+        transform.position = pos;
     }
 
     void OnMouseDown()
     {
-        if (EventSystem.current.IsPointerOverGameObject()) return;
-        if (isMoving) return; // 动画中禁止拖拽
+        // 调试：输出点击信息，帮助判断是否命中
+        Debug.Log($"鼠标点击物品：{gameObject.name}");
+        if (EventSystem.current != null && !EventSystem.current.IsPointerOverGameObject())
+        {
+            Debug.Log($"点击 {gameObject.name}");
+        }
+        if (EventSystem.current.IsPointerOverGameObject())
+        {
+            Debug.Log("点击被 UI 遮挡");
+            return;
+        }
+        if (isMoving)
+        {
+            Debug.Log("物品动画中，禁止拖拽");
+            return;
+        }
+        if (BagPackingManager.Instance == null || !BagPackingManager.Instance.isGameStarted)
+        {
+            Debug.Log("游戏未开始，无法拖拽");
+            return;
+        }
+
+        // 播放放大动画
+        scaleTween?.Kill();
+        scaleTween = transform.DOScale(originalScale * hoverScale, scaleDuration).SetEase(Ease.OutBack);
 
         originalPosition = transform.position;
         wasInsideBagAtDragStart = isInsideBag;
@@ -39,10 +84,14 @@ public class DraggableItem : MonoBehaviour
     {
         if (isMoving) return;
         transform.position = GetMouseWorldPos() + offset;
+        SetZOffset();   // 拖拽时保持 Z
     }
 
     void OnMouseUp()
     {
+        scaleTween?.Kill();
+        scaleTween = transform.DOScale(originalScale, scaleDuration).SetEase(Ease.OutQuad);
+
         if (isMoving) return;
 
         bool inBag = BagPackingManager.Instance.IsInBagArea(transform.position);
@@ -50,20 +99,18 @@ public class DraggableItem : MonoBehaviour
 
         if (targetSlot != null)
         {
-            // 吸附到外部展示区域中心（带动画）
             Vector3 targetPos = targetSlot.transform.position;
-            Debug.Log($"物品吸附到展示区域：{targetSlot.name}");
+            targetPos.z = zOffset;   // 目标位置也修正 Z
             MoveToTarget(targetPos);
         }
         else if (inBag)
         {
-            // 在书包内，直接更新状态，不移动
+            SetZOffset();   // 书包内也确保 Z
             BagPackingManager.Instance.CheckItemPlacement(this);
         }
         else
         {
-            // 无效区域：回到拖拽前位置（带动画）
-            Debug.Log("物品回到原位置");
+            // 无效区域：回到拖拽前位置（原位置已经包含正确 Z）
             MoveToTarget(originalPosition);
         }
     }
@@ -75,6 +122,7 @@ public class DraggableItem : MonoBehaviour
             .SetEase(Ease.OutQuad)
             .OnComplete(() =>
             {
+                SetZOffset();   // 移动完成后再次确保 Z
                 isMoving = false;
                 BagPackingManager.Instance.CheckItemPlacement(this);
             });
@@ -87,9 +135,9 @@ public class DraggableItem : MonoBehaviour
         return mainCamera.ScreenToWorldPoint(mousePoint);
     }
 
-    // 供管理器调用的初始位置设置（可选，用于初始吸附外部物品到槽位）
     public void SetOriginalPosition(Vector3 pos)
     {
+        pos.z = zOffset;
         originalPosition = pos;
         transform.position = pos;
     }

@@ -27,6 +27,7 @@ public class JumpGameManager : MonoBehaviour
     private bool isGameActive = false;      // 倒计时结束后为true，表示正式游戏进行中
     private bool isWaitingForJump = false;
     private int successCount = 0;           // 成功跳过的正式圈个数（0~3）
+    public bool gameCompleted =false;
 
     void Awake()
     {
@@ -44,6 +45,7 @@ public class JumpGameManager : MonoBehaviour
     // 外部调用：开启跳圈游戏（由风筝相机切换后触发）
     public void StartJumpGame()
     {
+        gameCompleted = false;
         playerJump.SetCanJump(true);
         // 开始教学圈（索引0）
         StartCircle(0);
@@ -65,7 +67,6 @@ public class JumpGameManager : MonoBehaviour
 
         StartCoroutine(WatchCircleLife());
         isWaitingForJump = true;
-        Debug.Log($"开始第{currentIndex + 1}个圈，速度={speeds[currentIndex]}");
     }
 
     IEnumerator WatchCircleLife()
@@ -177,7 +178,8 @@ public class JumpGameManager : MonoBehaviour
     private void OnAllCirclesPassed()
     {
         Debug.Log("胜利！所有圈通过");
-        // 胜利时 successCount 应该是3，可以触发下一阶段
-        // 例如：Scene5Manage.Instance.ChangeCamera(3, 1f);
+        playerJump.SetCanJump(false);
+        gameCompleted = true;
+        BagPackingManager.Instance.StartGame();
     }
 }

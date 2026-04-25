@@ -7,7 +7,7 @@ public class PlayerJumpController : MonoBehaviour
     public bool canJump = false;
     void Update()
     {
-        if (canJump && Input.GetKeyDown(KeyCode.Space))
+        if (!JumpGameManager.Instance.gameCompleted&&canJump && Input.GetKeyDown(KeyCode.Space))
         {
             PerformJump();
         }

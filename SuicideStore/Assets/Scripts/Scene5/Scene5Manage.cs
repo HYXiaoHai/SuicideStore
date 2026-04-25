@@ -10,10 +10,9 @@ public class Scene5Manage : MonoBehaviour
     public int currentLevel;
     [Header("关卡的控制器")]
     public JumpGameManager level2;//第二关关卡控制器
-    public RowManage level4;//第三关关卡控制器
+    public RowManage level3manage;//第三关关卡控制器
 
     [Header("用于切换相机")]
-    public CinemachineBrain CinemachineBrain;
     public CinemachineVirtualCamera[] levelCameras;
 
     [Header("优先级基数")]

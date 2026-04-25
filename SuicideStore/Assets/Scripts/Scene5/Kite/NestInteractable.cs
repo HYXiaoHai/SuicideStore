@@ -2,11 +2,6 @@ using DG.Tweening;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-struct Interacrable
-{
-
-}
-
 
 public class NestInteractable : BaseInteractable
 {
