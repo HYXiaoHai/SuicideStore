@@ -39,6 +39,7 @@ public class RowManage : MonoBehaviour
     public int nextLevelIndex = 2;//第2关
     public float changeDelay = 1f;//完成后多久切换镜头（延迟）
     private bool hasTriggeredSwitch = false; //防止重复触发
+
     // 状态机
     private enum GameState { OnWords, OnLine }
     private GameState currentState;
@@ -306,7 +307,7 @@ public class RowManage : MonoBehaviour
         }
         else if(Scene5Manage.Instance != null)
         {
-            SceneManager.LoadScene("Scene6_6.1_reversal");
+            SceneManager.LoadScene("Scene6_reversal");
         }
     }
 

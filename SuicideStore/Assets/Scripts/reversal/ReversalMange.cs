@@ -2,6 +2,7 @@ using Cinemachine;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static UnityEngine.Rendering.DebugUI;
 
 public class ReversalMange : MonoBehaviour
 {
@@ -103,6 +104,10 @@ public class ReversalMange : MonoBehaviour
                 currentPortal = portal3;
                 currentcoinSpawnPoint = coinSpawnPoint3;
                 flipMirrorController.InitMirror(level3OuterLayer, level3MiddleLayer, level3InnerLayer);
+                requiredInteractions = 2;
+                canInteractItems = true;
+                // 可选：同步显示/隐藏所有物品的交互提示（见下方说明）
+                EnableItemHints(currentLevel, true);
                 break;
         }
         if (currentPortal != null)
