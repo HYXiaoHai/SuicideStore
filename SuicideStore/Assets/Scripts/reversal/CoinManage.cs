@@ -62,7 +62,7 @@ public class CoinManage : MonoBehaviour
     public void AddCoin(Coin coin)
     {
         coins.Add(coin);
-        //UpdateDirection(originalDic);
+        UpdateDirection(originalDic);
     }
     public void UpdateDirection(int direction)
     {
