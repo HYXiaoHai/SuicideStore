@@ -33,13 +33,18 @@ public class ClockController : MonoBehaviour
     private Material targetMaterial;
     private RectTransform rectTransform;
     private Canvas canvas;
-
+    [Header("音效")]
+    public AudioClip handClip;//拨动指针的音效
+    public AudioSource handAudioSource;
+    // 音效触发相关
+    private float lastTickAngle = 0f;        // 上次触发音效时的角度
+    private readonly float tickStep = 30f;   // 每30度触发一次音效
     void Start()
     {
         rectTransform = GetComponent<RectTransform>();
         canvas = GetComponentInParent<Canvas>();
         currentAngle = startAngle;
-
+        lastTickAngle = startAngle;           // 初始化上次触发角度
         if (maskGraphic != null)
             targetMaterial = maskGraphic.material;
 
@@ -60,8 +65,23 @@ public class ClockController : MonoBehaviour
 
         HandleInput();
 
+        //if (!isDragging)
+        //{
+        //    currentAngle += autoRotateSpeed * Time.deltaTime;
+
+        //}
         if (!isDragging)
-            currentAngle += autoRotateSpeed * Time.deltaTime;
+        {
+            // 自动旋转
+            float oldAngle = currentAngle;
+            float newAngle = currentAngle + autoRotateSpeed * Time.deltaTime;
+            if (newAngle > 360f) newAngle = 360f;
+
+            // 检查并播放音效（基于角度增量）
+            CheckAndPlayTick(oldAngle, newAngle);
+
+            currentAngle = newAngle;
+        }
 
         if (currentAngle >= 360f)
         {
@@ -92,8 +112,18 @@ public class ClockController : MonoBehaviour
         if (Input.GetMouseButton(0) && isDragging)
         {
             float mouseAngle = GetAngleFromMouse();
+            //if (mouseAngle >= currentAngle && mouseAngle <= 360f)
+            //    currentAngle = mouseAngle;
             if (mouseAngle >= currentAngle && mouseAngle <= 360f)
-                currentAngle = mouseAngle;
+            {
+                float oldAngle = currentAngle;
+                float newAngle = mouseAngle;
+
+                // 检查并播放音效（基于角度增量）
+                CheckAndPlayTick(oldAngle, newAngle);
+
+                currentAngle = newAngle;
+            }
             else if (mouseAngle < currentAngle - 10f)
                 isDragging = false;
         }
@@ -146,7 +176,25 @@ public class ClockController : MonoBehaviour
         if (targetMaterial != null)
             targetMaterial.SetFloat("_Angle", currentAngle);
     }
+    private void CheckAndPlayTick(float oldAngle, float newAngle)
+    {
+        if (handAudioSource == null || handClip == null) return;
+        if (Mathf.Approximately(oldAngle, newAngle)) return;
 
+        // 计算起始和结束所在的区间索引（从0开始，每个区间宽度 tickStep）
+        int startIndex = Mathf.FloorToInt(oldAngle / tickStep);
+        int endIndex = Mathf.FloorToInt(newAngle / tickStep);
+
+        // 如果区间索引不同，说明跨越了至少一个 tickStep 边界
+        if (endIndex > startIndex)
+        {
+            int tickCount = endIndex - startIndex;
+            for (int i = 0; i < tickCount; i++)
+            {
+                handAudioSource.PlayOneShot(handClip);
+            }
+        }
+    }
     private void Complete()
     {
         if (isComplete) return;

@@ -39,6 +39,10 @@ public class DefendManage : MonoBehaviour
     public string nextSceneName;
     public CanvasGroup defendCanvasGroup;
 
+    [Header("音效")]
+    public AudioSource source;
+    public AudioClip defendClip;
+
     private Coroutine randomBubbleCoroutine; // 右侧随机气泡协程
     private bool isScene2Started = false; // 是否已开始场景2流程
     private GameObject finalBubble;     // 存储最终气泡引用，用于排除清除
@@ -242,6 +246,9 @@ public class DefendManage : MonoBehaviour
     //普通按钮点击（前两次）
     public void OnDefendButtonClick()
     {
+        //点击音效
+        source.PlayOneShot(defendClip);
+        
         // 1. 停止随机气泡生成
         StopRandomRightBubbles();
 
@@ -287,6 +294,7 @@ public class DefendManage : MonoBehaviour
         // 播放音效（预留）
         // AudioSource.PlayClipAtPoint(successClip, Camera.main.transform.position);
         // 发送左侧对话框 "....."
+        source.PlayOneShot(defendClip);
 
         StartCoroutine(loadScence());
     }

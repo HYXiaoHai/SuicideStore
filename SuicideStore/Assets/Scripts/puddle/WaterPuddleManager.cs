@@ -7,6 +7,8 @@ using UnityEngine.Rendering.Universal;  // 用于协程
 
 public class SimpleWaterPuddleManager : MonoBehaviour
 {
+    public CanvasGroup canvasGroup;//用于开局的转场
+
     [Header("水洼按钮（按顺序索引0,1,2）")]
     [SerializeField] private Button[] puddles = new Button[3];
 
@@ -25,11 +27,31 @@ public class SimpleWaterPuddleManager : MonoBehaviour
     public float switchButtonAnimDuration = 0.5f;    // 动画时长
     public PlayableDirector timeline;
 
+    [Header("音效")]
+    public AudioSource puddleAudioSource;
+    public AudioClip puddles1Clip;
+    public AudioClip puddles2Clip;
+    public AudioClip puddles3Clip;
+    [Header("BGM")]
+    public AudioSource BGMAudioSource;
+    public AudioClip BGM1Clip;//当前关BGM
+    public AudioClip BGM2Clip;//下一关的BGM
+    [SerializeField] private float bgmFadeDuration = 1f;  // BGM 淡入淡出时长
+
     private int currentIndex = 0;      // 当前等待被点击的水洼索引
     private bool isComplete = false;    // 是否已完成所有交互
+    private float originalBGMVolume;             // 记录原始 BGM 音量
 
     void Start()
     {
+        // 记录原始 BGM 音量
+        if (BGMAudioSource != null)
+            originalBGMVolume = BGMAudioSource.volume;
+
+        // 预加载所有 BGM Clip，避免切换时卡顿
+        if (BGM1Clip != null) BGM1Clip.LoadAudioData();
+        if (BGM2Clip != null) BGM2Clip.LoadAudioData();
+
         // 初始禁用所有水洼交互，透明度设为0
         foreach (var btn in puddles)
         {
@@ -72,6 +94,16 @@ public class SimpleWaterPuddleManager : MonoBehaviour
         {
             SetPuddleActive(i, false);
         }
+
+        // 初始化 BGM（如果尚未播放）
+        if (BGMAudioSource != null && BGM1Clip != null)
+        {
+            BGMAudioSource.clip = BGM1Clip;
+            BGMAudioSource.Play();
+        }
+
+        //开局转场效果（白色渐入）
+        canvasGroup.DOFade(0f, 1f).OnComplete(() => { canvasGroup.gameObject.SetActive(false); });
     }
 
     /// <summary>
@@ -142,13 +174,18 @@ public class SimpleWaterPuddleManager : MonoBehaviour
         {
             case 0: // 点击第一个水坑 → 显示脚印1和脚印2（依次）
                 ShowFootprint(footprint1);
+                puddleAudioSource.PlayOneShot(puddles1Clip);
                 // 延迟0.2秒显示第二个脚印，增加顺序感
                 StartCoroutine(DelayedShowFootprint(footprint2, 0.2f));
                 break;
             case 1: // 点击第二个水坑 → 显示脚印3
+                puddleAudioSource.PlayOneShot(puddles2Clip);
+
                 ShowFootprint(footprint3);
                 break;
             case 2: // 点击第三个水坑 → 显示脚印4，之后显示切换按钮
+                puddleAudioSource.PlayOneShot(puddles3Clip);
+
                 ShowFootprint(footprint4);
                 StartCoroutine(ShowSwitchButtonAfterDelay(0.5f));
                 break;
@@ -190,68 +227,32 @@ public class SimpleWaterPuddleManager : MonoBehaviour
             switchButton.onClick.AddListener(OnSwitchButtonClick);
         }
     }
-
+    //切换下一关的按钮
     private void OnSwitchButtonClick()
     {
+        switchButton.gameObject.SetActive(false);
+
         if (timeline != null)
         {
             timeline.stopped += OnTimelineStopped;
             timeline.Play();
         }
-        switchButton.gameObject.SetActive(false);
+        //切换BGM
+        BGMAudioSource.DOFade(0f, bgmFadeDuration).OnComplete(() =>
+        {
+            // 2. 切换 BGM Clip 并从头播放（音量保持 0）
+            BGMAudioSource.clip = BGM2Clip;
+            BGMAudioSource.Play();
+            BGMAudioSource.volume = 0f;
+
+        });
     }
 
     private void OnTimelineStopped(PlayableDirector director)
     {
         director.stopped -= OnTimelineStopped;
+        // 4. 淡入 BGM 到原始音量
+        BGMAudioSource.DOFade(originalBGMVolume, 0.5f);
         DefendManage.Instance.StartScene2Dialogue();  // 你的原有逻辑
-    }
-
-    /// <summary>
-    /// 重置整个流程（供外部调用）
-    /// </summary>
-    public void ResetSequence()
-    {
-        // 停止所有动画
-        foreach (var btn in puddles)
-        {
-            if (btn != null) btn.GetComponent<Image>()?.DOKill();
-        }
-        footprint1?.DOKill();
-        footprint2?.DOKill();
-        footprint3?.DOKill();
-        footprint4?.DOKill();
-
-        currentIndex = 0;
-        isComplete = false;
-
-        // 重置所有水洼透明度为0，禁用交互
-        for (int i = 0; i < puddles.Length; i++)
-        {
-            if (puddles[i] != null)
-            {
-                puddles[i].interactable = false;
-                Image img = puddles[i].GetComponent<Image>();
-                if (img != null)
-                {
-                    Color c = img.color;
-                    c.a = 0f;
-                    img.color = c;
-                }
-            }
-        }
-
-        // 重置所有脚印透明度为0
-        SetFootprintAlpha(footprint1, 0f);
-        SetFootprintAlpha(footprint2, 0f);
-        SetFootprintAlpha(footprint3, 0f);
-        SetFootprintAlpha(footprint4, 0f);
-       
-        // 隐藏切换按钮
-        if (switchButton != null)
-            switchButton.gameObject.SetActive(false);
-
-        // 激活第一个水洼
-        SetPuddleActive(0, true);
     }
 }

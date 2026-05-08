@@ -1,9 +1,10 @@
 using DG.Tweening;
+using System.Collections;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
-using System.Collections;
-using Unity.VisualScripting;
+using static Unity.VisualScripting.Member;
 
 [RequireComponent(typeof(RectTransform), typeof(Rigidbody2D), typeof(Collider2D))]
 public class Puzzle : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IPointerEnterHandler, IPointerExitHandler
@@ -30,6 +31,10 @@ public class Puzzle : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
     [SerializeField] private float speedMultiplier = 0.5f;    // 每增加一次辩解，速度提升乘数
     [SerializeField] private string boundaryTag = "Boundary"; // 边界物体的Tag
 
+    [Header("音效")]
+    public AudioSource source;
+    public AudioClip clikClip;//点到拼图的音效
+
     private Rigidbody2D rb;
     private Vector2 moveDirection;
     private Coroutine floatingCoroutine;
@@ -47,8 +52,8 @@ public class Puzzle : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
 
     private void Start()
     {
+        source = GetComponent<AudioSource>();
         ResetDirection();
-
     }
     public void SetRandomRotation()
     {
@@ -111,6 +116,8 @@ public class Puzzle : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
         isDragging = true;
         StopFloating();
         rb.velocity = Vector2.zero;
+        //音效
+        source.PlayOneShot(clikClip);
 
         if (currentSlot != null)
         {
