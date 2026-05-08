@@ -1,6 +1,7 @@
 using System.Collections;
 using DG.Tweening;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class Scene10Manage : MonoBehaviour
@@ -12,6 +13,7 @@ public class Scene10Manage : MonoBehaviour
     public GameObject leftRoundFather;
 
     [Header("level1")]
+    public CanvasGroup level1GameCanvas;
     public GameObject rightLevel1Father;
     public GameObject leftLevel1Father;//左父物体
     public SpriteRenderer l1bubble1;//左侧气泡1
@@ -43,12 +45,20 @@ public class Scene10Manage : MonoBehaviour
 
     [Header("level3")]
     public GameObject level3Father;//关卡3的背景
+    public CanvasGroup level3GameCanvas;
+
+    [Header("跳转场景")]
+    public string nextSceneName;//
+    public float duration;//跳转间隔
     private void Awake()
     {
         Instance = this;
     }
     void Start()
     {
+        level1GameCanvas.gameObject.SetActive(true);
+        level3GameCanvas.gameObject.SetActive(false);
+
         level1Renderers = new SpriteRenderer[] { dialogBox1, dialogBox2, l1bubble1, l2bubble2 };//用于结束时隐藏的
         level2Renderers = new SpriteRenderer[] { mother, father, son ,pencil, eraser, l2Bubble1 };//用于开始时显现的
 
@@ -100,6 +110,7 @@ public class Scene10Manage : MonoBehaviour
         {
             rightLevel1Father.SetActive(false);
             leftLevel1Father.SetActive(false);
+            level1GameCanvas.gameObject.SetActive(false);
             StartLevel2();
         });
         fadeSeq.Play();
@@ -112,7 +123,6 @@ public class Scene10Manage : MonoBehaviour
         {
             item.DOFade(1f, 1f);
         }
-
     }
     //
     public void OnDrawComplet(int _completeNum)
@@ -145,15 +155,23 @@ public class Scene10Manage : MonoBehaviour
             rightLevel2Father.SetActive(false);
             rightRoundFather.SetActive(false);
             leftRoundFather.SetActive(false);
-            Leve3Complete();
+            Leve3Start();
         });
     }
 
-    public void Leve3Complete()
+    public void Leve3Start()
     {
         level3Father.SetActive(true);
+        level3GameCanvas.gameObject.SetActive(true);
         transitionCanvas.DOFade(0f, 1f);//渐显
-
+    }
+    public void Leve3Complete()
+    {
+        //跳转
+    }
+    public void LoadNextScene()
+    {
+        SceneManager.LoadScene(nextSceneName);
     }
     // Update is called once per frame
     void Update()

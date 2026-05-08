@@ -38,7 +38,7 @@ public class ClockController : MonoBehaviour
     public AudioSource handAudioSource;
     // 音效触发相关
     private float lastTickAngle = 0f;        // 上次触发音效时的角度
-    private readonly float tickStep = 30f;   // 每30度触发一次音效
+    public float tickStep = 30f;   // 每30度触发一次音效
     void Start()
     {
         rectTransform = GetComponent<RectTransform>();
