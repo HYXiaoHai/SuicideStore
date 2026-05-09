@@ -36,6 +36,7 @@ public class PuzzleManage : MonoBehaviour
     public Transform rectTransform3;//第三个默认出生位置
 
 
+
     private Puzzle[] currentPuzzles;   // 当前激活的拼图数组
     private int currentRound = 0;      // 0=第一轮, 1=第二轮, 2=第三轮
     private void Awake()

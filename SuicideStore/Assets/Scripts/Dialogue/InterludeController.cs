@@ -50,6 +50,10 @@ public class InterludeController : MonoBehaviour
     [SerializeField] private GameObject endHint;
     [SerializeField] private bool requireButtonToAdvanceWhenAvailable = true;
 
+    [Header("音效")]
+    public AudioSource dialogAudioSource;
+    public AudioClip dialogAudioClip;
+
     private int currentIndex;
     private bool isTyping;
     private Coroutine typingCoroutine;
@@ -454,6 +458,8 @@ public class InterludeController : MonoBehaviour
     private void DisplayPanel(int index)
     {
         if (dialogPanels == null || dialogPanels.Count == 0) return;
+
+        dialogAudioSource.PlayOneShot(dialogAudioClip);
 
         if (index >= dialogPanels.Count)
         {

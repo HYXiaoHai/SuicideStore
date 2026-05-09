@@ -1,0 +1,211 @@
+using Cinemachine;
+using DG.Tweening;
+using UnityEngine;
+using UnityEngine.UI;
+
+public class Scene9Maneg : MonoBehaviour
+{
+    public static Scene9Maneg Instance;
+
+    [Header("通用")]
+    public CinemachineVirtualCamera defaultCamera;      // 默认视角
+    public int currentLevel = 1;
+
+    [Header("第一关 - 脚印")]
+    public GameObject footParent;                       // 第一关所有物体父级
+    public Transform footEndPosition;                   // 平移目标点
+    public SpriteRenderer[] footSprites;                // 四个脚印 SpriteRenderer
+    public float footFadeDuration = 0.3f;               // 脚印淡入时长
+    public Image steamImage;                            // Steam 成就图片
+    public Transform steamStartPos;                     // steam 起始位置
+    public Transform steamEndPos;                       // steam 结束位置
+    private int clickCount = 0;
+    private bool isFootCompleted = false;
+
+    [Header("第二关 - 拼图")]
+    public bool isPuzzleViewOpen = false;//是否处于拼图自由视角
+    public CinemachineVirtualCamera puzzleCamera;//拼图视角
+    public CinemachineVirtualCamera puzzleCompleteCamera;//拼图完成视角
+    public Slider puzzleSlider;//拉杆 Slider
+    public GameObject puzzleParent;//第二关所有物体父级（初始隐藏或透明）
+    public PathPuzzleManage puzzleManage;//拼图逻辑管理器
+    public float puzzleFadeDuration = 0.5f;//第二关渐显时长
+    private SpriteRenderer[] puzzleSpriteRenderers;//第二关所有 SpriteRenderer（子物体）
+    public Button puzzleButton;//切换到拼图视角的按钮
+
+    [Header("第三关 - 文档")]
+    public GameObject fileParent;
+    public CinemachineVirtualCamera fileCamera;//文档视角
+    public Button fileButton;//切换到档案的按钮
+
+    private void Awake()
+    {
+        Instance = this;
+    }
+
+    private void Start()
+    {
+        // 初始化第一关
+        clickCount = 0;
+        currentLevel = 1;
+        isFootCompleted = false;
+
+        puzzleButton.onClick.AddListener(EnterPuzzleView);
+        puzzleButton.gameObject.SetActive(false);
+        // 初始化第二关
+        puzzleSpriteRenderers = puzzleParent.GetComponentsInChildren<SpriteRenderer>();
+        SetPuzzleAlpha(0f);              // 初始完全透明
+
+        if (puzzleSlider != null)
+        {
+            puzzleSlider.onValueChanged.AddListener(OnSliderValueChanged);
+            puzzleSlider.value = 0f;
+            puzzleSlider.gameObject.SetActive(false);
+        }
+
+        // steam 图片复位
+        steamImage.transform.position = steamStartPos.position;
+        steamImage.canvasRenderer.SetAlpha(1f);
+    }
+
+    private void Update()
+    {
+        // 第一关：鼠标点击显示脚印
+        if (Input.GetMouseButtonDown(0) && currentLevel == 1 && !isFootCompleted)
+        {
+            clickCount++;
+            ShowFootprint(clickCount - 1);
+        }
+
+        // 第二关：ESC 退出拼图视角
+        if (Input.GetKeyDown(KeyCode.Escape) && isPuzzleViewOpen)
+        {
+            ExitPuzzleView();
+        }
+    }
+
+    // ---------- 第一关逻辑 ----------
+    private void ShowFootprint(int index)
+    {
+        // 淡入对应脚印
+        footSprites[index].DOFade(1f, footFadeDuration);
+
+        // 如果是最后一个脚印，开始转场动画
+        if (clickCount == 4)
+        {
+            OnFootCompleted();
+            StartCoroutine(TransitionToLevel2());
+        }
+    }
+
+    private void OnFootCompleted()
+    {
+        isFootCompleted = true;
+        currentLevel++;
+        Debug.Log("第一关完成");
+    }
+
+    private System.Collections.IEnumerator TransitionToLevel2()
+    {
+        // 1. Steam 成就动画：从起始点飞到结束点
+        Tween steamTween = steamImage.transform.DOMove(steamEndPos.position, 1f).SetEase(Ease.OutCubic);
+        yield return steamTween.WaitForCompletion();
+
+        // 2. 平移第一关整体（父物体）
+        Tween moveTween = footParent.transform.DOMove(footEndPosition.position, 1f).SetEase(Ease.InOutSine);
+        yield return moveTween.WaitForCompletion();
+
+        // 3. 显示第二关：所有 SpriteRenderer 淡入，同时 steam 飞回起始位置（不等待）
+        StartLevel2FadeIn();
+
+        // 注意：Steam 飞回起始位置与第二关渐显并行，无需等待
+        steamImage.transform.DOMove(steamStartPos.position, 1f).SetEase(Ease.OutCubic);
+    }
+
+    private void StartLevel2FadeIn()
+    {
+        // 使用 Sequence 统一控制所有 SpriteRenderer 的淡入
+        Sequence fadeSeq = DOTween.Sequence();
+        foreach (var sr in puzzleSpriteRenderers)
+        {
+            fadeSeq.Join(sr.DOFade(1f, puzzleFadeDuration));
+        }
+        // 淡入完成后激活拼图按钮并启动拼图管理器
+        fadeSeq.OnComplete(() =>
+        {
+            puzzleButton.gameObject.SetActive(true);
+            PathPuzzleManage.Instance.StartGame();
+        });
+        fadeSeq.Play();
+    }
+
+    // ---------- 第二关逻辑 ----------
+    private void EnterPuzzleView()
+    {
+        isPuzzleViewOpen = true;
+        puzzleCamera.Priority = 20;
+        puzzleButton.gameObject.SetActive(false);
+    }
+
+    private void ExitPuzzleView()
+    {
+        isPuzzleViewOpen = false;
+        puzzleCamera.Priority = 10;
+        puzzleButton.gameObject.SetActive(true);
+    }
+
+    // 当拼图完成时由 PathPuzzleManage 调用
+    public void OnPuzzleCompleted()
+    {
+        isPuzzleViewOpen = false;
+        puzzleCamera.Priority = 10;
+        puzzleCompleteCamera.Priority = 20;
+
+        puzzleSlider.gameObject.SetActive(true);
+        // 使 Slider 渐显并可交互
+        CanvasGroup sliderCanvas = puzzleSlider.GetComponent<CanvasGroup>();
+        if (sliderCanvas == null) sliderCanvas = puzzleSlider.gameObject.AddComponent<CanvasGroup>();
+        sliderCanvas.alpha = 0f;
+        sliderCanvas.DOFade(1f, 1f);
+    }
+
+    private void OnSliderValueChanged(float value)
+    {
+        // 当拉杆拖到最右侧（值≈1）时触发第二关完成
+        if (Mathf.Approximately(value, 1f))
+        {
+            OnLevel2Completed();
+        }
+    }
+
+    private void OnLevel2Completed()
+    {
+        currentLevel++;
+        puzzleSlider.GetComponent<CanvasGroup>().DOFade(0f, 1f);
+        puzzleSlider.gameObject.SetActive(false);
+        Debug.Log("第二关完成");
+        Level3Start();
+    }
+    // ---------- 第三关逻辑 ----------
+    public void Level3Start()
+    {
+        footParent.gameObject.SetActive(false);
+        fileParent.gameObject.SetActive(true);
+        fileButton.gameObject.SetActive(true);
+
+        puzzleCompleteCamera.Priority = 10;
+        fileCamera.Priority = 20;
+    }
+
+
+    // ---------- 工具方法 ----------
+    private void SetPuzzleAlpha(float alpha)
+    {
+        foreach (var sr in puzzleSpriteRenderers)
+        {
+            Color c = sr.color;
+            c.a = alpha;
+            sr.color = c;
+        }
+    }
+}
