@@ -63,6 +63,10 @@ public class DialogueManager : MonoBehaviour
     [SerializeField] private int prewarmDotPool = 128;
     [SerializeField] private bool prewarmFontCharacters = true;
 
+    [Header("音效")]
+    public AudioClip typingAudioClip;   // 打字音效（支持长音频）
+    public AudioSource typingAudioSource; // 播放音效的AudioSource
+
     private int currentIndex = 0;
     private bool isTyping = false;
     private Coroutine typingCoroutine;
@@ -109,7 +113,10 @@ public class DialogueManager : MonoBehaviour
         PrewarmTextMeshProCharacters();
         EnsureRevealMask();
         EnsureBlackOverlay();
-        
+
+        // 确保音效组件可用
+        EnsureAudioSource();
+
         // 开始第一句
         StartDialogue();
     }
@@ -149,6 +156,8 @@ public class DialogueManager : MonoBehaviour
 
     private void DisplayNextLine()
     {
+        StopTypingSound();
+
         if (currentIndex < dialogueLines.Count)
         {
             currentFullText = dialogueLines[currentIndex];
@@ -262,15 +271,25 @@ public class DialogueManager : MonoBehaviour
             dialogueText.maxVisibleCharacters = i + 1;
             EmitParticlesAtCharacter(i);
             StepReveal(1);
+
+            // 播放打字音效（每个字符出现时触发）
+            PlayTypingSound();
+
+
             yield return typingWait;
         }
-
+        // 本句显示完毕，立即停止音效（符合“每一句自动播放完后也要暂停音效”）
+        StopTypingSound();
         isTyping = false;
     }
 
     private void StopTypingAndShowFull()
     {
         if (typingCoroutine != null) StopCoroutine(typingCoroutine);
+
+        // 立即停止音效（因为玩家跳过了逐字显示）
+        StopTypingSound();
+
         if (dialogueText != null)
         {
             int remaining = Mathf.Max(0, currentFullText.Length - dialogueText.maxVisibleCharacters);
@@ -306,7 +325,43 @@ public class DialogueManager : MonoBehaviour
             revealTexture = null;
         }
     }
+    // ---------------------- 音效相关方法 ----------------------
+    private void EnsureAudioSource()
+    {
+        if (typingAudioSource == null)
+        {
+            typingAudioSource = GetComponent<AudioSource>();
+            if (typingAudioSource == null)
+            {
+                typingAudioSource = gameObject.AddComponent<AudioSource>();
+            }
+        }
+        // 推荐配置：不自动播放、不循环、空间立体声效果按需设置
+        typingAudioSource.playOnAwake = false;
+        typingAudioSource.loop = false;
+        typingAudioSource.spatialBlend = 0f; // 2D音效
+    }
 
+    private void PlayTypingSound()
+    {
+        if (typingAudioClip == null || typingAudioSource == null) return;
+
+        // 停止当前正在播放的音效（避免重叠）
+        if (typingAudioSource.isPlaying)
+            typingAudioSource.Stop();
+
+        typingAudioSource.clip = typingAudioClip;
+        typingAudioSource.Play();
+    }
+
+    private void StopTypingSound()
+    {
+        if (typingAudioSource != null && typingAudioSource.isPlaying)
+        {
+            typingAudioSource.Stop();
+        }
+    }
+    // ---------------------------------------------------------
     private void EnsureRevealMask()
     {
         if (!enableRevealMask) return;
