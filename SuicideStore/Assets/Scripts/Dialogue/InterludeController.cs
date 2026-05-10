@@ -25,6 +25,7 @@ public class InterludeController : MonoBehaviour
     }
 
     [Header("通用")]
+    public bool isTheLestScene = false;//+++++++++++++++++++++++++++++++++++
     [SerializeField] private string nextSceneName;
     [SerializeField] private TMP_FontAsset fontOverride;
     [SerializeField] private bool prewarmFontCharacters = true;
@@ -51,7 +52,6 @@ public class InterludeController : MonoBehaviour
     [SerializeField] private bool requireButtonToAdvanceWhenAvailable = true;
 
     [Header("音效")]
-    public AudioSource dialogAudioSource;
     public AudioClip dialogAudioClip;
 
     private int currentIndex;
@@ -118,6 +118,11 @@ public class InterludeController : MonoBehaviour
 
     void Update()
     {
+        if (GameManage.Instance.isSetting)
+        {
+            return;
+        }
+
         if (!didLogFirstClick && Input.GetMouseButtonDown(0))
         {
             didLogFirstClick = true;
@@ -458,8 +463,8 @@ public class InterludeController : MonoBehaviour
     private void DisplayPanel(int index)
     {
         if (dialogPanels == null || dialogPanels.Count == 0) return;
-
-        dialogAudioSource.PlayOneShot(dialogAudioClip);
+        if(dialogAudioClip!=null)
+        AudioManager.Instance.PlayShortSound(dialogAudioClip);
 
         if (index >= dialogPanels.Count)
         {
@@ -570,44 +575,68 @@ public class InterludeController : MonoBehaviour
 
     public void LoadNextScene()
     {
-        if (sceneLoadTriggered) return;
 
-        var active = SceneManager.GetActiveScene();
-        Debug.Log($"InterludeController: LoadNextScene called. active='{active.name}'({active.buildIndex}), nextSceneName='{nextSceneName}', scenesInBuild={SceneManager.sceneCountInBuildSettings}");
-
-        if (string.IsNullOrWhiteSpace(nextSceneName))
+        if (isTheLestScene == false)
         {
-            int current = SceneManager.GetActiveScene().buildIndex;
-            int next = current + 1;
-            if (current >= 0 && next >= 0 && next < SceneManager.sceneCountInBuildSettings)
+            if (sceneLoadTriggered) return;
+
+            var active = SceneManager.GetActiveScene();
+            Debug.Log($"InterludeController: LoadNextScene called. active='{active.name}'({active.buildIndex}), nextSceneName='{nextSceneName}', scenesInBuild={SceneManager.sceneCountInBuildSettings}");
+
+            if (string.IsNullOrWhiteSpace(nextSceneName))
             {
+                int current = SceneManager.GetActiveScene().buildIndex;
+                int next = current + 1;
+                if (current >= 0 && next >= 0 && next < SceneManager.sceneCountInBuildSettings)
+                {
+                    sceneLoadTriggered = true;
+                    Debug.Log($"InterludeController: loading next buildIndex={next} ({Path.GetFileNameWithoutExtension(SceneUtility.GetScenePathByBuildIndex(next))})");
+                    SceneManager.LoadScene(next, LoadSceneMode.Single);
+                }
+                else
+                {
+                    Debug.LogError("无法加载下一场景：nextSceneName 为空，且 Build Settings 没有下一条场景。");
+                }
+                return;
+            }
+
+            if (TryResolveSceneBuildIndex(nextSceneName, out int index))
+            {
+                if (index == active.buildIndex)
+                {
+                    Debug.LogError($"InterludeController: 目标场景与当前场景相同（{active.name}）。请检查 Next Scene Name 是否填错。");
+                }
                 sceneLoadTriggered = true;
-                Debug.Log($"InterludeController: loading next buildIndex={next} ({Path.GetFileNameWithoutExtension(SceneUtility.GetScenePathByBuildIndex(next))})");
-                SceneManager.LoadScene(next, LoadSceneMode.Single);
+                Debug.Log($"InterludeController: loading buildIndex={index} ({Path.GetFileNameWithoutExtension(SceneUtility.GetScenePathByBuildIndex(index))})");
+                SceneManager.LoadScene(index, LoadSceneMode.Single);
             }
             else
             {
-                Debug.LogError("无法加载下一场景：nextSceneName 为空，且 Build Settings 没有下一条场景。");
+                Debug.LogError($"无法加载场景 '{nextSceneName}'：请先把它加入 Build Settings 的 Scenes In Build。当前 Scenes In Build：{GetScenesInBuildString()}");
             }
-            return;
-        }
-
-        if (TryResolveSceneBuildIndex(nextSceneName, out int index))
-        {
-            if (index == active.buildIndex)
-            {
-                Debug.LogError($"InterludeController: 目标场景与当前场景相同（{active.name}）。请检查 Next Scene Name 是否填错。");
-            }
-            sceneLoadTriggered = true;
-            Debug.Log($"InterludeController: loading buildIndex={index} ({Path.GetFileNameWithoutExtension(SceneUtility.GetScenePathByBuildIndex(index))})");
-            SceneManager.LoadScene(index, LoadSceneMode.Single);
         }
         else
         {
-            Debug.LogError($"无法加载场景 '{nextSceneName}'：请先把它加入 Build Settings 的 Scenes In Build。当前 Scenes In Build：{GetScenesInBuildString()}");
+            CompleteLevel();
         }
     }
-
+    public void CompleteLevel()
+    {
+        // 通知 GameManage 当前关卡通关
+        GameManage.Instance.CompleteCurrentLevel();
+        // 可选：自动进入下一关第一场景（如果希望无缝衔接）
+        int nextLevel = GameManage.Instance.currentLevel + 1;
+        if (nextLevel <= 12)
+        {
+            string nextScene = GameManage.Instance.GetFirstSceneOfLevel(nextLevel);
+            if (!string.IsNullOrEmpty(nextScene))
+                UnityEngine.SceneManagement.SceneManager.LoadScene(nextScene);
+        }
+        else
+        {
+            Debug.Log("恭喜通关全部12大关！");
+        }
+    }
     private static string GetScenesInBuildString()
     {
         int count = SceneManager.sceneCountInBuildSettings;
