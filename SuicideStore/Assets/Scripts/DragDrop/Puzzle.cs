@@ -32,7 +32,6 @@ public class Puzzle : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
     [SerializeField] private string boundaryTag = "Boundary"; // 边界物体的Tag
 
     [Header("音效")]
-    public AudioSource source;
     public AudioClip clikClip;//点到拼图的音效
 
     private Rigidbody2D rb;
@@ -52,7 +51,6 @@ public class Puzzle : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
 
     private void Start()
     {
-        source = GetComponent<AudioSource>();
         ResetDirection();
     }
     public void SetRandomRotation()
@@ -117,7 +115,7 @@ public class Puzzle : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
         StopFloating();
         rb.velocity = Vector2.zero;
         //音效
-        source.PlayOneShot(clikClip);
+        AudioManager.Instance.PlayShortSound(clikClip, 0.8f);
 
         if (currentSlot != null)
         {

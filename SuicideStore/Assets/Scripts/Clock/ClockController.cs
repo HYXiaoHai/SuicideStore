@@ -35,7 +35,6 @@ public class ClockController : MonoBehaviour
     private Canvas canvas;
     [Header("音效")]
     public AudioClip handClip;//拨动指针的音效
-    public AudioSource handAudioSource;
     // 音效触发相关
     private float lastTickAngle = 0f;        // 上次触发音效时的角度
     public float tickStep = 30f;   // 每30度触发一次音效
@@ -178,7 +177,6 @@ public class ClockController : MonoBehaviour
     }
     private void CheckAndPlayTick(float oldAngle, float newAngle)
     {
-        if (handAudioSource == null || handClip == null) return;
         if (Mathf.Approximately(oldAngle, newAngle)) return;
 
         // 计算起始和结束所在的区间索引（从0开始，每个区间宽度 tickStep）
@@ -191,7 +189,7 @@ public class ClockController : MonoBehaviour
             int tickCount = endIndex - startIndex;
             for (int i = 0; i < tickCount; i++)
             {
-                handAudioSource.PlayOneShot(handClip);
+                AudioManager.Instance.PlayShortSound(handClip, 0.8f);
             }
         }
     }

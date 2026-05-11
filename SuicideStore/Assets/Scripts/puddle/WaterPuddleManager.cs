@@ -1,9 +1,9 @@
 using DG.Tweening;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.Playables;
-using UnityEngine.UI;
-using System.Collections;
 using UnityEngine.Rendering.Universal;  // 用于协程
+using UnityEngine.UI;
 
 public class SimpleWaterPuddleManager : MonoBehaviour
 {
@@ -28,12 +28,10 @@ public class SimpleWaterPuddleManager : MonoBehaviour
     public PlayableDirector timeline;
 
     [Header("音效")]
-    public AudioSource puddleAudioSource;
     public AudioClip puddles1Clip;
     public AudioClip puddles2Clip;
     public AudioClip puddles3Clip;
     [Header("BGM")]
-    public AudioSource BGMAudioSource;
     public AudioClip BGM1Clip;//当前关BGM
     public AudioClip BGM2Clip;//下一关的BGM
     [SerializeField] private float bgmFadeDuration = 1f;  // BGM 淡入淡出时长
@@ -44,10 +42,6 @@ public class SimpleWaterPuddleManager : MonoBehaviour
 
     void Start()
     {
-        // 记录原始 BGM 音量
-        if (BGMAudioSource != null)
-            originalBGMVolume = BGMAudioSource.volume;
-
         // 预加载所有 BGM Clip，避免切换时卡顿
         if (BGM1Clip != null) BGM1Clip.LoadAudioData();
         if (BGM2Clip != null) BGM2Clip.LoadAudioData();
@@ -93,13 +87,6 @@ public class SimpleWaterPuddleManager : MonoBehaviour
         for (int i = 1; i < puddles.Length; i++)
         {
             SetPuddleActive(i, false);
-        }
-
-        // 初始化 BGM（如果尚未播放）
-        if (BGMAudioSource != null && BGM1Clip != null)
-        {
-            BGMAudioSource.clip = BGM1Clip;
-            BGMAudioSource.Play();
         }
 
         //开局转场效果（白色渐入）
@@ -174,18 +161,16 @@ public class SimpleWaterPuddleManager : MonoBehaviour
         {
             case 0: // 点击第一个水坑 → 显示脚印1和脚印2（依次）
                 ShowFootprint(footprint1);
-                puddleAudioSource.PlayOneShot(puddles1Clip);
+                AudioManager.Instance.PlayShortSound(puddles1Clip, 0.8f);
                 // 延迟0.2秒显示第二个脚印，增加顺序感
                 StartCoroutine(DelayedShowFootprint(footprint2, 0.2f));
                 break;
             case 1: // 点击第二个水坑 → 显示脚印3
-                puddleAudioSource.PlayOneShot(puddles2Clip);
-
+                AudioManager.Instance.PlayShortSound(puddles2Clip, 0.8f);
                 ShowFootprint(footprint3);
                 break;
             case 2: // 点击第三个水坑 → 显示脚印4，之后显示切换按钮
-                puddleAudioSource.PlayOneShot(puddles3Clip);
-
+                AudioManager.Instance.PlayShortSound(puddles3Clip, 0.8f);
                 ShowFootprint(footprint4);
                 StartCoroutine(ShowSwitchButtonAfterDelay(0.5f));
                 break;
@@ -238,21 +223,12 @@ public class SimpleWaterPuddleManager : MonoBehaviour
             timeline.Play();
         }
         //切换BGM
-        BGMAudioSource.DOFade(0f, bgmFadeDuration).OnComplete(() =>
-        {
-            // 2. 切换 BGM Clip 并从头播放（音量保持 0）
-            BGMAudioSource.clip = BGM2Clip;
-            BGMAudioSource.Play();
-            BGMAudioSource.volume = 0f;
-
-        });
+        AudioManager.Instance.SwitchBGM(BGM2Clip, 1f);
     }
 
     private void OnTimelineStopped(PlayableDirector director)
     {
         director.stopped -= OnTimelineStopped;
-        // 4. 淡入 BGM 到原始音量
-        BGMAudioSource.DOFade(originalBGMVolume, 0.5f);
         DefendManage.Instance.StartScene2Dialogue();  // 你的原有逻辑
     }
 }
