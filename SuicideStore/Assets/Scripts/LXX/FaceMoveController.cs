@@ -14,9 +14,10 @@ public class FaceMoveController : MonoBehaviour
     [Header("轨道引用")]
     public RectTransform trackRect;
 
-    [Header("默认边界（找不到轨道时使用）")]
-    public float defaultLeftLimit = -300f;
-    public float defaultRightLimit = 300f;
+    [Header("手动边界")]
+    public bool useManualBounds = false;
+    public RectTransform leftPosition;
+    public RectTransform rightPosition;
 
     private RectTransform faceRect;
     private float leftLimit;
@@ -31,7 +32,7 @@ public class FaceMoveController : MonoBehaviour
         
         Debug.Log("FaceMoveController: Start() 开始初始化");
         Debug.Log($"FaceTarget 初始位置: {faceRect.anchoredPosition}");
-        
+
         // 尝试获取轨道引用
         if (trackRect == null)
         {
@@ -44,19 +45,22 @@ public class FaceMoveController : MonoBehaviour
             else
             {
                 Debug.LogWarning("FaceMoveController: 找不到 BgTrack，使用默认边界！请确保物体名为 'BgTrack' 或在 Inspector 中手动赋值。");
-                leftLimit = defaultLeftLimit;
-                rightLimit = defaultRightLimit;
             }
         }
-        
-        // 如果找到了轨道，计算边界
-        if (trackRect != null)
+        float trackHalfWidth = trackRect.sizeDelta.x / 2;
+        float faceHalfWidth = faceRect.sizeDelta.x / 2;
+
+        if (useManualBounds)
         {
-            float trackHalfWidth = trackRect.sizeDelta.x / 2;
-            float faceHalfWidth = faceRect.sizeDelta.x / 2;
+            leftLimit = leftPosition.anchoredPosition.x;
+            rightLimit = rightPosition.anchoredPosition.x;
+            Debug.Log($"识别条边界: left={leftLimit}, right={rightLimit}");
+            Debug.Log($"识别条边界: left={leftPosition.position.x}, right={rightPosition.position.x}");
+        }
+        else
+        {
             leftLimit = -trackHalfWidth + faceHalfWidth;
             rightLimit = trackHalfWidth - faceHalfWidth;
-            Debug.Log($"FaceMoveController: 轨道宽度: {trackRect.sizeDelta.x}, 笑脸宽度: {faceRect.sizeDelta.x}");
         }
         
         // 初始化速度和方向

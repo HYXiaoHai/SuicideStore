@@ -28,6 +28,8 @@ public class FaceGameManager : MonoBehaviour
     public float harvestDelay = 1f;
     [Header("下一场景")]
     public string nextSceneName;
+    [Header("音效")]
+    public AudioClip tackPictureAudioClip;
 
     private float currentProgress = 0f;
     private float barHalfWidth;
@@ -115,7 +117,8 @@ public class FaceGameManager : MonoBehaviour
     void GameWin()
     {
         isGameActive = false;
-        successText.SetActive(true);
+        AudioManager.Instance.PlayShortSound(tackPictureAudioClip, 0.8f);
+        //successText.SetActive(true);
         Debug.Log("钓鱼成功！");
         StartCoroutine(PlayHarvestEffectAndCloseUI());
     }

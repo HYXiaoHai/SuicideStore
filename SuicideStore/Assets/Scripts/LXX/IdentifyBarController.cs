@@ -1,3 +1,4 @@
+using DG.Tweening;
 using UnityEngine;
 
 public class IdentifyBarController : MonoBehaviour
@@ -12,6 +13,11 @@ public class IdentifyBarController : MonoBehaviour
 
     [Header("轨道引用")]
     public RectTransform trackRect;
+
+    [Header("手动边界")]
+    public bool useManualBounds = false;
+    public RectTransform leftPosition;
+    public RectTransform rightPosition;
 
     void Start()
     {
@@ -33,10 +39,21 @@ public class IdentifyBarController : MonoBehaviour
         
         float trackHalfWidth = trackRect.sizeDelta.x / 2;
         float barHalfWidth = barRect.sizeDelta.x / 2;
-        leftLimit = -trackHalfWidth + barHalfWidth;
-        rightLimit = trackHalfWidth - barHalfWidth;
+        if(useManualBounds)
+        {
+            leftLimit = leftPosition.anchoredPosition.x;
+            rightLimit = rightPosition.anchoredPosition.x;
+            Debug.Log($"识别条边界: left={leftLimit}, right={rightLimit}");
+            Debug.Log($"识别条边界: left={leftPosition.position.x}, right={rightPosition.position.x}");
+        }
+        else
+        {
+            leftLimit = -trackHalfWidth + barHalfWidth;
+            rightLimit = trackHalfWidth - barHalfWidth;
+        }
+
         
-        Debug.Log($"识别条边界: left={leftLimit}, right={rightLimit}");
+        //Debug.Log($"识别条边界: left={leftLimit}, right={rightLimit}");
     }
 
     void Update()

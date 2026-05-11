@@ -5360,6 +5360,7 @@ GameObject:
   - component: {fileID: 1327736618}
   - component: {fileID: 1327736617}
   - component: {fileID: 1327736616}
+  - component: {fileID: 1327736621}
   - component: {fileID: 1327736619}
   - component: {fileID: 1327736620}
   m_Layer: 0
@@ -5521,6 +5522,19 @@ MonoBehaviour:
   m_CameraActivatedEvent:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &1327736621
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1327736615}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ecfe8117b48252144bec52d882cca1f7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  targetAspect: 1.7777778
 --- !u!1 &1362017344
 GameObject:
   m_ObjectHideFlags: 0
