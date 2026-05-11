@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -53,18 +55,30 @@ public class GameManage : MonoBehaviour
         {
             if (currentState == GameState.Menu)
             {
-                MenuController.instance.OpenExitPanel();
+                if (MenuController.instance.isArchivePanel)
+                {
+                    MenuController.instance.CloseArchivePanel();
+                }
+                else if (MenuController.instance.isExitPanel)
+                {
+                    MenuController.instance.CloseExitPanel();
+
+                }
+                else
+                {
+                    MenuController.instance.OpenExitPanel();
+                }
             }
             else if (currentState == GameState.Game)
             {
-                if(!isSetting)
+                if (!isSetting)
                 {
                     isSetting = true;
                     SettingUIManage.Instance?.OpenSettingUI();
                 }
                 else
                 {
-                    if(SettingUIManage.Instance.ismusicalPanel)
+                    if (SettingUIManage.Instance.ismusicalPanel)
                     {
                         SettingUIManage.Instance.CloseMusicalSettingPanel();
                     }
@@ -140,12 +154,12 @@ public class GameManage : MonoBehaviour
         if (PlayerPrefs.HasKey("UnlockedLevel"))
             unlockedLevel = PlayerPrefs.GetInt("UnlockedLevel");
         else
-            unlockedLevel = 1;   // 新游戏默认为1
+            unlockedLevel = 1; 
 
         Debug.Log($"加载存档，已解锁关卡：{unlockedLevel}");
     }
 
-    // 新游戏：重置存档
+    //新游戏：重置存档
     public void NewGame()
     {
         unlockedLevel = 1;
@@ -207,3 +221,42 @@ public class GameManage : MonoBehaviour
 #endif
     }
 }
+
+
+
+
+
+
+
+public class ActionDemo : MonoBehaviour
+{
+    public float time;
+    Action act = null;
+    public float timer;
+
+    void Start()
+    {
+        act = TestFunc1;
+        act += TestFunc2;
+        timer = 0f;
+    }
+    private void Update()
+    {
+        timer += Time.deltaTime;
+        if(timer>=time)
+        {
+            act?.Invoke();
+            timer -= time;
+        }
+    }
+
+    void TestFunc1()
+    {
+        Debug.Log("Func1");
+    }
+    void TestFunc2()
+    {
+        Debug.Log("Func2");
+    }
+}
+

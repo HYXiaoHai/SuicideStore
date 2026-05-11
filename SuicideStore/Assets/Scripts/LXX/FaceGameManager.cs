@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using TMPro;
 using System.Collections;
@@ -25,6 +26,8 @@ public class FaceGameManager : MonoBehaviour
     [Header("收获效果")]
     public ParticleSystem harvestEffect;
     public float harvestDelay = 1f;
+    [Header("下一场景")]
+    public string nextSceneName;
 
     private float currentProgress = 0f;
     private float barHalfWidth;
@@ -125,12 +128,13 @@ public class FaceGameManager : MonoBehaviour
         }
         
         yield return new WaitForSeconds(harvestDelay);
-        
-        if (gameCanvas != null)
-        {
-            gameCanvas.gameObject.SetActive(false);
-        }
-        
+
+        //if (gameCanvas != null)
+        //{
+        //    gameCanvas.gameObject.SetActive(false);
+        //}
+        SceneManager.LoadScene(nextSceneName);
+
         Debug.Log("UI已关闭");
     }
 

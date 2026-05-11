@@ -9,6 +9,9 @@ public class MenuController : MonoBehaviour
     public CanvasGroup archivePanel;
     public CanvasGroup exitPanel;
 
+    public bool isArchivePanel;
+    public bool isExitPanel;
+
     // 存放12个关卡按钮的数组（在Inspector中拖入）
     public Button[] levelButtons;   // 长度12，索引0代表第1关，1代表第2关...
 
@@ -53,6 +56,7 @@ public class MenuController : MonoBehaviour
     // 打开存档面板
     public void OpenArchivePanel()
     {
+        isArchivePanel = true;
         archivePanel.gameObject.SetActive(true);
         menuPanel.alpha = 0f;
         archivePanel.alpha = 1f;
@@ -62,6 +66,7 @@ public class MenuController : MonoBehaviour
     // 关闭存档面板
     public void CloseArchivePanel()
     {
+        isArchivePanel = false;
         menuPanel.gameObject.SetActive(true);
         menuPanel.alpha = 1f;
         archivePanel.alpha = 0f;
@@ -70,6 +75,7 @@ public class MenuController : MonoBehaviour
     //打开存档面板
     public void OpenExitPanel()
     {
+        isExitPanel = true;
         exitPanel.gameObject.SetActive(true);
         menuPanel.alpha = 0f;
         exitPanel.alpha = 1f;
@@ -79,6 +85,7 @@ public class MenuController : MonoBehaviour
     // 关闭存档面板
     public void CloseExitPanel()
     {
+        isExitPanel = false;
         menuPanel.gameObject.SetActive(true);
         menuPanel.alpha = 1f;
         exitPanel.alpha = 0f;
