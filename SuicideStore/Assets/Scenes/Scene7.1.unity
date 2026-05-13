@@ -228,7 +228,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   nextSceneName: Scene7.2
   interactionPrompt: {fileID: 0}
+  showDebugLog: 1
+  useMouseClick: 1
+  useKeyPress: 0
+  interactKey: 32
   doorSound: {fileID: 0}
+  doorSprite: {fileID: 0}
+  highlightColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
 --- !u!61 &234310567
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -1206,6 +1212,11 @@ MonoBehaviour:
   target: {fileID: 1980695233}
   offset: {x: 0, y: 4.4, z: -10}
   smoothSpeed: 0.125
+  useBounds: 1
+  minX: -19.06
+  maxX: 8.76
+  minY: -12.16
+  maxY: 5
 --- !u!1 &1863736431
 GameObject:
   m_ObjectHideFlags: 0
