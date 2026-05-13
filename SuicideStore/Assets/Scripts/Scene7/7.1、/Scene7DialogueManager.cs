@@ -1,19 +1,19 @@
 using UnityEngine;
-using TMPro;
+using UnityEngine.UI;
 using System.Collections;
 
 public class Scene7DialogueManager : MonoBehaviour
 {
     public static Scene7DialogueManager Instance;
 
-    [Header("Dialogue Settings")]
-    public TMP_Text textDisplay;
-    public float typingSpeed = 0.05f;
-    public float displayDuration = 3f;
+    [Header("图片淡入淡出设置")]
+    public float fadeDuration = 0.5f;
 
-    [Header("Trigger Points")]
+    [Header("触发点")]
     public Transform[] dialogueTriggers;
-    public string[] dialogueContent;
+
+    [Header("图片内容")]
+    public Image[] images;
 
     private bool[] triggered;
     private Coroutine currentCoroutine;
@@ -32,9 +32,9 @@ public class Scene7DialogueManager : MonoBehaviour
 
     void Start()
     {
-        if (dialogueTriggers.Length != dialogueContent.Length)
+        if (dialogueTriggers.Length != images.Length)
         {
-            Debug.LogError("Dialogue trigger count does not match dialogue content count!");
+            Debug.LogError("触发点数量与图片数量不匹配！");
             return;
         }
 
@@ -44,9 +44,13 @@ public class Scene7DialogueManager : MonoBehaviour
             triggered[i] = false;
         }
 
-        if (textDisplay != null)
+        for (int i = 0; i < images.Length; i++)
         {
-            textDisplay.text = "";
+            if (images[i] != null)
+            {
+                images[i].gameObject.SetActive(false);
+                images[i].canvasRenderer.SetAlpha(0);
+            }
         }
     }
 
@@ -56,15 +60,15 @@ public class Scene7DialogueManager : MonoBehaviour
         {
             if (!triggered[i] && position.x >= dialogueTriggers[i].position.x)
             {
-                ShowDialogue(i);
+                ShowImage(i);
                 triggered[i] = true;
             }
         }
     }
 
-    public void ShowDialogue(int index)
+    public void ShowImage(int index)
     {
-        if (index < 0 || index >= dialogueContent.Length)
+        if (index < 0 || index >= images.Length)
         {
             return;
         }
@@ -74,28 +78,25 @@ public class Scene7DialogueManager : MonoBehaviour
             StopCoroutine(currentCoroutine);
         }
 
-        currentCoroutine = StartCoroutine(TypeDialogue(dialogueContent[index]));
+        currentCoroutine = StartCoroutine(FadeInImage(index));
     }
 
-    IEnumerator TypeDialogue(string text)
+    IEnumerator FadeInImage(int index)
     {
-        if (textDisplay == null)
+        if (index > 0 && images[index - 1] != null)
         {
-            yield break;
+            images[index - 1].CrossFadeAlpha(0, fadeDuration, false);
+            yield return new WaitForSeconds(fadeDuration);
+            images[index - 1].gameObject.SetActive(false);
         }
 
-        textDisplay.text = "";
-        textDisplay.gameObject.SetActive(true);
-
-        foreach (char c in text)
+        if (images[index] != null)
         {
-            textDisplay.text += c;
-            yield return new WaitForSeconds(typingSpeed);
+            images[index].gameObject.SetActive(true);
+            images[index].CrossFadeAlpha(1, fadeDuration, false);
         }
 
-        yield return new WaitForSeconds(displayDuration);
-
-        textDisplay.gameObject.SetActive(false);
+        yield return new WaitForSeconds(fadeDuration);
         currentCoroutine = null;
     }
 }
