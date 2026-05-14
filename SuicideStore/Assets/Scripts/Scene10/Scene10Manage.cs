@@ -1,8 +1,9 @@
-using System.Collections;
 using DG.Tweening;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using static UnityEditor.Progress;
 
 public class Scene10Manage : MonoBehaviour
 {
@@ -11,7 +12,9 @@ public class Scene10Manage : MonoBehaviour
     //关卡1、2需要用到的左右区域
     public GameObject rightRoundFather;
     public GameObject leftRoundFather;
-
+    public SpriteRenderer levelBg;//关卡总背景
+    public Sprite level1Bg_Sprit;//
+    public Sprite level2Bg_Sprit;
     [Header("level1")]
     public CanvasGroup level1GameCanvas;
     public GameObject rightLevel1Father;
@@ -28,6 +31,9 @@ public class Scene10Manage : MonoBehaviour
     [Header("level2")]
     public GameObject rightLevel2Father;//第二关右父物体
     public GameObject leftLevel2Father;//第二关左父物体
+    public SpriteRenderer level2BG;//交互背景
+    public Sprite bg_sprit1;//背景图片
+    public Sprite bg_sprit2;//背景图片
     public SpriteRenderer mother;//妈妈
     public SpriteRenderer father;//爸爸
     public SpriteRenderer son;//儿子 乐乐
@@ -40,9 +46,10 @@ public class Scene10Manage : MonoBehaviour
     public Sprite image1;//切换图片1
     public Sprite image2;//切换图片1
     public Sprite image3;//切换图片2
-    public Rigidbody2D LeleRb;//乐乐的刚体
+    //public Rigidbody2D LeleRb;//乐乐的刚体
     public CanvasGroup transitionCanvas;//转场canvas
-
+    public Transform sonPositon1;//切换位置1
+    public Transform sonPositon2;//切换位置2
     [Header("level3")]
     public GameObject level3Father;//关卡3的背景
     public CanvasGroup level3GameCanvas;
@@ -60,7 +67,7 @@ public class Scene10Manage : MonoBehaviour
         level3GameCanvas.gameObject.SetActive(false);
 
         level1Renderers = new SpriteRenderer[] { dialogBox1, dialogBox2, l1bubble1, l2bubble2 };//用于结束时隐藏的
-        level2Renderers = new SpriteRenderer[] { mother, father, son ,pencil, eraser, l2Bubble1 };//用于开始时显现的
+        level2Renderers = new SpriteRenderer[] { mother, father, son ,pencil, eraser, l2Bubble1,level2BG };//用于开始时显现的
 
         button1.onClick.AddListener(OnButton1Click);
         button2.onClick.AddListener(OnButton2Click);
@@ -106,6 +113,7 @@ public class Scene10Manage : MonoBehaviour
         {
             fadeSeq.Join(item.DOFade(0f, 1f));
         }
+        fadeSeq.Join(levelBg.DOFade(0f, 1f));
         fadeSeq.OnComplete(() =>
         {
             rightLevel1Father.SetActive(false);
@@ -123,6 +131,8 @@ public class Scene10Manage : MonoBehaviour
         {
             item.DOFade(1f, 1f);
         }
+        levelBg.sprite = level2Bg_Sprit;
+        levelBg.DOFade(1f, 1f);
     }
     //
     public void OnDrawComplet(int _completeNum)
@@ -131,16 +141,20 @@ public class Scene10Manage : MonoBehaviour
         {
             case 0://第一阶段
                 son.sprite = image1;
+                son.transform.position = sonPositon1.position;
+                level2BG.sprite = bg_sprit1;
                 l2Bubble2.DOFade(0f, 1f);//隐藏对话2
                 l2Bubble3.DOFade(0f, 1f);//隐藏对话3
                 break;
             case 1://第二阶段
                 son.sprite = image2;
+                son.transform.position = sonPositon2.position;
                 l2Bubble2.DOFade(1f, 1f);//显示对话2
                 l2Bubble3.DOFade(0f, 1f);//隐藏对话3
                 break;
             case 2://第三阶段
                 son.sprite = image3;
+                level2BG.sprite = bg_sprit2;
                 l2Bubble3.DOFade(1f, 1f);//显示对话3
                 Level2Complete();
                 break;
@@ -148,9 +162,9 @@ public class Scene10Manage : MonoBehaviour
     }
     public void Level2Complete()
     {
-        LeleRb.bodyType = RigidbodyType2D.Dynamic;
-        transitionCanvas.DOFade(1f, 1f).OnComplete(() => {
-            LeleRb.gameObject.SetActive(false);
+        //LeleRb.bodyType = RigidbodyType2D.Dynamic;
+        transitionCanvas.DOFade(1f, 2f).SetEase(Ease.InQuart).OnComplete(() => {
+            //LeleRb.gameObject.SetActive(false);
             leftLevel2Father.SetActive(false);
             rightLevel2Father.SetActive(false);
             rightRoundFather.SetActive(false);
