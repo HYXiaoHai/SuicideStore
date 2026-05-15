@@ -59,6 +59,7 @@ public class DrawingController : MonoBehaviour
         // 订阅绘制事件：第一次绘制时标记
         _painter.OnDraw += () => hasDrawn = true;
         _toolManager = new ToolManager(pencilMaterial, eraserMaterial, _painter);
+        Debug.Log(gameObject + ":" + _toolManager);
     }
 
     void Update()

@@ -42,10 +42,10 @@ public class DrawingTool : MonoBehaviour
     {
         // 调试：输出点击信息，帮助判断是否命中
         Debug.Log($"鼠标点击物品：{gameObject.name}");
-        
-
         foreach (DrawingController dc in DrawManage.instance.drawingControllers)
         {
+            Debug.Log(dc);
+            Debug.Log(dc._toolManager);
             dc._toolManager.SetTool(toolType);
         }
         // 播放放大动画

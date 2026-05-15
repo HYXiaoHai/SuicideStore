@@ -60,20 +60,25 @@ public class DrawManage : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.P))
         {
-            if (isSwap)
-            {
-                Debug.Log("调回工具");
-                pencilTool.toolType = ToolType.Pencil;
-                eraserTool.toolType = ToolType.Eraser;
-                isSwap = false;
-            }
-            else
-            {
-                Debug.Log("调换工具");
-                eraserTool.toolType = ToolType.Pencil;
-                pencilTool.toolType = ToolType.Eraser;
-                isSwap = true;
-            }
+            SwapTool();
+        }
+    }
+    //调换绘画工具功能的
+    public void SwapTool()
+    {
+        if (isSwap)
+        {
+            Debug.Log("调回工具");
+            pencilTool.toolType = ToolType.Pencil;
+            eraserTool.toolType = ToolType.Eraser;
+            isSwap = false;
+        }
+        else
+        {
+            Debug.Log("调换工具");
+            eraserTool.toolType = ToolType.Pencil;
+            pencilTool.toolType = ToolType.Eraser;
+            isSwap = true;
         }
     }
 }
