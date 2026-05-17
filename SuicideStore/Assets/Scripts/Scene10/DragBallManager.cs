@@ -8,7 +8,7 @@ public class DragBallManager : MonoBehaviour
     [Header("游戏配置")]
     public int totalBalls = 4;        // 总小球数（也可以自动统计场景中所有 DragBall）
 
-    private int remainingBalls;
+    public int remainingBalls;
     private bool isGameOver = false;
 
     void Awake()
@@ -19,11 +19,7 @@ public class DragBallManager : MonoBehaviour
 
     void Start()
     {
-        // 自动统计场景中所有未收集的小球数量
-        DragBall[] balls = FindObjectsOfType<DragBall>();
-        totalBalls = balls.Length;
         remainingBalls = totalBalls;
-
     }
 
     public void OnBallCollected()
@@ -38,7 +34,6 @@ public class DragBallManager : MonoBehaviour
         }
     }
 
-   
     private void GameVictory()
     {
         isGameOver = true;

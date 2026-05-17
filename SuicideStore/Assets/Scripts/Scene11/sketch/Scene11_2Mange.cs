@@ -25,6 +25,8 @@ public class Scene11_2Mange : MonoBehaviour
     [TextArea] public string text4;
     [TextArea] public string text5;
 
+    [Header("场景跳转")]
+    public string nextSceneName;
     // 状态机
     private enum RoundState { Drawing, WaitForClick, WaitForSwipe, Transitioning }
     private RoundState currentState = RoundState.Drawing;
@@ -170,7 +172,7 @@ public class Scene11_2Mange : MonoBehaviour
         {
             if (Input.GetMouseButtonUp(0) && IsMouseOverCurrentSprite())
             {
-                SceneManager.LoadScene("NextSceneName"); // 替换实际场景名
+                SceneManager.LoadScene(nextSceneName); // 替换实际场景名
                 yield break;
             }
             yield return null;

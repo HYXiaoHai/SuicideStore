@@ -13,7 +13,7 @@ public class ElephantFall : MonoBehaviour
     public float balloonMoveDuration = 0.5f;
 
     [Header("=== 场景设置 ===")]
-    public string nextSceneName = "Scene10.6";
+    public string nextSceneName = "S10-10.6-door";
     public float fallDelay = 1.5f;
 
     [Header("=== 调试设置 ===")]

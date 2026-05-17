@@ -30,6 +30,7 @@ public class SettingUIManage : MonoBehaviour
     public TMP_Text backgroundVolumeText;//背景音量Text
     public TMP_Text soundVolumeText;//音效音量Text
     public Button backSettingButton;
+    public Button resetVolumeSettingButton;//重置音量设置
 
     private bool isAnimating = false;  // 防止动画重叠
 
@@ -57,8 +58,9 @@ public class SettingUIManage : MonoBehaviour
         backMenuButton.onClick.AddListener(OnBackMenuButton);
         trueButton.onClick.AddListener(OnTrueButton);
         falseButton.onClick.AddListener(OnFalseButton);
-        backSettingButton.onClick.AddListener(OnBackSettingButton);
 
+        backSettingButton.onClick.AddListener(OnBackSettingButton);
+        resetVolumeSettingButton.onClick.AddListener(OnResetVolumeSettings);
         // ---------- 新增：音量滑条初始化 ----------
         // 设置滑条为整数模式 0-10
         masterVolumeSlider.minValue = 0;
@@ -190,6 +192,7 @@ public class SettingUIManage : MonoBehaviour
         settingCanvasGroup.gameObject.SetActive(false);
         if (GameManage.Instance != null)
         {
+            AudioManager.Instance.StopAllLoopingSounds();
             GameManage.Instance.isSetting = false;
             GameManage.Instance.BackMenu();
         }
@@ -230,6 +233,22 @@ public class SettingUIManage : MonoBehaviour
         int intVal = Mathf.RoundToInt(value);
         soundVolumeText.text = intVal.ToString();
         AudioManager.Instance?.SetSFXVolume(intVal);
+    }
+    private void OnResetVolumeSettings()
+    {
+        // 直接设置 AudioManager 的值（会触发保存并应用）
+        AudioManager.Instance?.SetMasterVolume(10);
+        AudioManager.Instance?.SetBGMVolume(10);
+        AudioManager.Instance?.SetSFXVolume(10);
+
+        // 更新本地滑条和文本显示（如果音量面板当前是打开的）
+        if (musicalSettingPanel.gameObject.activeInHierarchy)
+        {
+            masterVolumeSlider.value = 10;
+            backgroundVolumeSlider.value = 10;
+            soundVolumeSlider.value = 10;
+            UpdateVolumeTexts();
+        }
     }
     public void OpenMusicalSettingPanel()
     {

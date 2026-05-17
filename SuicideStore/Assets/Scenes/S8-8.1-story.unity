@@ -221,6 +221,51 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &122875736
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 122875738}
+  - component: {fileID: 122875737}
+  m_Layer: 0
+  m_Name: LevelInfo
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &122875737
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 122875736}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d40031c590689ef46a52847220abbd53, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  levelNumber: 8
+--- !u!4 &122875738
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 122875736}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 39.194893, y: 25.133299, z: 2.938011}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &613499245
 GameObject:
   m_ObjectHideFlags: 0
@@ -376,7 +421,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0.97854996, y: 1}
-  m_AnchoredPosition: {x: -448.6601, y: 5.2199707}
+  m_AnchoredPosition: {x: -448.66016, y: 5.2199707}
   m_SizeDelta: {x: -897.31, y: -270.8}
   m_Pivot: {x: 0.5, y: 0.11560389}
 --- !u!114 &825968270
@@ -799,6 +844,7 @@ GameObject:
   - component: {fileID: 1360027970}
   - component: {fileID: 1360027969}
   - component: {fileID: 1360027968}
+  - component: {fileID: 1360027972}
   - component: {fileID: 1360027971}
   m_Layer: 0
   m_Name: Main Camera
@@ -925,6 +971,19 @@ MonoBehaviour:
     m_MipBias: 0
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
+--- !u!114 &1360027972
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1360027967}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ecfe8117b48252144bec52d882cca1f7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  targetAspect: 1.7777778
 --- !u!1 &1410374977
 GameObject:
   m_ObjectHideFlags: 0
@@ -1090,7 +1149,7 @@ MonoBehaviour:
   endPoint: {x: 250, y: 240}
   cameraScreen: {fileID: 792663358}
   fadeImage: {fileID: 1021848410}
-  nextSceneName: Scene8.2
+  nextSceneName: S8-8.2-destroy
   fadeDuration: 0.5
   showDebugLog: 1
 --- !u!4 &1517301559
@@ -1328,3 +1387,4 @@ SceneRoots:
   - {fileID: 792663360}
   - {fileID: 2615723}
   - {fileID: 1021848412}
+  - {fileID: 122875738}
