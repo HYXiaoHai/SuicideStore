@@ -173,12 +173,14 @@ public class TwitchManage : MonoBehaviour
     //进入下一关
     private IEnumerator OnGrowthComplete()
     {
-        Debug.Log("成长完成，切换至下一关卡");
-        yield return new WaitForSeconds(changeDelay);
-
         //禁用滑块交互，防止再次拖动
         if (twitchSlider != null)
             twitchSlider.interactable = false;
+
+        Debug.Log("成长完成，切换至下一关卡");
+        yield return new WaitForSeconds(changeDelay);
+
+        SceneManager.LoadScene(nextScene);
     }
     private void OnDestroy()
     {

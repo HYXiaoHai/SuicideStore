@@ -46,13 +46,13 @@ public class Scene7_1BackgroundManager : MonoBehaviour
                 if (playerCollider != null && triggerColliders[i].bounds.Intersects(playerCollider.bounds))
                 {
                     triggered[i] = true;
-                    OnTriggerEnter(i);
+                    _OnTriggerEnter(i);
                 }
             }
         }
     }
-
-    void OnTriggerEnter(int index)
+    //修改：OnTriggerEnter ->_OnTriggerEnter
+    void _OnTriggerEnter(int index)
     {
         if (index == 0)
         {

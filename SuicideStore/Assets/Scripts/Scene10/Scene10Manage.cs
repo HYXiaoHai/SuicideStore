@@ -181,10 +181,11 @@ public class Scene10Manage : MonoBehaviour
     }
     public void Leve3Complete()
     {
-        //Ìø×ª
+        StartCoroutine(LoadNextScene());
     }
-    public void LoadNextScene()
+    public IEnumerator LoadNextScene()
     {
+        yield return new WaitForSeconds(duration);
         SceneManager.LoadScene(nextSceneName);
     }
     // Update is called once per frame

@@ -1,6 +1,7 @@
 using Cinemachine;
 using DG.Tweening;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class Scene9Maneg : MonoBehaviour
@@ -37,7 +38,7 @@ public class Scene9Maneg : MonoBehaviour
     public GameObject fileParent;
     public CinemachineVirtualCamera fileCamera;//文档视角
     public Button fileButton;//切换到档案的按钮
-
+    public string fileSceneName;
     private void Awake()
     {
         Instance = this;
@@ -77,11 +78,11 @@ public class Scene9Maneg : MonoBehaviour
             ShowFootprint(clickCount - 1);
         }
 
-        // 第二关：ESC 退出拼图视角
-        if (Input.GetKeyDown(KeyCode.Escape) && isPuzzleViewOpen)
-        {
-            ExitPuzzleView();
-        }
+        //// 第二关：ESC 退出拼图视角
+        //if (Input.GetKeyDown(KeyCode.Escape) && isPuzzleViewOpen)
+        //{
+        //    ExitPuzzleView();
+        //}
     }
 
     // ---------- 第一关逻辑 ----------
@@ -196,7 +197,10 @@ public class Scene9Maneg : MonoBehaviour
         puzzleCompleteCamera.Priority = 10;
         fileCamera.Priority = 20;
     }
-
+    public void Onlevel3Button()
+    {
+        SceneManager.LoadScene(fileSceneName);
+    }
 
     // ---------- 工具方法 ----------
     private void SetPuzzleAlpha(float alpha)
