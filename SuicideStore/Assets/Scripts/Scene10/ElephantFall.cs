@@ -1,7 +1,6 @@
 using DG.Tweening;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.UI;
 
 public class ElephantFall : MonoBehaviour
 {
@@ -10,14 +9,12 @@ public class ElephantFall : MonoBehaviour
 
     [Header("=== 气球设置 ===")]
     public SpriteRenderer balloonSprite;
-    public Sprite normalBalloonSprite;
-    public Sprite poppedBalloonSprite;
+    public float balloonUpwardDistance = 3f;
+    public float balloonMoveDuration = 0.5f;
 
-    [Header("=== 转场设置 ===")]
-    public CanvasGroup whiteFadePanel;
-    public string nextSceneName;
+    [Header("=== 场景设置 ===")]
+    public string nextSceneName = "Scene10.6";
     public float fallDelay = 1.5f;
-    public float fadeDuration = 1.0f;
 
     [Header("=== 调试设置 ===")]
     public bool showDebugLog = true;
@@ -33,12 +30,6 @@ public class ElephantFall : MonoBehaviour
         {
             elephantRb.gravityScale = 0;
             elephantRb.isKinematic = true;
-        }
-
-        if (whiteFadePanel != null)
-        {
-            whiteFadePanel.alpha = 0;
-            whiteFadePanel.gameObject.SetActive(false);
         }
 
         if (balloonSprite != null && balloonSprite.GetComponent<Collider2D>() == null)
@@ -75,12 +66,13 @@ public class ElephantFall : MonoBehaviour
 
         if (showDebugLog)
         {
-            Debug.Log("气球被点击，小象开始下落");
+            Debug.Log("气球被点击，气球上升，小象开始下落");
         }
 
-        if (balloonSprite != null && poppedBalloonSprite != null)
+        if (balloonSprite != null)
         {
-            balloonSprite.sprite = poppedBalloonSprite;
+            Vector3 originalPos = balloonSprite.transform.position;
+            balloonSprite.transform.DOMoveY(originalPos.y + balloonUpwardDistance, balloonMoveDuration).SetEase(Ease.OutQuad);
         }
 
         if (elephantRb != null)
@@ -89,25 +81,18 @@ public class ElephantFall : MonoBehaviour
             elephantRb.gravityScale = 1;
         }
 
-        Invoke(nameof(WhiteFadeAndTransition), fallDelay);
+        Invoke(nameof(LoadNextScene), fallDelay);
     }
 
-    void WhiteFadeAndTransition()
+    void LoadNextScene()
     {
-        if (whiteFadePanel != null)
+        if (!string.IsNullOrEmpty(nextSceneName))
         {
-            whiteFadePanel.gameObject.SetActive(true);
-            whiteFadePanel.DOFade(1f, fadeDuration).OnComplete(() =>
-            {
-                if (!string.IsNullOrEmpty(nextSceneName))
-                {
-                    SceneManager.LoadScene(nextSceneName);
-                }
-                else if (showDebugLog)
-                {
-                    Debug.LogWarning("nextSceneName 未设置");
-                }
-            });
+            SceneManager.LoadScene(nextSceneName);
+        }
+        else if (showDebugLog)
+        {
+            Debug.LogWarning("nextSceneName 未设置");
         }
     }
 

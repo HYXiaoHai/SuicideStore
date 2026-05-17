@@ -506,7 +506,7 @@ MonoBehaviour:
   dialogueTriggers:
   - {fileID: 240103762}
   - {fileID: 1863736432}
-  - {fileID: 234310565}
+  - {fileID: 1525930569}
   images:
   - {fileID: 265427021}
   - {fileID: 933500028}
@@ -985,6 +985,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1525930569}
   - component: {fileID: 1525930568}
+  - component: {fileID: 1525930570}
   m_Layer: 0
   m_Name: "\u4EA4\u4E923"
   m_TagString: Untagged
@@ -1059,6 +1060,51 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!61 &1525930570
+BoxCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1525930567}
+  m_Enabled: 1
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 1
+  m_UsedByEffector: 0
+  m_UsedByComposite: 0
+  m_Offset: {x: -0.6472658, y: -2.361646}
+  m_SpriteTilingProperty:
+    border: {x: 0, y: 0, z: 0, w: 0}
+    pivot: {x: 0.5, y: 0.5}
+    oldSize: {x: 0.41, y: 0.47}
+    newSize: {x: 0.41, y: 0.47}
+    adaptiveTilingThreshold: 0.5
+    drawMode: 0
+    adaptiveTiling: 0
+  m_AutoTiling: 0
+  serializedVersion: 2
+  m_Size: {x: 1.7045317, y: 5.193292}
+  m_EdgeRadius: 0
 --- !u!1 &1577633362
 GameObject:
   m_ObjectHideFlags: 0
