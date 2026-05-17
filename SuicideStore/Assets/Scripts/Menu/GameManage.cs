@@ -62,7 +62,10 @@ public class GameManage : MonoBehaviour
                 else if (MenuController.instance.isExitPanel)
                 {
                     MenuController.instance.CloseExitPanel();
-
+                }
+                else if (MenuController.instance.isSettingPanel)
+                {
+                    MenuController.instance.CloseSettingPanel();
                 }
                 else
                 {
