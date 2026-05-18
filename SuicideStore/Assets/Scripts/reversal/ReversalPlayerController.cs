@@ -11,6 +11,9 @@ public class ReversalPlayerController : MonoBehaviour
     public float velPower = 1.2f;
     public float frictionAmount = 15f;
 
+    [Header("移动限制")]
+    public bool canMoveRight = true;   // 是否允许向右移动
+
     [Header("角色跳跃")]
     public float jumpForce = 12f;
     public float coyoteTime = 0.1f;
@@ -60,7 +63,10 @@ public class ReversalPlayerController : MonoBehaviour
         if (!canMove && rb != null)
             rb.velocity = Vector2.zero;
     }
-
+    public void SetCanMoveRight(bool canMove)
+    {
+        canMoveRight = canMove;
+    }
     void Update()
     {
         if (!canControl) return;
@@ -186,15 +192,18 @@ public class ReversalPlayerController : MonoBehaviour
     private void FixedUpdate()
     {
         if (!canControl) return;
-
-        float targetSpeed = moveInput * moveSpeed;
+        float rawInput = moveInput;
+        // 如果不允许向右移动且当前输入是向右，则强制置零
+        if (!canMoveRight && rawInput > 0)
+            rawInput = 0;
+        float targetSpeed = rawInput * moveSpeed;
         float speedDif = targetSpeed - rb.velocity.x;
         float accelRate = (Mathf.Abs(targetSpeed) > 0.01f) ? acceleration : deceleration;
         float movement = Mathf.Pow(Mathf.Abs(speedDif) * accelRate, velPower) * Mathf.Sign(speedDif);
         rb.AddForce(movement * Vector2.right);
 
         bool isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
-        if (isGrounded && Mathf.Abs(moveInput) < 0.01f)
+        if (isGrounded && Mathf.Abs(rawInput) < 0.01f)
         {
             float frictionForce = Mathf.Min(Mathf.Abs(rb.velocity.x), frictionAmount);
             frictionForce *= Mathf.Sign(rb.velocity.x);
