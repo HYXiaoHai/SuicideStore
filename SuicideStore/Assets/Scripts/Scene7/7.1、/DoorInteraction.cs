@@ -23,7 +23,7 @@ public class DoorInteraction : MonoBehaviour
     private Color originalColor;
 
     private bool isPlayerNear = false;
-
+    public Collider2D collider2D;
     void Start()
     {
         if (interactionPrompt != null)
@@ -97,6 +97,7 @@ public class DoorInteraction : MonoBehaviour
                 if (showDebugLog)
                 {
                     Debug.Log("点击交互！");
+                    collider2D.isTrigger = true;
                 }
                 InteractWithDoor();
             }

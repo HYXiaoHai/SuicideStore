@@ -235,6 +235,7 @@ MonoBehaviour:
   doorSound: {fileID: 0}
   doorSprite: {fileID: 0}
   highlightColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  collider2D: {fileID: 234310567}
 --- !u!61 &234310567
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -264,7 +265,7 @@ BoxCollider2D:
   m_CallbackLayers:
     serializedVersion: 2
     m_Bits: 4294967295
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_UsedByEffector: 0
   m_UsedByComposite: 0
   m_Offset: {x: -0.6189108, y: -0.60138583}
