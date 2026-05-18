@@ -3,6 +3,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using TMPro;
 using System.Collections;
+using Unity.VisualScripting.Antlr3.Runtime.Tree;
 
 public class FaceGameManager : MonoBehaviour
 {
@@ -36,6 +37,10 @@ public class FaceGameManager : MonoBehaviour
     private float faceHalfWidth;
     private bool isGameActive = true;
 
+    [Header("引导")]
+    public GameObject yindao;
+    public bool isBegin;
+
     void Start()
     {
         if (identifyBar == null) Debug.LogError("FaceGameManager: identifyBar 未赋值！");
@@ -58,8 +63,14 @@ public class FaceGameManager : MonoBehaviour
 
     void Update()
     {
-        if (!isGameActive) return;
+        if(Input.anyKey&&!isBegin)
+        {
+            yindao.SetActive(false);
+            isBegin = true;
+        }
 
+        if (!isGameActive) return;
+        if (!isBegin) return;
         bool isCaught = CheckCatch();
         UpdateCharacterFace(isCaught);
         UpdateProgress(isCaught);
