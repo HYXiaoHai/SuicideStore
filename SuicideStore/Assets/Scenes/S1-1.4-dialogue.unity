@@ -388,8 +388,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: New Text
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 617ee0a702d1af843be3efc0e56185ff, type: 2}
-  m_sharedMaterial: {fileID: 1345990275416898767, guid: 617ee0a702d1af843be3efc0e56185ff, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 4fb36bd28f4235b4cb8ef57c09e57bd5, type: 2}
+  m_sharedMaterial: {fileID: -7492712008117019815, guid: 4fb36bd28f4235b4cb8ef57c09e57bd5, type: 2}
   m_fontSharedMaterials:
   - {fileID: 1345990275416898767, guid: 617ee0a702d1af843be3efc0e56185ff, type: 2}
   m_fontMaterial: {fileID: 0}
@@ -820,24 +820,17 @@ MonoBehaviour:
   speakerText: {fileID: 2060854613}
   dialogueText: {fileID: 688167155}
   dialogueEntries:
-  - speaker: "\u8C61\u4E50\u4E50\uFF1A"
-    text: "\u4F60\u2026\u2026\u4F60\u662F\u8FD9\u91CC\u7684\u5217\u8F66\u5458\u5417\uFF1F\u6211\u8981\u53BB\u987F\u4E18\uFF01"
   - speaker: "\u6211\uFF1A"
-    text: "\u8BF6\uFF1F\u5C0F\u670B\u53CB\uFF0C\u4F60\u624D\u591A\u5927\uFF1F\uFF1F\uFF1F\u600E\u4F1A\u6765\u5230\u8FD9\uFF1F\u4F60\u77E5\u9053\u53BB\u987F\u4E18\u610F\u5473\u7740\u4EC0\u4E48\u5417\uFF1F"
-  - speaker: "\u5185\u5FC3OS\uFF1A"
-    text: "\u8FD9\u4E48\u5C0F\u7684\u5B69\u5B50\uFF0C\u65E0\u5FE7\u65E0\u8651\u7684\u5E74\u7EAA\uFF0C\u600E\u4E48\u4F1A\u60F3\u8981\u5954\u8D74\u987F\u4E18\uFF1F\u96BE\u9053\u662F\u4E00\u65F6\u8D4C\u6C14\uFF1F"
+    text: "\u8BF6\uFF1F\u5C0F\u670B\u53CB\uFF0C\u4F60\u624D\u591A\u5927\uFF1F\uFF1F\u600E\u4F1A\u6765\u5230\u8FD9\uFF1F\u4F60\u77E5\u9053\u53BB\u987F\u4E18\u610F\u5473\u7740\u4EC0\u4E48\u5417\uFF1F"
   - speaker: "\u8C61\u4E50\u4E50\uFF1A"
-    text: "\u6211..\u53EA\u8BB0\u5F97..\u6211\u8981\u53BB\u987F\u4E18\uFF0C\u8FD9\u662F\u6211\u5FC5\u987B\u505A\u7684\u4E8B\u3002\u4F46\u6211...\u6211\u770B\u5230\u89C4\u77E9\u4E86\uFF01\u7528\u60F3\u79BB\u5F00\u7684\u6545\u4E8B\uFF0C\u4EA4\u6362\u53BB\u987F\u4E18\u7684\u7968\u3002"
+    text: "\u6211\u5C31\u662F\u8981\u53BB\u987F\u4E18\uFF01\u6211\u770B\u5230\u8F66\u89C4\u4E86\uFF0C\u7528\u60F3\u79BB\u5F00\u7684\u6545\u4E8B\uFF0C\u4EA4\u6362\u53BB\u987F\u4E18\u7684\u7968\u3002"
   - speaker: "\u6211\uFF1A"
-    text: "\u89C4\u77E9\u662F\u8FD9\u6837\u3002\u4F46\u4E3A\u4EC0\u4E48\u60F3\u53BB\u987F\u4E18\uFF1F"
+    text: "\u89C4\u77E9\u662F\u8FD9\u6837\u3002\u4F46\u4F60\u4E3A\u4EC0\u4E48\u60F3\u53BB\u987F\u4E18\uFF1F"
   - speaker: "\u8C61\u4E50\u4E50\uFF1A"
-    text: "\u6211\u2026\u2026\u6211\u4E0D\u8BB0\u5F97\u4E86\uFF0C\u53EA\u77E5\u9053\u6211\u4E00\u5B9A\u8981\u53BB\u3002\u6211\u8111\u5B50\u91CC\u53EA\u6709\u4E00\u4E9B\u7247\u6BB5\uFF0C"
-  - speaker: "\u8C61\u4E50\u4E50\uFF1A"
-    text: "\u597D\u50CF\u2026\u2026\u6211\u548C\u7238\u7238\u5988\u5988\u603B\u662F\u5435\u67B6\uFF0C\u4ED6\u4EEC\u7BA1\u6211\u7BA1\u5F97\u597D\u4E25\uFF0C\u603B\u903C\u7740\u6211\u542C\u8BDD\uFF0C\u6211\u8BA8\u538C\u4ED6\u4EEC\uFF0C\u6211\u60F3\u9003\u79BB\u4ED6\u4EEC\uFF0C\u53BB\u987F\u4E18\u518D\u4E5F\u4E0D\u56DE\u6765\u3002"
-  - speaker: "\u5185\u5FC3OS\uFF1A"
-    text: "\u8FD8\u771F\u662F\u4EBA\u5C0F\u5C0F\u7684\u70E6\u607C\u4E5F\u5C0F\u5C0F\u7684"
-  dialogueLines:
-  - 
+    text: "\u6211\u8BA8\u538C\u6211\u7684\u7238\u7238\u5988\u5988\uFF01"
+  - speaker: "\u6211\uFF1A"
+    text: "\u8FD9\u53C8\u662F\u539F\u751F\u5BB6\u5EAD\u7684\u751F\u957F\u75DB\u5417\uFF1F"
+  dialogueLines: []
   typingSpeed: 0.1
   endHint: {fileID: 0}
   requireButtonToAdvanceWhenAvailable: 1
@@ -916,8 +909,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: New Text
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 617ee0a702d1af843be3efc0e56185ff, type: 2}
-  m_sharedMaterial: {fileID: 1345990275416898767, guid: 617ee0a702d1af843be3efc0e56185ff, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 4fb36bd28f4235b4cb8ef57c09e57bd5, type: 2}
+  m_sharedMaterial: {fileID: -7492712008117019815, guid: 4fb36bd28f4235b4cb8ef57c09e57bd5, type: 2}
   m_fontSharedMaterials:
   - {fileID: 1345990275416898767, guid: 617ee0a702d1af843be3efc0e56185ff, type: 2}
   m_fontMaterial: {fileID: 0}

@@ -17,8 +17,8 @@ public class S3_Dialogue : MonoBehaviour
     // ======================
     private List<string> lines = new List<string>()
     {
-        "小象：故事到这里就结束了，我的道具在哪里？",
-        "列车员：这是一本专属于你的日记本，你可以用它看到爸爸妈妈在想什么..."
+        "小象：故事到这里就结束了，我的东西在哪里？",
+        "列车员（我）：这是一本专属于你的日记本，你可以用它看到爸爸妈妈在想什么..."
     };
 
     private int index = 0;

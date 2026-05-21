@@ -112,12 +112,13 @@ public class Scene9Maneg : MonoBehaviour
         Tween steamTween = steamImage.transform.DOMove(steamEndPos.position, 1f).SetEase(Ease.OutCubic);
         yield return steamTween.WaitForCompletion();
 
-        // 2. 平移第一关整体（父物体）
-        Tween moveTween = footParent.transform.DOMove(footEndPosition.position, 1f).SetEase(Ease.InOutSine);
-        yield return moveTween.WaitForCompletion();
+        //// 2. 平移第一关整体（父物体）
+        //Tween moveTween = footParent.transform.DOMove(footEndPosition.position, 1f).SetEase(Ease.InOutSine);
+        //yield return moveTween.WaitForCompletion();
+        footParent.gameObject.SetActive(false);
 
-        // 3. 显示第二关：所有 SpriteRenderer 淡入，同时 steam 飞回起始位置（不等待）
         StartLevel2FadeIn();
+        // 3. 显示第二关：所有 SpriteRenderer 淡入，同时 steam 飞回起始位置（不等待）
 
         // 注意：Steam 飞回起始位置与第二关渐显并行，无需等待
         steamImage.transform.DOMove(steamStartPos.position, 1f).SetEase(Ease.OutCubic);
@@ -131,7 +132,7 @@ public class Scene9Maneg : MonoBehaviour
         {
             fadeSeq.Join(sr.DOFade(1f, puzzleFadeDuration));
         }
-        // 淡入完成后激活拼图按钮并启动拼图管理器
+        //淡入完成后激活拼图按钮并启动拼图管理器
         fadeSeq.OnComplete(() =>
         {
             puzzleButton.gameObject.SetActive(true);
@@ -190,7 +191,6 @@ public class Scene9Maneg : MonoBehaviour
     // ---------- 第三关逻辑 ----------
     public void Level3Start()
     {
-        footParent.gameObject.SetActive(false);
         fileParent.gameObject.SetActive(true);
         fileButton.gameObject.SetActive(true);
 

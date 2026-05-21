@@ -178,7 +178,7 @@ public class Scene7_3Manager : MonoBehaviour
         if (progress >= 0.95f)
         {
             ShowPanel(1);
-            ShowText(text2, blueColor);
+            ShowText(text2, blackColor);
         }
         else
         {
@@ -209,10 +209,10 @@ public class Scene7_3Manager : MonoBehaviour
             textDisplay.text = text;
             textDisplay.color = color;
 
-            if (textPosition != null)
-            {
-                textDisplay.rectTransform.position = textPosition.position;
-            }
+            //if (textPosition != null)
+            //{
+            //    textDisplay.rectTransform.position = textPosition.position;
+            //}
         }
     }
 

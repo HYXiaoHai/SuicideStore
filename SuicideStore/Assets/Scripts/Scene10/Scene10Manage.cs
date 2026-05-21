@@ -1,5 +1,6 @@
 using DG.Tweening;
 using System.Collections;
+using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -22,6 +23,7 @@ public class Scene10Manage : MonoBehaviour
     public SpriteRenderer l2bubble2;//×ó²àÆøÅÝ2
     public SpriteRenderer dialogBox1;//ÓÒ²à¶Ô»°¿ò
     public SpriteRenderer dialogBox2;//ÓÒ²à¶Ô»°¿ò
+    public TMP_Text levelText;
     public Button button1;
     public Button button2;
     public int buttonNum = 0;
@@ -42,6 +44,7 @@ public class Scene10Manage : MonoBehaviour
     public SpriteRenderer l2Bubble2;//ÆøÅÝ2
     public SpriteRenderer l2Bubble3;//ÆøÅÝ3
     public SpriteRenderer[] level2Renderers;
+    public TMP_Text levl2Text;
     public Sprite image1;//ÇÐ»»Í¼Æ¬1
     public Sprite image2;//ÇÐ»»Í¼Æ¬1
     public Sprite image3;//ÇÐ»»Í¼Æ¬2
@@ -113,6 +116,7 @@ public class Scene10Manage : MonoBehaviour
             fadeSeq.Join(item.DOFade(0f, 1f));
         }
         fadeSeq.Join(levelBg.DOFade(0f, 1f));
+        fadeSeq.Join(levelText.DOFade(0f, 1f));
         fadeSeq.OnComplete(() =>
         {
             rightLevel1Father.SetActive(false);
@@ -132,6 +136,7 @@ public class Scene10Manage : MonoBehaviour
         }
         levelBg.sprite = level2Bg_Sprit;
         levelBg.DOFade(1f, 1f);
+        levl2Text.DOFade(1f, 1f);
     }
     //
     public void OnDrawComplet(int _completeNum)
@@ -162,6 +167,7 @@ public class Scene10Manage : MonoBehaviour
     public void Level2Complete()
     {
         //LeleRb.bodyType = RigidbodyType2D.Dynamic;
+        levl2Text.DOFade(0f, 1f);
         transitionCanvas.DOFade(1f, 2f).SetEase(Ease.InQuart).OnComplete(() => {
             //LeleRb.gameObject.SetActive(false);
             leftLevel2Father.SetActive(false);

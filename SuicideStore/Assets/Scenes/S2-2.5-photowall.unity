@@ -3382,7 +3382,7 @@ GameObject:
   - component: {fileID: 151934462}
   - component: {fileID: 151934461}
   m_Layer: 5
-  m_Name: Canvas (1)
+  m_Name: UICanvas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4342,9 +4342,11 @@ MonoBehaviour:
   dialoguePanel: {fileID: 1118781134}
   dialogueText: {fileID: 1106556306}
   dialogueTexts:
-  - 111
-  - 222
-  - 333
+  - "\u5C0F\u8C61\uFF1A\u8FD8\u6709\uFF0C\u4ED6\u4EEC\u603B\u662F\u4E0D\u5728\u5BB6\uFF0C\u662F\u4E0D\u662F\u4E0D\u8981\u6211\u4E86\u2026
+    \u5C0F\u8C61\uFF1A\u7238\u7238\u5988\u5988\uFF0C\u80FD\u56DE\u5BB6\u966A\u966A\u6211\u5417\uFF1F"
+  - "\u8C61\u5988\u5988\uFF1A\u4E56\uFF0C\u9A6C\u4E0A\u5FD9\u5B8C\u624B\u5934\u7684\u4E8B\uFF0C\u665A\u70B9\u5C31\u5230\u5BB6\u4E86"
+  - "\u5C0F\u8C61\uFF1A\u6211\u8981\u53BB\u987F\u4E18\uFF0C\u8BA9\u4ED6\u4EEC\u6C38\u8FDC\u627E\u4E0D\u5230\u6211\u2026
+    \u5217\u8F66\u5458\uFF08os\uFF09\uFF1A\u8FD9\u5C0F\u5B69\u813E\u6C14\u8FD8\u4E0D\u5C0F"
   dialogueDuration: 2
 --- !u!1 &189180619
 GameObject:
@@ -23434,8 +23436,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 10.66, y: 29}
-  m_SizeDelta: {x: 200, y: 50}
+  m_AnchoredPosition: {x: 0.841, y: 13.726}
+  m_SizeDelta: {x: 763.659, y: 233.28}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1106556306
 MonoBehaviour:
@@ -23461,8 +23463,8 @@ MonoBehaviour:
 
 '
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 4fb36bd28f4235b4cb8ef57c09e57bd5, type: 2}
+  m_sharedMaterial: {fileID: -7492712008117019815, guid: 4fb36bd28f4235b4cb8ef57c09e57bd5, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -23486,8 +23488,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 68.86
-  m_fontSizeBase: 68.86
+  m_fontSize: 54.69
+  m_fontSizeBase: 54.69
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -23823,7 +23825,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1118781135
 RectTransform:
   m_ObjectHideFlags: 0

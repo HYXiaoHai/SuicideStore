@@ -36,7 +36,7 @@ public class FlipMirrorController : MonoBehaviour
     //跟随鼠标移动
     void Update()
     {
-        if (GameManage.Instance.isSetting) return;
+        //if (GameManage.Instance.isSetting) return;
         // 普通模式下镜子跟随鼠标
         if (canMove)
         {

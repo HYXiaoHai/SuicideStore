@@ -118,9 +118,9 @@ public class GameManage : MonoBehaviour
         levelFirstScene[6] = "S6_reversal";
         // level 7
         //levelFirstScene[7] = "S7-7.1-puzzle";
-        levelFirstScene[7] = "S7-7.2-walk";
+        levelFirstScene[7] = "S8-8.1-story";
         // level 8
-        levelFirstScene[8] = "S8-8.1-story";
+        levelFirstScene[8] = "S7-7.2-walk";
         // level 9
         levelFirstScene[9] = "S9-9.1-exchange";
         // level 10

@@ -21,12 +21,6 @@ public class DialogueManager : MonoBehaviour
         "害怕离去吗",
         "请不要担心",
         "顿丘会让你的灵魂得以安栖",
-        "无需心忧，无需哭泣",
-        "花开花落是自然的规律",
-        "生命女神在顿丘拥抱你",
-        "...",
-        "但请不要忘却顿丘外的爱与经历",
-        "家人与朋友在你熟悉之处等你"
     };
 
     [SerializeField] private float typingSpeed = 0.1f;

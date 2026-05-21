@@ -250,7 +250,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d40031c590689ef46a52847220abbd53, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  levelNumber: 8
+  levelNumber: 7
 --- !u!4 &122875738
 Transform:
   m_ObjectHideFlags: 0
@@ -1019,8 +1019,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -390.05, y: 417.03}
-  m_SizeDelta: {x: 134.1, y: 111.01}
+  m_AnchoredPosition: {x: -315, y: 415}
+  m_SizeDelta: {x: 43.67, y: 36.15}
   m_Pivot: {x: 0.49999994, y: 0.5}
 --- !u!114 &1410374979
 MonoBehaviour:
@@ -1142,7 +1142,7 @@ MonoBehaviour:
   textPosition: {fileID: 2615723}
   blackColor: {r: 0, g: 0, b: 0, a: 1}
   blueColor: {r: 0, g: 0, b: 1, a: 1}
-  text1: "\u4E50\u4E50\uFF0C\u4F60\u770B\u90A3\u662F\u5C71\u9876\uFF0C\u6211\u4EEC\u4E00\u4F1A\u4E0A\u53BB\u62CD\u7167"
+  text1: "\u8C61\u5988\u5988\uFF1A\u4E50\u4E50\uFF0C\u4F60\u770B\u90A3\u662F\u5C71\u9876\uFF0C\u6211\u4EEC\u4E00\u4F1A\u4E0A\u53BB\u62CD\u7167"
   text2: "\u53EF\u4EE5\u5FEB\u70B9\u5417\uFF1F\u6211\u4E0D\u559C\u6B22\u62CD\u7167\u5566"
   cableCar: {fileID: 1858032998}
   startPoint: {x: -271.9, y: 153.3}
@@ -1276,7 +1276,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 295.7666, y: 434.00006}
+  m_AnchoredPosition: {x: 268, y: 418}
   m_SizeDelta: {x: 1112.3, y: 111.01}
   m_Pivot: {x: 0.47821468, y: 0.50000024}
 --- !u!222 &2070018530
@@ -1307,7 +1307,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 
+  m_text: "\u8C61\u5988\u5988\uFF1A"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 4fb36bd28f4235b4cb8ef57c09e57bd5, type: 2}
   m_sharedMaterial: {fileID: -7492712008117019815, guid: 4fb36bd28f4235b4cb8ef57c09e57bd5, type: 2}
@@ -1316,8 +1316,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
-  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
+    rgba: 4278190080
+  m_fontColor: {r: 0, g: 0, b: 0, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -1342,7 +1342,7 @@ MonoBehaviour:
   m_fontSizeMax: 72
   m_fontStyle: 0
   m_HorizontalAlignment: 1
-  m_VerticalAlignment: 256
+  m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
   m_wordSpacing: 0
