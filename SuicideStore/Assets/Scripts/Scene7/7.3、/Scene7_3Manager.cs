@@ -4,6 +4,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.EventSystems;
 using TMPro;
 using System.Collections;
+using DG.Tweening;
 
 public class Scene7_3Manager : MonoBehaviour
 {
@@ -190,13 +191,15 @@ public class Scene7_3Manager : MonoBehaviour
     {
         if (index >= 0 && index < comicPanels.Length)
         {
-            for (int i = 0; i < comicPanels.Length; i++)
-            {
-                if (comicPanels[i] != null)
-                {
-                    comicPanels[i].gameObject.SetActive(i == index);
-                }
-            }
+            //for (int i = 0; i < comicPanels.Length; i++)
+            //{
+            //    if (comicPanels[i] != null)
+            //    {
+            //        comicPanels[i].gameObject.SetActive(i == index);
+            //    }
+            //}
+            comicPanels[index].gameObject.SetActive(true);
+            comicPanels[index].DOFade(1f,0.5f);
             currentPanel = index;
         }
     }

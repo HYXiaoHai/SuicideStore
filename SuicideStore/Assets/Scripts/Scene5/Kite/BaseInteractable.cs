@@ -14,9 +14,17 @@ public abstract class BaseInteractable : MonoBehaviour
 
     public abstract void OnInteract();
 
-    void OnMouseDown()
+    //void OnMouseDown()
+    //{
+    //    if (isPlayerInRange && EventSystem.current != null && !EventSystem.current.IsPointerOverGameObject())
+    //    {
+    //        Debug.Log($"µã»÷ {gameObject.name}");
+    //        OnInteract();
+    //    }
+    //}
+    private void Update()
     {
-        if (isPlayerInRange && EventSystem.current != null && !EventSystem.current.IsPointerOverGameObject())
+        if (isPlayerInRange&&Input.GetKeyDown(KeyCode.E))
         {
             Debug.Log($"µã»÷ {gameObject.name}");
             OnInteract();

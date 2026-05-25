@@ -3,8 +3,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using TMPro;
 using System.Collections;
-using Unity.VisualScripting.Antlr3.Runtime.Tree;
-
+using DG.Tweening;
 public class FaceGameManager : MonoBehaviour
 {
     [Header("UI引用")]
@@ -24,9 +23,17 @@ public class FaceGameManager : MonoBehaviour
     public float progressReduceSpeed = 0.15f;
     public float initialProgress = 0.5f;
 
-    [Header("收获效果")]
-    public ParticleSystem harvestEffect;
+    [Header("收获效果 -- 气泡")]
+    public Image bubbleImage;
+    public Sprite normalBubble;
+    public Sprite seccesBubble;
     public float harvestDelay = 1f;
+    [Header("引导")]
+    public Image outerframe;//外框
+    public Sprite opromptSprite;//提示sprite
+    public Sprite normalSprite;//提示sprite
+    public bool isBegin;
+
     [Header("下一场景")]
     public string nextSceneName;
     [Header("音效")]
@@ -36,10 +43,6 @@ public class FaceGameManager : MonoBehaviour
     private float barHalfWidth;
     private float faceHalfWidth;
     private bool isGameActive = true;
-
-    [Header("引导")]
-    public GameObject yindao;
-    public bool isBegin;
 
     void Start()
     {
@@ -55,9 +58,13 @@ public class FaceGameManager : MonoBehaviour
         if (faceTarget != null) faceHalfWidth = faceTarget.sizeDelta.x / 2;
         
         successText.SetActive(false);
+        bubbleImage.gameObject.SetActive(false);
+
         currentProgress = initialProgress;
         if (progressFill != null) progressFill.fillAmount = currentProgress;
-        
+
+        outerframe.sprite = opromptSprite;
+
         Debug.Log("FaceGameManager 初始化完成");
     }
 
@@ -65,8 +72,7 @@ public class FaceGameManager : MonoBehaviour
     {
         if(Input.anyKey&&!isBegin)
         {
-            yindao.SetActive(false);
-            isBegin = true;
+            GameStart();
         }
 
         if (!isGameActive) return;
@@ -75,6 +81,12 @@ public class FaceGameManager : MonoBehaviour
         UpdateCharacterFace(isCaught);
         UpdateProgress(isCaught);
         CheckGameEnd();
+    }
+    void GameStart()
+    {
+        outerframe.sprite = normalSprite;
+        bubbleImage.gameObject.SetActive(true);
+        isBegin = true;
     }
 
     bool CheckCatch()
@@ -128,25 +140,20 @@ public class FaceGameManager : MonoBehaviour
     void GameWin()
     {
         isGameActive = false;
-        AudioManager.Instance.PlayShortSound(tackPictureAudioClip, 0.8f);
-        //successText.SetActive(true);
+        bubbleImage.DOFade(0f, 0.5f).OnComplete(() => {
+            bubbleImage.sprite = seccesBubble;
+            bubbleImage.DOFade(1f, 0.5f).OnComplete(() => {
+                AudioManager.Instance.PlayShortSound(tackPictureAudioClip, 0.8f);
+                StartCoroutine(PlayHarvestEffectAndCloseUI()); });
+        });
         Debug.Log("钓鱼成功！");
-        StartCoroutine(PlayHarvestEffectAndCloseUI());
     }
 
     IEnumerator PlayHarvestEffectAndCloseUI()
     {
-        if (harvestEffect != null)
-        {
-            harvestEffect.Play();
-        }
-        
+       
         yield return new WaitForSeconds(harvestDelay);
 
-        //if (gameCanvas != null)
-        //{
-        //    gameCanvas.gameObject.SetActive(false);
-        //}
         SceneManager.LoadScene(nextSceneName);
 
         Debug.Log("UI已关闭");

@@ -8,7 +8,8 @@ public class BagPackingManager : MonoBehaviour
 
     [Header("游戏开始时展现的物品")]
     public float startDuration;//开始游戏的动画时长
-    public Image bagText;//对话框
+    public Image bagText1;//对话框1
+    public Image bagText2;//对话框2
     public SpriteRenderer item1;//物品1
     public SpriteRenderer item2;//物品2
     public SpriteRenderer item3;//物品3
@@ -31,7 +32,7 @@ public class BagPackingManager : MonoBehaviour
 
     void Start()
     {
-        bagText.transform.localScale = Vector3.zero;
+        bagText1.transform.localScale = Vector3.zero;
         // 初始化每个物品的状态和初始位置
         foreach (var item in allItems)
         {
@@ -66,7 +67,7 @@ public class BagPackingManager : MonoBehaviour
     public void StartGame()
     {
         Sequence seq = DOTween.Sequence();
-        seq.Join(bagText.transform.DOScale(1f, startDuration).SetEase(Ease.OutExpo));
+        seq.Join(bagText1.transform.DOScale(1f, startDuration).SetEase(Ease.OutExpo));
         seq.Join(item1.DOFade(1f, startDuration));
         seq.Join(item2.DOFade(1f, startDuration));
         seq.Join(item3.DOFade(1f, startDuration));
@@ -138,7 +139,14 @@ public class BagPackingManager : MonoBehaviour
     private void OnGameComplete()
     {
         gameCompleted = true;
-        PopBubbleManage.Instance.StartGame();
-        Debug.Log("收拾书包完成！开启下一关");
+        Sequence seq = DOTween.Sequence();
+
+        seq.Join(bagText1.transform.DOScale(0f, startDuration).SetEase(Ease.OutExpo));
+        seq.Join(bagText2.transform.DOScale(1f, startDuration).SetEase(Ease.OutExpo));
+        seq.OnComplete(() =>
+        {
+            PopBubbleManage.Instance.StartGame();
+            Debug.Log("收拾书包完成！开启下一关");
+        });
     }
 }

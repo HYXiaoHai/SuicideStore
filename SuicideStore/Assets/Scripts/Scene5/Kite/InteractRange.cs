@@ -6,11 +6,13 @@ public class InteractRange : MonoBehaviour
     public SpriteRenderer spriteRenderer;
     public Sprite image1;
     public Sprite image2;
+    public GameObject prompt;//∞¥º¸Ã· æ
     void OnTriggerEnter2D(Collider2D other)
     {
         if (other.CompareTag("Player") && targetInteractable != null)
         {
-            if(spriteRenderer!=null)
+            prompt.SetActive(true);
+            if (spriteRenderer!=null)
             spriteRenderer.sprite = image2;
             targetInteractable.SetPlayerInRange(true);
         }
@@ -20,6 +22,7 @@ public class InteractRange : MonoBehaviour
     {
         if (other.CompareTag("Player") && targetInteractable != null)
         {
+            prompt.SetActive(false);
             spriteRenderer.sprite = image1;
             targetInteractable.SetPlayerInRange(false);
         }
