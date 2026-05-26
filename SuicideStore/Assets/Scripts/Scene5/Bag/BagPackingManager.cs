@@ -23,7 +23,7 @@ public class BagPackingManager : MonoBehaviour
 
     private int itemsFromInsideToOutside = 0;
     private int itemsFromOutsideToInside = 0;
-    private bool gameCompleted = false;
+    public bool gameCompleted = false;
     public bool isGameStarted = false;   // 游戏是否已开始（可拖拽）
     void Awake()
     {
@@ -33,6 +33,7 @@ public class BagPackingManager : MonoBehaviour
     void Start()
     {
         bagText1.transform.localScale = Vector3.zero;
+        bagText2.transform.localScale = Vector3.zero;
         // 初始化每个物品的状态和初始位置
         foreach (var item in allItems)
         {
@@ -67,7 +68,6 @@ public class BagPackingManager : MonoBehaviour
     public void StartGame()
     {
         Sequence seq = DOTween.Sequence();
-        seq.Join(bagText1.transform.DOScale(1f, startDuration).SetEase(Ease.OutExpo));
         seq.Join(item1.DOFade(1f, startDuration));
         seq.Join(item2.DOFade(1f, startDuration));
         seq.Join(item3.DOFade(1f, startDuration));
@@ -102,14 +102,23 @@ public class BagPackingManager : MonoBehaviour
         {
             // 外部物品：移入书包内增加，移出书包（到任何外部区域）减少
             if (!wasInside && item.isInsideBag)
+            {
                 itemsFromOutsideToInside++;
+            }
             else if (wasInside && !item.isInsideBag)
                 itemsFromOutsideToInside--;
         }
 
         itemsFromInsideToOutside = Mathf.Max(0, itemsFromInsideToOutside);
         itemsFromOutsideToInside = Mathf.Max(0, itemsFromOutsideToInside);
-
+        if((itemsFromOutsideToInside>0&& itemsFromInsideToOutside<3))
+        {
+            bagText1.transform.DOScale(1f, startDuration).SetEase(Ease.OutExpo);
+        }
+        if(itemsFromInsideToOutside>=3)
+        {
+            bagText1.transform.DOScale(0f, startDuration).SetEase(Ease.OutExpo);
+        }
         Debug.Log($"内部→外部：{itemsFromInsideToOutside}/3，外部→内部：{itemsFromOutsideToInside}/3");
 
         if (itemsFromInsideToOutside >= 3 && itemsFromOutsideToInside >= 3)

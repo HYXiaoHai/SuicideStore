@@ -9,6 +9,8 @@ public class StarInteractable : BaseInteractable
     public Vector3 targetRotation;
     public float duration = 0.8f;
 
+    [Header("交互范围（需手动拖拽）")]
+    public InteractRange interactRange;   // 关联的交互区域
     public override void OnInteract()
     {
         if (branchToTransform == null)
@@ -25,7 +27,9 @@ public class StarInteractable : BaseInteractable
         seq.Join(branchToTransform.transform.DORotate(targetRotation, duration));
 
         // 动画完成后关闭碰撞体
-        //seq.OnComplete(() => DisableBranchCollider());
+        // 永久关闭交互提示
+        if (interactRange != null)
+            interactRange.DisablePrompt();
     }
     private void DisableBranchCollider()
     {

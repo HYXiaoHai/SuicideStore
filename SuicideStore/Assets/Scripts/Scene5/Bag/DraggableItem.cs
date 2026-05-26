@@ -49,25 +49,13 @@ public class DraggableItem : MonoBehaviour
 
     void OnMouseDown()
     {
-        // 调试：输出点击信息，帮助判断是否命中
-        Debug.Log($"鼠标点击物品：{gameObject.name}");
-        if (EventSystem.current != null && !EventSystem.current.IsPointerOverGameObject())
-        {
-            Debug.Log($"点击 {gameObject.name}");
-        }
-        if (EventSystem.current.IsPointerOverGameObject())
-        {
-            Debug.Log("点击被 UI 遮挡");
-            return;
-        }
         if (isMoving)
         {
             Debug.Log("物品动画中，禁止拖拽");
             return;
         }
-        if (BagPackingManager.Instance == null || !BagPackingManager.Instance.isGameStarted)
+        if (BagPackingManager.Instance == null || !BagPackingManager.Instance.isGameStarted||BagPackingManager.Instance.gameCompleted)
         {
-            Debug.Log("游戏未开始，无法拖拽");
             return;
         }
 
@@ -83,6 +71,10 @@ public class DraggableItem : MonoBehaviour
     void OnMouseDrag()
     {
         if (isMoving) return;
+        if (BagPackingManager.Instance == null || !BagPackingManager.Instance.isGameStarted || BagPackingManager.Instance.gameCompleted)
+        {
+            return;
+        }
         transform.position = GetMouseWorldPos() + offset;
         SetZOffset();   // 拖拽时保持 Z
     }

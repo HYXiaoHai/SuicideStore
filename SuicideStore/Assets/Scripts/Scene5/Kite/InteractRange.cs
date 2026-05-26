@@ -7,8 +7,18 @@ public class InteractRange : MonoBehaviour
     public Sprite image1;
     public Sprite image2;
     public GameObject prompt;//按键提示
+    private bool isDisabled = false;   // 交互后永久禁用提示
+    public void DisablePrompt()
+    {
+        isDisabled = true;
+        if (prompt != null)
+            prompt.SetActive(false);
+        if (spriteRenderer != null)
+            spriteRenderer.sprite = image1;
+    }
     void OnTriggerEnter2D(Collider2D other)
     {
+        if (isDisabled) return;
         if (other.CompareTag("Player") && targetInteractable != null)
         {
             prompt.SetActive(true);
@@ -20,10 +30,12 @@ public class InteractRange : MonoBehaviour
 
     void OnTriggerExit2D(Collider2D other)
     {
+        if (isDisabled) return;
         if (other.CompareTag("Player") && targetInteractable != null)
         {
             prompt.SetActive(false);
-            spriteRenderer.sprite = image1;
+            if (spriteRenderer != null)
+                spriteRenderer.sprite = image1;
             targetInteractable.SetPlayerInRange(false);
         }
     }

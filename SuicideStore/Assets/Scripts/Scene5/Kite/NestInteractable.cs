@@ -20,7 +20,9 @@ public class NestInteractable : BaseInteractable
     public float duration = 0.8f;
 
     public KiteController kite; // 关联的风筝
-
+                                // 永久关闭交互提示
+    [Header("交互范围（需手动拖拽）")]
+    public InteractRange interactRange;   // 关联的交互区域
     public override void OnInteract()
     {
         // 同时播放移动和旋转动画
@@ -39,5 +41,7 @@ public class NestInteractable : BaseInteractable
 
         // 可选：禁用再次点击
         GetComponent<Collider2D>().enabled = false;
+        if (interactRange != null)
+            interactRange.DisablePrompt();
     }
 }
