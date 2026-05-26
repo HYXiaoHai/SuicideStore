@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.SceneManagement;
 using DG.Tweening;
+using UnityEngine.UI;
 
 public class RowManage : MonoBehaviour
 {
@@ -31,6 +32,8 @@ public class RowManage : MonoBehaviour
     public Transform gameEndPosition;    // 游戏正式开始位置
     public float fadeDuration = 1f;        // 渐显时间（与移动时间同步）
     private bool isFalling = false;
+    [Header("线")]
+    public Image[] lineImage;
 
     [Header("行数据")]
     public RowController[] rows;         // 按顺序拖入三行的 RowController
@@ -83,6 +86,11 @@ public class RowManage : MonoBehaviour
         foreach (var row in rows)
         {
             row.ResetRow();
+        }
+        // 重置所有行的状态（填充、碰撞体等）
+        foreach (var row in lineImage)
+        {
+            row.DOFade(0.9f, fadeDuration);
         }
         SetupCurrentRowForWords();
 

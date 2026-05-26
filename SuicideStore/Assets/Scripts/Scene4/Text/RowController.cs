@@ -46,7 +46,7 @@ public class RowController : MonoBehaviour
 
         // 初始状态：开启文字碰撞体，关闭横线碰撞体
         rowCollider.enabled = true;
-        lineCollider.enabled = false;
+        //lineCollider.enabled = false;
         width = rightX - leftX;
     }
     // 获取横线左边界 X
@@ -81,7 +81,7 @@ public class RowController : MonoBehaviour
         blueImage.fillAmount = 1f;
         blackImage.fillAmount = 0f;
         rowCollider.enabled = true;
-        lineCollider.enabled = false;
+        //lineCollider.enabled = false;
     }
 
 }

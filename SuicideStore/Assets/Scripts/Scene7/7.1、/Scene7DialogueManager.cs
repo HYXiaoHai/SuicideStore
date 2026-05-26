@@ -11,6 +11,9 @@ public class Scene7DialogueManager : MonoBehaviour
 
     [Header("触发点")]
     public Transform[] dialogueTriggers;
+    
+    [Header("交互按键")]
+    public KeyCode interactKey = KeyCode.E;
 
     [Header("图片内容")]
     public Image[] images;
