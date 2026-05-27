@@ -10,7 +10,7 @@ public class PuzzleManage : MonoBehaviour
 {
     public static PuzzleManage Instance;
     public CanvasGroup puzzleArea;//用来控制拼图区域显示的
-    
+
     [Header("拼图")]
     public Puzzle[] puzzles1;//第一轮拼图
     public Puzzle[] puzzles2;//第二轮拼图

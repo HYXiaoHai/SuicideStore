@@ -1,10 +1,8 @@
 using DG.Tweening;
 using System.Collections;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
-using static Unity.VisualScripting.Member;
 
 [RequireComponent(typeof(RectTransform), typeof(Rigidbody2D), typeof(Collider2D))]
 public class Puzzle : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IPointerEnterHandler, IPointerExitHandler
@@ -18,6 +16,9 @@ public class Puzzle : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
     private Vector2 dragOffset;
     public bool isDragging;
 
+    // 记录拖拽开始时的位置（用于边界外且未放到插槽时的回位）
+    private Vector2 preDragAnchoredPos;
+
     [Header("每轮切换对应的图片")]
     public Transform defaultPosition;
 
@@ -25,14 +26,15 @@ public class Puzzle : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
     [SerializeField] private float scaleMultiplier = 1.2f;
     [SerializeField] private float animationDuration = 0.2f;
     private Vector3 originalScale;
+    private Tween scaleTween;
 
     [Header("漂浮运动设置")]
-    [SerializeField] private float baseSpeed = 2f;           // 基础速度（单位/秒）
-    [SerializeField] private float speedMultiplier = 0.5f;    // 每增加一次辩解，速度提升乘数
-    [SerializeField] private string boundaryTag = "Boundary"; // 边界物体的Tag
+    [SerializeField] private float baseSpeed = 2f;
+    [SerializeField] private float speedMultiplier = 0.5f;
+    [SerializeField] private string boundaryTag = "Boundary";
 
     [Header("音效")]
-    public AudioClip clikClip;//点到拼图的音效
+    public AudioClip clikClip;
 
     private Rigidbody2D rb;
     private Vector2 moveDirection;
@@ -53,6 +55,7 @@ public class Puzzle : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
     {
         ResetDirection();
     }
+
     public void SetRandomRotation()
     {
         float randomZ = Random.Range(-30f, 30f);
@@ -91,10 +94,9 @@ public class Puzzle : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
             yield return new WaitForFixedUpdate();
         }
     }
-    
+
     public void OnCollisionEnter2D(Collision2D collision)
     {
-        Debug.Log(id+"碰到了");
         if (collision.gameObject.CompareTag(boundaryTag))
         {
             Vector2 normal = collision.contacts[0].normal;
@@ -114,8 +116,13 @@ public class Puzzle : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
         isDragging = true;
         StopFloating();
         rb.velocity = Vector2.zero;
-        //音效
-        AudioManager.Instance.PlayShortSound(clikClip, 0.8f);
+
+        // 记录拖拽开始时的 anchoredPosition
+        preDragAnchoredPos = rectTransform.anchoredPosition;
+
+        // 音效
+        if (AudioManager.Instance != null)
+            AudioManager.Instance.PlayShortSound(clikClip, 0.8f);
 
         if (currentSlot != null)
         {
@@ -131,7 +138,6 @@ public class Puzzle : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
         RectTransformUtility.ScreenPointToLocalPointInRectangle(
             parentRect, eventData.position, eventData.pressEventCamera, out localPointerPos);
         dragOffset = localPointerPos - rectTransform.anchoredPosition;
-
     }
 
     public void OnDrag(PointerEventData eventData)
@@ -145,14 +151,7 @@ public class Puzzle : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
             parentRect, eventData.position, eventData.pressEventCamera, out localPointerPos);
         Vector2 newPosition = localPointerPos - dragOffset;
 
-        // ========== 边界限制（使用 PuzzleManage 中的四个 float 值） ==========
-        if (PuzzleManage.Instance != null)
-        {
-            var pm = PuzzleManage.Instance;
-            newPosition.x = Mathf.Clamp(newPosition.x, pm.dragLeft, pm.dragRight);
-            newPosition.y = Mathf.Clamp(newPosition.y, pm.dragBottom, pm.dragTop);
-        }
-
+        // 移除了原来的边界限制，允许拖拽到任何位置
         rectTransform.anchoredPosition = newPosition;
     }
 
@@ -160,26 +159,86 @@ public class Puzzle : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
     {
         isDragging = false;
 
+        // 检查松手时是否在边界内（相对于父级局部坐标）
+        bool isInsideBoundary = IsInsideDragBoundary();
+
+        // 尝试放到插槽上
+        bool snappedToSlot = false;
         Slot[] slots = FindObjectsOfType<Slot>();
         foreach (Slot slot in slots)
         {
-            if (slot.TrySnap(this)) break;
+            if (slot.TrySnap(this))
+            {
+                snappedToSlot = true;
+                break;
+            }
         }
 
+        // 根据条件处理
+        if (snappedToSlot)
+        {
+            // 成功放到插槽上，插槽逻辑会处理（不会飘动）
+            // 无需额外动作
+        }
+        else if (!isInsideBoundary)
+        {
+            // 在边界外且未放到插槽：回到拖拽前的位置，然后开始飘动
+            Debug.Log("边界外");
+            ReturnToPreDragPositionAndFloat();
+        }
+        else
+        {
+            Debug.Log("边界内");
+            if (currentSlot == null)
+                StartFloating();
+        }
+
+        // 检查所有插槽状态（全局）
         if (PuzzleManage.Instance != null)
             PuzzleManage.Instance.CheckAllSlots();
+    }
 
-        if (currentSlot == null)
-            StartFloating();
+    //判断当前拼图位置是否在允许的拖拽边界内
+    private bool IsInsideDragBoundary()
+    {
+        if (PuzzleManage.Instance == null) return true;
+        var pm = PuzzleManage.Instance;
+        Vector2 pos = rectTransform.anchoredPosition;
+        return pos.x >= pm.dragLeft && pos.x <= pm.dragRight &&
+               pos.y >= pm.dragBottom && pos.y <= pm.dragTop;
+    }
+
+    //平滑回到拖拽前的位置，然后开始飘动
+    private void ReturnToPreDragPositionAndFloat()
+    {
+        StopFloating();
+        // 目标位置默认是拖拽前记录的位置
+        Vector2 targetPos = preDragAnchoredPos;
+
+        // 强制限制在边界内（防止因记录位置异常导致飞出边界）
+        if (PuzzleManage.Instance != null)
+        {
+            var pm = PuzzleManage.Instance;
+            targetPos.x = Mathf.Clamp(targetPos.x, pm.dragLeft, pm.dragRight);
+            targetPos.y = Mathf.Clamp(targetPos.y, pm.dragBottom, pm.dragTop);
+        }
+
+        Debug.Log("移动前：" + rectTransform.anchoredPosition + " 移动到：" + targetPos);
+        rectTransform.DOAnchorPos(targetPos, 0.3f).SetEase(Ease.OutBack).OnComplete(() =>
+        {
+            Debug.Log("移动后：" + rectTransform.anchoredPosition);
+            if (currentSlot == null && !isDragging)
+                StartFloating();
+        });
     }
     // 插槽交互
     public void OnSnappedToSlot()
     {
         StopFloating();
-        // 使用 DOTween 动画旋转回正
         transform.DORotate(Vector3.zero, 0.3f).SetEase(Ease.OutBack);
         transform.DOScale(originalScale, animationDuration);
     }
+
     public void OnRemovedFromSlot()
     {
         if (currentSlot == null && !isDragging)
@@ -189,22 +248,24 @@ public class Puzzle : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
     // 悬停动画
     public void OnPointerEnter(PointerEventData eventData)
     {
-        if (currentSlot != null)
-        {
-            return;
-        }
-        transform.DOKill();
-        transform.DOScale(originalScale * scaleMultiplier, animationDuration);
+        if (currentSlot != null) return;
+        // 精准终止：如果之前的缩放动画还在，就只杀掉它
+        if (scaleTween != null && scaleTween.IsActive())
+            scaleTween.Kill();
+
+        // 播放新动画并保存引用
+        scaleTween = transform.DOScale(originalScale * scaleMultiplier, animationDuration);
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
-        if(currentSlot!=null)
-        {
-            return;
-        }
-        transform.DOKill();
-        transform.DOScale(originalScale, animationDuration);
+        if (currentSlot != null) return;
+        // 精准终止：如果之前的缩放动画还在，就只杀掉它
+        if (scaleTween != null && scaleTween.IsActive())
+            scaleTween.Kill();
+
+        // 播放新动画并保存引用
+        scaleTween = transform.DOScale(originalScale, animationDuration);
     }
 
     // 重置运动（每轮重置时调用）

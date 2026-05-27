@@ -74,7 +74,8 @@ public class DefendManage : MonoBehaviour
     {
         if (isScene2Started) return;
         isScene2Started = true;
-
+        if (FloatingBubbleManager.Instance != null)
+            FloatingBubbleManager.Instance.SetRound(0);
         StartCoroutine(OpeningBubblesSequence());
     }
     private IEnumerator OpeningBubblesSequence()
@@ -125,7 +126,7 @@ public class DefendManage : MonoBehaviour
             }
             else
             {
-             
+
                 CanvasGroup cg = initialBubble2.GetComponent<CanvasGroup>();
                 cg.alpha = 0;
                 cg.DOFade(1, 0.3f);
@@ -143,7 +144,7 @@ public class DefendManage : MonoBehaviour
         }
         StartRandomRightBubblesAfterFirstTwo();
     }
- 
+
     //启动随机气泡（跳过开头的两个特定对话）
     private void StartRandomRightBubblesAfterFirstTwo()
     {
@@ -154,13 +155,13 @@ public class DefendManage : MonoBehaviour
 
     private IEnumerator RandomBubbleCoroutineAfterFirstTwo()
     {
-        
+
         while (true)
         {
             if (dialogues != null && dialogues.Length > 0)
             {
                 string randomMsg = dialogues[Random.Range(0, dialogues.Length)];
-                SendBubble(rightFather, randomMsg,true,1f);
+                SendBubble(rightFather, randomMsg, true, 1f);
             }
             yield return new WaitForSeconds(Random.Range(minInterval, maxInterval));
         }
@@ -168,7 +169,7 @@ public class DefendManage : MonoBehaviour
 
 
     //生成气泡
-    public DialogueBubble SendBubble(Transform parent, string content,bool isright,float scale,float time = 2f)
+    public DialogueBubble SendBubble(Transform parent, string content, bool isright, float scale, float time = 2f, bool isSpecial = false)
     {
         if ((isright && bubblePrefab_right == null) || (!isright && bubblePrefab_left == null) || parent == null)
             return null;
@@ -177,11 +178,11 @@ public class DefendManage : MonoBehaviour
         DialogueBubble bubble = bubbleObj.GetComponent<DialogueBubble>();
         if (bubble != null)
         {
-            // 根据左右选择起始点和终点
             RectTransform start = isright ? rightDialogueShotStart : leftDialogueShotStart;
             RectTransform end = isright ? rightDialogueShotEnd : leftDialogueShotEnd;
-            // 动画时长可调，这里设为 1 秒
-            bubble.AnimateBubble(content, start, end, time, scale);
+            // 左侧气泡不生成漂浮气泡，右侧生成
+            bool generateFloating = isright;
+            bubble.AnimateBubble(content, start, end, time, scale, isSpecial, generateFloating);
         }
         else
         {
@@ -258,17 +259,21 @@ public class DefendManage : MonoBehaviour
 
         // 4. 发送右侧特殊语句，并记录气泡对象
         DialogueBubble specialBubble = null;
-        if (defendNum == 0) // 第一次辩解
+        if (defendNum == 0) // 注意：defendNum 初始为0，点击后变为1，所以判断时用 defendNum 还是用未增加前的？请根据实际逻辑调整
         {
-            specialBubble = SendBubble(rightFather, specicalDialogue0, true,1.3f);
+            specialBubble = SendBubble(rightFather, specicalDialogue0, true, 1.3f, isSpecial: true);
         }
-        else if (defendNum == 1) // 第二次辩解
+        else if (defendNum == 1)
         {
-            specialBubble = SendBubble(rightFather, specicalDialogue1, true,1.4f);
+            specialBubble = SendBubble(rightFather, specicalDialogue1, true, 1.4f, isSpecial: true);
         }
 
         // 增加辩解次数
         defendNum++;
+        // 更新漂浮气泡管理器轮次（注意 defendNum 现在是 1 或 2）
+        if (FloatingBubbleManager.Instance != null)
+            FloatingBubbleManager.Instance.SetRound(defendNum);
+
         // 6. 启动协程，等待特殊语句消失后，重启随机气泡
         StartCoroutine(WaitForSpecialBubbleAndRestartRandom(specialBubble));
         // 通知拼图系统重置拼图
@@ -289,8 +294,6 @@ public class DefendManage : MonoBehaviour
     public void OnSpecialDefendButtonClick()
     {
         Debug.Log("特殊辩解按钮被点击");
-        // 播放音效（预留）
-        // AudioSource.PlayClipAtPoint(successClip, Camera.main.transform.position);
         // 发送左侧对话框 "....."
         AudioManager.Instance.PlayShortSound(defendClip, 0.8f);
 
@@ -298,11 +301,12 @@ public class DefendManage : MonoBehaviour
     }
     public IEnumerator loadScence()
     {
-        SendBubble(leftFather, ".....", false, 1f,3.5f);
+        SendBubble(leftFather, ".....", false, 1f, 3.5f);
 
         // 游戏结束或不再重置拼图，可禁用所有交互
         HideSpecialDefendButton();
         StopRandomRightBubbles(); // 停止右侧随机对话
+                                  // 清理所有漂浮气泡
 
         // 可在此触发结局或禁用拼图拖拽等
         // 例如：禁用所有拼图的拖拽
@@ -311,8 +315,12 @@ public class DefendManage : MonoBehaviour
         {
             p.enabled = false; // 禁用脚本，阻止拖拽
         }
-        defendCanvasGroup.DOFade(0f,3.5f).SetEase(Ease.InExpo);
+        defendCanvasGroup.DOFade(0f, 3.5f).SetEase(Ease.InExpo).OnComplete(() => {
+            if (FloatingBubbleManager.Instance != null)
+                FloatingBubbleManager.Instance.ClearAllBubbles();
+        });
         yield return new WaitForSeconds(4.5f);
+
         if (!string.IsNullOrEmpty(nextSceneName))
         {
             UnityEngine.SceneManagement.SceneManager.LoadScene(nextSceneName);
@@ -329,6 +337,8 @@ public class DefendManage : MonoBehaviour
 
         // 2. 清除所有现有气泡（包括左右两侧的动态气泡，以及预设的 initialBubble/initialBubble2）
         ClearAllBubbles();
+        //if (FloatingBubbleManager.Instance != null)
+        //    FloatingBubbleManager.Instance.ClearAllBubbles();
 
         // 3. 使用 finalBubblePrefab_right 生成最终气泡
         if (finalBubblePrefab_right != null && rightFather != null)
@@ -337,7 +347,7 @@ public class DefendManage : MonoBehaviour
             DialogueBubble bubble = finalBubbleObj.GetComponent<DialogueBubble>();
             if (bubble != null)
             {
-                bubble.AnimateBubble(specicalDialogue2, rightDialogueShotStart, rightDialogueShotEnd, 3f,1.5f);
+                bubble.AnimateBubble(specicalDialogue2, rightDialogueShotStart, rightDialogueShotEnd, 3f, 1.5f);
             }
             else
             {
@@ -375,9 +385,9 @@ public class DefendManage : MonoBehaviour
     //发送一个表示被打断的左侧气泡（可选）
     private void SendLeftBubbleWithInterruption(int n)
     {
-        string[] interruptionTexts = { "动画片里....","妈妈我....", "......"};
+        string[] interruptionTexts = { "动画片里....", "妈妈我....", "......" };
         string msg = interruptionTexts[n];
-        SendBubble(leftFather, msg,false, 1f);
+        SendBubble(leftFather, msg, false, 1f);
     }
 
 }
