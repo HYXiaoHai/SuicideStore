@@ -5,6 +5,7 @@ public class InteractableItem : MonoBehaviour
 {
     [Header("交互设置")]
     public string interactKey = "e";        //交互按键（默认 E）
+    public EFloating interactObject;        //交互按键（默认 E）
     public SpriteRenderer interactableCopywriting;//显示的交互文案
 
     private bool isPlayerInRange = false;

@@ -129,18 +129,21 @@ public class ReversalMange : MonoBehaviour
                for(int i=0;i<3;i++)
                 {
                     interactPrompt1[i].SetActive(enable);
+                    interactPrompt1[i].GetComponent<EFloating>().StartFloating(enable);
                 }
                 break;
             case 2:
                 for (int i = 0; i < 3; i++)
                 {
                     interactPrompt2[i].SetActive(enable);
+                    interactPrompt2[i].GetComponent<EFloating>().StartFloating(enable);
                 }
                 break;
             case 3:
                 for (int i = 0; i < 2; i++)
                 {
                     interactPrompt3[i].SetActive(enable);
+                    interactPrompt3[i].GetComponent<EFloating>().StartFloating(enable);
                 }
                 break;
         }
