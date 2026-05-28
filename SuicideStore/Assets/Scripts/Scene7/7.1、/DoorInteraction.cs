@@ -1,3 +1,5 @@
+using DG.Tweening;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -6,39 +8,39 @@ public class DoorInteraction : MonoBehaviour
 {
     [Header("交互设置")]
     public string nextSceneName = "Scene7.2";
-    public GameObject interactionPrompt;
-    public bool showDebugLog = true;
-
+    public SpriteRenderer interactableCopywriting;//显示的交互文案
+    public bool canInteractable = false;
     [Header("交互方式")]
-    public bool useMouseClick = true;
-    public bool useKeyPress = false;
-    public KeyCode interactKey = KeyCode.Space;
+    public KeyCode interactKey = KeyCode.E;
 
-    [Header("音效")]
-    public AudioSource doorSound;
 
     [Header("视觉提示")]
     public SpriteRenderer doorSprite;
-    public Color highlightColor = Color.yellow;
-    private Color originalColor;
 
     private bool isPlayerNear = false;
-    public Collider2D collider2D;
+    public bool isCompleted = false; //是否已经触发
+    public SpriteRenderer interactPrompt;//对应的交互提示
     void Start()
     {
-        if (interactionPrompt != null)
+        if (interactableCopywriting != null)
         {
-            interactionPrompt.SetActive(false);
+            interactableCopywriting.gameObject.SetActive(false);
         }
-
-        if (doorSprite != null)
+    }
+    public void SetInteractable(bool enable)
+    {
+        if (enable)
         {
-            originalColor = doorSprite.color;
+            interactPrompt.gameObject.SetActive(true);
+            interactPrompt.DOFade(1f, 0.5f).OnComplete(() => {
+                canInteractable = true;
+                interactPrompt.GetComponent<EFloating>().StartFloating(true);
+            });
         }
-
-        if (showDebugLog)
+        else
         {
-            Debug.Log("DoorInteraction 已初始化，目标场景: " + nextSceneName);
+            interactPrompt.gameObject.SetActive(false);
+            canInteractable = false;
         }
     }
 
@@ -47,21 +49,6 @@ public class DoorInteraction : MonoBehaviour
         if (other.CompareTag("Player"))
         {
             isPlayerNear = true;
-            
-            if (showDebugLog)
-            {
-                Debug.Log("玩家靠近门了！");
-            }
-
-            if (interactionPrompt != null)
-            {
-                interactionPrompt.SetActive(true);
-            }
-
-            if (doorSprite != null)
-            {
-                doorSprite.color = highlightColor;
-            }
         }
     }
 
@@ -70,21 +57,6 @@ public class DoorInteraction : MonoBehaviour
         if (other.CompareTag("Player"))
         {
             isPlayerNear = false;
-            
-            if (showDebugLog)
-            {
-                Debug.Log("玩家离开门了");
-            }
-
-            if (interactionPrompt != null)
-            {
-                interactionPrompt.SetActive(false);
-            }
-
-            if (doorSprite != null)
-            {
-                doorSprite.color = originalColor;
-            }
         }
     }
 
@@ -92,39 +64,15 @@ public class DoorInteraction : MonoBehaviour
     {
         if (isPlayerNear)
         {
-            if (useMouseClick && Input.GetMouseButtonDown(0))
+            if (canInteractable&&Input.GetKeyDown(interactKey))
             {
-                if (showDebugLog)
-                {
-                    Debug.Log("点击交互！");
-                    collider2D.isTrigger = true;
-                }
-                InteractWithDoor();
-            }
-
-            if (useKeyPress && Input.GetKeyDown(interactKey))
-            {
-                if (showDebugLog)
-                {
-                    Debug.Log("按键交互！");
-                }
-                InteractWithDoor();
+                StartCoroutine(Interact());
             }
         }
     }
 
     void InteractWithDoor()
     {
-        if (showDebugLog)
-        {
-            Debug.Log("正在切换到场景: " + nextSceneName);
-        }
-
-        if (doorSound != null)
-        {
-            doorSound.Play();
-        }
-
         if (!string.IsNullOrEmpty(nextSceneName))
         {
             SceneManager.LoadScene(nextSceneName);
@@ -135,13 +83,40 @@ public class DoorInteraction : MonoBehaviour
         }
     }
 
-    void OnDrawGizmosSelected()
+    // 交互逻辑（具体功能在此实现，目前为空）
+    public IEnumerator Interact()
     {
-        Gizmos.color = Color.green;
-        Collider2D collider = GetComponent<Collider2D>();
-        if (collider != null)
+        if (isCompleted) yield break;
+        isCompleted = true;
+
+        // 1. 淡出提示（不受 Time.timeScale 影响）
+        if (interactPrompt != null)
         {
-            Gizmos.DrawWireCube(transform.position, collider.bounds.size);
+            interactPrompt.DOFade(0f, 0.5f).SetUpdate(true).OnComplete(() =>
+            {
+                interactPrompt.GetComponent<EFloating>()?.StartFloating(false);
+                interactPrompt.gameObject.SetActive(false);
+            });
         }
+
+        if (interactableCopywriting != null)
+        {
+            interactableCopywriting.gameObject.SetActive(true);
+                                                               
+            Color color = interactableCopywriting.color;
+            color.a = 0f;
+            interactableCopywriting.color = color;
+
+            yield return interactableCopywriting.DOFade(1f, 0.5f).SetUpdate(true).WaitForCompletion();
+
+            yield return new WaitForSecondsRealtime(1f);  
+        }
+        else
+        {
+            yield return new WaitForSecondsRealtime(0.5f);
+        }
+
+        // 4. 跳转场景
+        InteractWithDoor();
     }
 }

@@ -685,7 +685,6 @@ GameObject:
   - component: {fileID: 757289417}
   - component: {fileID: 757289419}
   - component: {fileID: 757289418}
-  - component: {fileID: 757289420}
   m_Layer: 5
   m_Name: Imagedoor
   m_TagString: Untagged
@@ -750,19 +749,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 757289416}
   m_CullTransparentMesh: 1
---- !u!114 &757289420
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 757289416}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 778eed574a55a7944ab6cd8946c7fb61, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  memoryManager: {fileID: 877633439}
 --- !u!1 &789631069
 GameObject:
   m_ObjectHideFlags: 0
@@ -837,7 +823,6 @@ MonoBehaviour:
   - {fileID: 1249784511}
   - {fileID: 608543748}
   - {fileID: 985006391}
-  knockSound: {fileID: 0}
   nextSceneName: S9-9.1-exchange
   fadeInDuration: 0.5
   delayBetweenItems: 0.3

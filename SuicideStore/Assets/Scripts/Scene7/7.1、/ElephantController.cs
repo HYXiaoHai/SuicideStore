@@ -17,7 +17,6 @@ public class ElephantController : MonoBehaviour
 
     [Header("引用")]
     public Animator animator;
-    public Scene7DialogueManager dialogueManager;
 
     private Vector2 moveDirection = Vector2.zero;
     private bool isMoving = false;
@@ -26,8 +25,6 @@ public class ElephantController : MonoBehaviour
     {
         if (animator == null)
             animator = GetComponent<Animator>();
-        if (dialogueManager == null)
-            dialogueManager = FindObjectOfType<Scene7DialogueManager>();
     }
 
     void Update()
@@ -35,9 +32,14 @@ public class ElephantController : MonoBehaviour
         // 计算移动方向
         moveDirection = Vector2.zero;
         if (Input.GetKey(moveRightKey))
+        {
             moveDirection += slopeUpRight;
+
+        }
         if (Input.GetKey(moveLeftKey))
+        {
             moveDirection -= slopeUpRight;
+        }
 
         isMoving = moveDirection != Vector2.zero;
 
@@ -55,17 +57,26 @@ public class ElephantController : MonoBehaviour
 
             transform.position = newPos;
         }
-
+        FlipCharacter(moveDirection.x);
         UpdateAnimation();
-
-        if (dialogueManager != null)
-            dialogueManager.CheckTriggerPosition(transform.position);
     }
 
     void UpdateAnimation()
     {
         if (animator != null)
             animator.SetBool("isWalking", isMoving);
+    }
+    private void FlipCharacter(float horizontal)
+    {
+        if (horizontal > 0) // 向右移动
+        {
+            transform.localScale = new Vector3(Mathf.Abs(transform.localScale.x), transform.localScale.y, transform.localScale.z);
+        }
+        else if (horizontal < 0) // 向左移动
+        {
+            transform.localScale = new Vector3(-Mathf.Abs(transform.localScale.x), transform.localScale.y, transform.localScale.z);
+        }
+        // horizontal == 0 时不翻转，保持上次方向（可选）
     }
 
     // 显示移动方向和边界框（Scene视图）

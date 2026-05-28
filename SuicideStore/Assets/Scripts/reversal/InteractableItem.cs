@@ -55,7 +55,6 @@ public class InteractableItem : MonoBehaviour
     {
         if (isCompleted) return;
         if (!CanInteract()) return;
-        Debug.Log(gameObject.name + " 被交互了！");
         isCompleted = true;
 
         // 通知关卡管理器，增加完成计数

@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using System.Collections;
+using DG.Tweening;
 
 public class MemorySceneManager : MonoBehaviour
 {
@@ -10,10 +11,7 @@ public class MemorySceneManager : MonoBehaviour
 
     [Header("Slides")]
     public SlideController[] slides;
-
-    [Header("Audio")]
-    public AudioSource knockSound;
-
+    
     [Header("Scene Settings")]
     public string nextSceneName = "Scene7.3";
 
@@ -22,10 +20,12 @@ public class MemorySceneManager : MonoBehaviour
     public float delayBetweenItems = 0.3f;
 
     private int currentSlideIndex = 0;
+    private int lastSliderIndex = 0;
 
     void Start()
     {
         InitializeScene();
+        lastSliderIndex = slides.Length-1;
     }
 
     void InitializeScene()
@@ -73,9 +73,7 @@ public class MemorySceneManager : MonoBehaviour
             slides[0].gameObject.SetActive(true);
             CanvasGroup slideCanvasGroup = slides[0].GetComponent<CanvasGroup>();
             if (slideCanvasGroup != null)
-            {
-                StartCoroutine(FadeCanvasGroup(slideCanvasGroup, 0, 1, fadeInDuration));
-            }
+                slideCanvasGroup.DOFade(1f, fadeInDuration);
             yield return new WaitForSeconds(fadeInDuration);
         }
     }
@@ -85,7 +83,7 @@ public class MemorySceneManager : MonoBehaviour
         if (slideIndex == currentSlideIndex)
         {
             currentSlideIndex++;
-            StartCoroutine(ShowNextItems());
+                StartCoroutine(ShowNextItems());
         }
     }
 
@@ -103,41 +101,17 @@ public class MemorySceneManager : MonoBehaviour
             slides[currentSlideIndex].gameObject.SetActive(true);
             CanvasGroup slideCanvasGroup = slides[currentSlideIndex].GetComponent<CanvasGroup>();
             if (slideCanvasGroup != null)
-            {
-                StartCoroutine(FadeCanvasGroup(slideCanvasGroup, 0, 1, fadeInDuration));
-            }
+               slideCanvasGroup.DOFade(1f,fadeInDuration);
             yield return new WaitForSeconds(fadeInDuration);
         }
-    }
-
-    IEnumerator FadeCanvasGroup(CanvasGroup canvasGroup, float startAlpha, float endAlpha, float duration)
-    {
-        float elapsed = 0f;
-        while (elapsed < duration)
+        else
         {
-            elapsed += Time.deltaTime;
-            float alpha = Mathf.Lerp(startAlpha, endAlpha, elapsed / duration);
-            canvasGroup.alpha = alpha;
-            yield return null;
-        }
-        canvasGroup.alpha = endAlpha;
-    }
-
-    public void OnLastImageClick()
-    {
-        if (knockSound != null)
-        {
-            knockSound.Play();
-        }
-
-        if (!string.IsNullOrEmpty(nextSceneName))
-        {
-            Invoke("LoadNextScene", 1f);
+            StartCoroutine(LoadNextScene());
         }
     }
-
-    void LoadNextScene()
+    IEnumerator LoadNextScene()
     {
+        yield return new WaitForSeconds(1f);
         CompleteLevel();
     }
     public void CompleteLevel()
