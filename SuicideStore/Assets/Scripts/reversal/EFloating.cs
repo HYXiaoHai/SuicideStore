@@ -15,13 +15,17 @@ public class EFloating : MonoBehaviour
     void Awake()
     {
         originalPosition = transform.position;
+        Debug.Log(gameObject + "Awake");
+        StartFloating(startFloat);
     }
     private void Start()
     {
-        StartFloating(startFloat);
+
     }
     public void StartFloating(bool enable)
     {
+        if (this == null || gameObject == null)
+            return;
         if (!enable)
         {
              floatTween?.Kill();
@@ -35,5 +39,10 @@ public class EFloating : MonoBehaviour
                 .SetLoops(-1, LoopType.Yoyo)
                 .SetUpdate(true);//
         }
+    }
+    private void OnDestroy()
+    {
+        if (floatTween != null && floatTween.IsActive())
+            floatTween.Kill();
     }
 }

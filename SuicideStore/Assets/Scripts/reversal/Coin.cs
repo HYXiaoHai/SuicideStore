@@ -80,4 +80,9 @@ public class Coin : MonoBehaviour
         moveTweener = transform.DOMove(targetPos, followDuration)
                               .SetEase(followEase);
     }
+    private void OnDestroy()
+    {
+        if (moveTweener != null && moveTweener.IsActive())
+            moveTweener.Kill();
+    }
 }

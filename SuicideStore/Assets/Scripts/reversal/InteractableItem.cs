@@ -5,13 +5,12 @@ public class InteractableItem : MonoBehaviour
 {
     [Header("交互设置")]
     public string interactKey = "e";        //交互按键（默认 E）
-    public EFloating interactObject;        //交互按键（默认 E）
     public SpriteRenderer interactableCopywriting;//显示的交互文案
 
     private bool isPlayerInRange = false;
     private GameObject currentPlayer;       //记录进入范围的玩家对象
     public bool isCompleted = false; //是否已经触发
-    public GameObject interactPrompt;//对应的交互提示
+    public SpriteRenderer interactPrompt;//对应的交互提示
     void Start()
     {
     }
@@ -62,6 +61,12 @@ public class InteractableItem : MonoBehaviour
         // 通知关卡管理器，增加完成计数
         if (ReversalMange.Instance != null)
             ReversalMange.Instance.RegisterInteraction();
+        if (interactPrompt != null)
+        {
+            interactPrompt.DOFade(0f, 0.5f).SetUpdate(true).OnComplete(() => {
+                //interactPrompt.GetComponent<EFloating>().StartFloating(false);
+                interactPrompt.gameObject.SetActive(false); });
+        }
 
         if (interactableCopywriting != null)
             interactableCopywriting.DOFade(1f, 1f);

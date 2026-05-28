@@ -10,6 +10,8 @@ public class InteractableCharacter : MonoBehaviour
     private bool isPlayerInRange = false;
     private GameObject currentPlayer;       // 记录进入范围的玩家对象
     public bool isCompleted = false; //是否已经触发
+    public SpriteRenderer interactPrompt;//对应的交互提示
+
     void Start()
     {
     }
@@ -64,6 +66,12 @@ public class InteractableCharacter : MonoBehaviour
         if (ReversalMange.Instance != null)
             ReversalMange.Instance.RegisterInteraction();
 
+        if (interactPrompt != null)
+        {
+            interactPrompt.DOFade(0f, 0.5f).SetUpdate(true).OnComplete(() => { 
+                interactPrompt.GetComponent<EFloating>().StartFloating(false);
+                interactPrompt.gameObject.SetActive(false); });
+        }
         if (interactableCopywriting != null)
             interactableCopywriting.DOFade(1f, 1f);
     }
