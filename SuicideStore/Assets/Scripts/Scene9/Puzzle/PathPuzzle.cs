@@ -23,6 +23,10 @@ public class PathPuzzle : MonoBehaviour
     [Header("拖拽手感")]
     public float hoverScale = 1.2f;
     public float scaleDuration = 0.1f;
+    [Header("悬浮晃动")]
+    public float hoverShakeAngle = 3f;      // 晃动幅度（角度）
+    public float hoverShakeDuration = 0.2f; // 晃动持续时间
+    private Tween currentShakeTween;
 
     private readonly float zOffset = -0.04f;
 
@@ -44,12 +48,38 @@ public class PathPuzzle : MonoBehaviour
         pos.z = z;
         transform.position = pos;
     }
+    void OnMouseEnter()
+    {
+        // 只有在游戏已开始、视图打开、没有正在移动/拖拽时才触发晃动
+        if (!PathPuzzleManage.Instance.isGameStarted) return;
+        if (!Scene9Maneg.Instance.isPuzzleViewOpen) return;
+        if (isMoving) return;
+
+        ShakeOnce();
+    }
+
+    void OnMouseExit()
+    {
+        // 鼠标离开时，立即停止并归零旋转，避免残留
+        if (currentShakeTween != null && currentShakeTween.IsActive())
+        {
+            currentShakeTween.Kill();
+            transform.localRotation = Quaternion.identity;
+        }
+    }
 
     void OnMouseDown()
     {
         if (!PathPuzzleManage.Instance.isGameStarted || isMoving) return;
         if (!Scene9Maneg.Instance.isPuzzleViewOpen) return;
         if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject()) return;
+
+        // 停止任何正在晃动的动画，并强制归零
+        if (currentShakeTween != null && currentShakeTween.IsActive())
+        {
+            currentShakeTween.Kill();
+            transform.localRotation = Quaternion.identity;
+        }
 
         spriteRenderer.sortingOrder = 3;
 
@@ -107,7 +137,24 @@ public class PathPuzzle : MonoBehaviour
         // 3. 完全无效区域：吸附到当前正确插槽中心
         PathPuzzleManage.Instance.SnapPieceToSlot(this);
     }
+    //晃动效果
+    private void ShakeOnce()
+    {
+        // 取消之前的晃动动画
+        if (currentShakeTween != null && currentShakeTween.IsActive())
+        {
+            currentShakeTween.Kill();
+            transform.localRotation = Quaternion.identity;
+        }
 
+        // 使用 PunchRotation 实现快速晃动并自动归位
+        currentShakeTween = transform.DOPunchRotation(
+            new Vector3(0, 0, hoverShakeAngle),
+            hoverShakeDuration,
+            vibrato: 2,      // 晃动次数
+            elasticity: 0    // 不弹性回弹，直接归零
+        ).SetEase(Ease.OutQuad);
+    }
     /// <summary>判断鼠标是否位于目标拼图的右半部分（世界坐标系）</summary>
     private bool IsMouseOnRightHalf(PathPuzzle target)
     {

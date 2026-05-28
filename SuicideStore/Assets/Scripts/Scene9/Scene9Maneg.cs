@@ -1,5 +1,6 @@
 using Cinemachine;
 using DG.Tweening;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -106,7 +107,7 @@ public class Scene9Maneg : MonoBehaviour
         Debug.Log("第一关完成");
     }
 
-    private System.Collections.IEnumerator TransitionToLevel2()
+    private IEnumerator TransitionToLevel2()
     {
         // 1. Steam 成就动画：从起始点飞到结束点
         Tween steamTween = steamImage.transform.DOMove(steamEndPos.position, 1f).SetEase(Ease.OutCubic);
@@ -114,13 +115,11 @@ public class Scene9Maneg : MonoBehaviour
 
         //// 2. 平移第一关整体（父物体）
         //Tween moveTween = footParent.transform.DOMove(footEndPosition.position, 1f).SetEase(Ease.InOutSine);
-        //yield return moveTween.WaitForCompletion();
         footParent.gameObject.SetActive(false);
 
         StartLevel2FadeIn();
-        // 3. 显示第二关：所有 SpriteRenderer 淡入，同时 steam 飞回起始位置（不等待）
 
-        // 注意：Steam 飞回起始位置与第二关渐显并行，无需等待
+        yield return new WaitForSeconds(1f);
         steamImage.transform.DOMove(steamStartPos.position, 1f).SetEase(Ease.OutCubic);
     }
 
