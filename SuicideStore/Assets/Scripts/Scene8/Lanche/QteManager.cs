@@ -268,48 +268,6 @@ public class QteManager : MonoBehaviour
         yield return new WaitForSeconds(pauseAfterFastCrack);
     }
 
-    //最终破碎动画
-    private IEnumerator PlayBreakAndEnd()
-    {
-        if (glassImage == null || crackFrames.Length == 0)
-        {
-            onUnwinnableFailed?.Invoke();
-            isExecuting = false;
-            yield break;
-        }
-
-        int lastFrame = crackFrames.Length - 1;
-        if (currentCrackFrame < lastFrame)
-        {
-            float quickDuration = 0.4f;
-            float elapsed = 0f;
-            int startFrame = currentCrackFrame;
-            int range = lastFrame - startFrame;
-
-            while (elapsed < quickDuration)
-            {
-                elapsed += Time.deltaTime;
-                float t = Mathf.Clamp01(elapsed / quickDuration);
-                int frameIdx = startFrame + Mathf.FloorToInt(t * range);
-                frameIdx = Mathf.Clamp(frameIdx, startFrame, lastFrame);
-                if (frameIdx != currentCrackFrame)
-                {
-                    currentCrackFrame = frameIdx;
-                    glassImage.sprite = crackFrames[currentCrackFrame];
-                }
-                yield return null;
-            }
-        }
-        currentCrackFrame = lastFrame;
-        glassImage.sprite = crackFrames[currentCrackFrame];
-        SetNoiseToDefault();
-        ResetVignette();
-
-        yield return new WaitForSeconds(0.3f);
-        onUnwinnableFailed?.Invoke();
-        isExecuting = false;
-    }
-
     // ---------- 相机噪声 ----------
     private void SetNoiseToDefault()
     {

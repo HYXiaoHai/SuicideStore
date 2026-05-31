@@ -1,5 +1,8 @@
 using DG.Tweening;
+using TMPro;
 using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 
 public class CableCarManage : MonoBehaviour
 {
@@ -7,6 +10,7 @@ public class CableCarManage : MonoBehaviour
     public CanvasGroup transitionCanvasGroup;//转场用
     public Camera mycamera;
     public GameObject cameraFollow;//相机跟踪带点
+    public TMP_Text text;
     [Header("第一关")]
     public Color level1BGColor;//第一关相机背景颜色
     public QteManager level1manager;
@@ -15,11 +19,18 @@ public class CableCarManage : MonoBehaviour
     public Color level2BGColor;//第二关相机背景颜色
     public MemoryWalkManager level2Manage;
     public Transform level2CameraPosition;//第二关相机位置（剩下的靠MemoryWalkManager管理）
+
+    [Header("暗角效果")]
+    public Volume globalVolume;
+    public Color failVignetteColor = Color.black;
+    private Vignette vignette;
+
     [Header("跳转场景")]
     public float loadScenesDuration;
     private void Awake()
     {
         instance = this;
+        text.gameObject.SetActive(false);
     }
     void Start()
     {
@@ -51,6 +62,8 @@ public class CableCarManage : MonoBehaviour
     public void OnLevel1Complete()
     {
         Debug.Log("第一关完成");
+        text.gameObject.SetActive(true);
+
         // 渐隐到黑
         transitionCanvasGroup.DOFade(1f, 1f).OnComplete(() =>
         {
@@ -70,7 +83,11 @@ public class CableCarManage : MonoBehaviour
     }
     public void OnLevel2Start()
     {
-        Debug.Log("第二关开启");
+        // 重置暗角强度为0
+        if (globalVolume != null && globalVolume.profile.TryGet<Vignette>(out vignette))
+        {
+            vignette.intensity.value = 0f;
+        }
         if (level2Manage != null)
             level2Manage.StartGame();
         else
@@ -78,10 +95,25 @@ public class CableCarManage : MonoBehaviour
     }
     public void OnLevel2Complete()
     {
-        // 第二关完成，渐隐并加载下一场景
-        transitionCanvasGroup.DOFade(1f, 1f).OnComplete(() =>
+        text.gameObject.SetActive(false);
+
+        // 1. 暗角渐变动画（从当前值渐变到1，时长1秒）
+        if (globalVolume != null && globalVolume.profile.TryGet<Vignette>(out vignette))
         {
-            // 可以调用 CompleteLevel 加载下一关卡
+            vignette.color.value = failVignetteColor;
+            DOTween.To(() => vignette.intensity.value, x => vignette.intensity.value = x, 1f, 1.5f);
+        }
+
+        // 2. 转场CanvasGroup渐隐到黑色（透明度1，时长1秒）
+        if (transitionCanvasGroup != null)
+        {
+            transitionCanvasGroup.blocksRaycasts = true;
+            transitionCanvasGroup.DOFade(1f, 1.5f);
+        }
+
+        // 3. 等待动画完成（1.5秒缓冲），然后加载下一场景
+        DOVirtual.DelayedCall(2f, () =>
+        {
             NextScene();
         });
     }

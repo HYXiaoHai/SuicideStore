@@ -20,7 +20,7 @@ public class ElephantController : MonoBehaviour
 
     private Vector2 moveDirection = Vector2.zero;
     private bool isMoving = false;
-
+    public bool canMove = false;
     void Start()
     {
         if (animator == null)
@@ -29,6 +29,8 @@ public class ElephantController : MonoBehaviour
 
     void Update()
     {
+        if (!canMove) return;
+
         // 计算移动方向
         moveDirection = Vector2.zero;
         if (Input.GetKey(moveRightKey))
