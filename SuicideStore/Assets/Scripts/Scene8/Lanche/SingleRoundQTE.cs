@@ -49,6 +49,7 @@ public class SingleRoundQTE : MonoBehaviour
 
     private void Update()
     {
+        if (GameManage.Instance.isSetting) return;
         if (!isActive || completed) return;
 
         currentTime -= Time.deltaTime;
