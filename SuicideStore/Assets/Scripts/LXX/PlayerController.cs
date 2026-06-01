@@ -48,6 +48,13 @@ public class PlayerController : MonoBehaviour
     public float penetrateDuration = 0.3f;          // 碰撞体禁用时长（秒）
     public float penetrateCooldown = 0.5f;          // 穿透冷却时间
 
+    [Header("音效")]
+    public AudioClip walkAudioClip;
+    public AudioClip jumpAudioClip;
+    public AudioClip penetrateAudioClip;
+    private float walkSoundInterval = 0.3f;
+    private float walkSoundTimer = 0f;
+
     //private Rigidbody2D rb;
     //private bool isGrounded;
     //private bool canJump;
@@ -137,6 +144,17 @@ public class PlayerController : MonoBehaviour
 
         //移动动画
         playerAnimitor.SetBool("isMoving", Mathf.Abs(moveInput) > 0);
+
+        //走路音效
+        if (isGrounded && Mathf.Abs(moveInput) > 0)
+        {
+            walkSoundTimer -= Time.deltaTime;
+            if (walkSoundTimer <= 0f)
+            {
+                AudioManager.Instance.PlayShortSound(walkAudioClip, 0.5f);
+                walkSoundTimer = walkSoundInterval;
+            }
+        }
 
         //跳跃输入
         if (Input.GetButtonDown("Jump"))
@@ -242,6 +260,7 @@ public class PlayerController : MonoBehaviour
     {
         playerAnimitor.SetTrigger("JumpTrigger");
         Debug.Log("跳跃");
+        AudioManager.Instance.PlayShortSound(jumpAudioClip, 0.8f);
         rb.velocity = new Vector2(rb.velocity.x, 0f);
         rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
         isJumping = true;
@@ -341,6 +360,7 @@ public class PlayerController : MonoBehaviour
         isPenetrating = true;
         penetrateTimer = penetrateDuration;
         lastPenetrateTime = Time.time;
+        AudioManager.Instance.PlayShortSound(penetrateAudioClip, 0.8f);
 
         // 可选：给一点向下的初速度，加快下落（不强制，注释掉）
         // rb.velocity = new Vector2(rb.velocity.x, -2f);

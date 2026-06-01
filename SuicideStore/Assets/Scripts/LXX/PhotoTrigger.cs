@@ -5,10 +5,11 @@ public class PhotoTrigger : MonoBehaviour
 {
     public int photoIndex;
     public PhotoSystem photoSystem;
-    public SpriteRenderer ePrompt;      // 按键提示图片
+    public SpriteRenderer ePrompt;
+    public AudioClip clickAudioClip;
 
     private bool isPlayerInside = false;
-    private bool isTriggered = false;   // 是否已经交互过
+    private bool isTriggered = false;
 
     void OnTriggerEnter2D(Collider2D other)
     {
@@ -35,6 +36,7 @@ public class PhotoTrigger : MonoBehaviour
         {
             isTriggered = true;
             HidePrompt();
+            AudioManager.Instance.PlayShortSound(clickAudioClip, 0.8f);
             photoSystem.OnPhotoTrigger(photoIndex);
         }
     }
