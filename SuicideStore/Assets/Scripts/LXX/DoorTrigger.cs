@@ -3,12 +3,16 @@ using UnityEngine.SceneManagement;
 
 public class DoorTrigger : MonoBehaviour
 {
+    public bool canLoad =false;
     [Header("场景设置")]
     public string nextSceneName;
-
+    private void Start()
+    {
+        canLoad = false;
+    }
     void OnTriggerEnter2D(Collider2D other)
     {
-        if (other.CompareTag("Player"))
+        if (other.CompareTag("Player")&& canLoad)
         {
             EnterDoor();
         }
