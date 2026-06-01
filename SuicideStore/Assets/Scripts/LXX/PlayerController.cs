@@ -61,7 +61,7 @@ public class PlayerController : MonoBehaviour
     //private float fallTimer = 0f;
     private SpriteRenderer spriteRenderer;
     private Rigidbody2D rb;
-    private Collider2D playerCollider;              // 玩家的碰撞体
+    private Collider2D playerCollider;              //玩家的碰撞体
     private int currentDirection = 1;
     private bool canControl = true;
 
@@ -69,12 +69,12 @@ public class PlayerController : MonoBehaviour
     private float coyoteTimer = 0f;
     private float jumpBufferTimer = 0f;
     private bool isJumping = false;
-    private bool isGrounded = false;                // 缓存地面状态
+    private bool isGrounded = false;                //缓存地面状态
 
     // 穿透状态
     private bool isPenetrating = false;
     private float penetrateTimer = 0f;
-    private float lastPenetrateTime = -10f;         // 上次穿透时间（用于冷却）
+    private float lastPenetrateTime = -10f;         //上次穿透时间（用于冷却）
 
     void Start()
     {
