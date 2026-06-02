@@ -40,6 +40,10 @@ public class Scene9Maneg : MonoBehaviour
     public CinemachineVirtualCamera fileCamera;//文档视角
     public Button fileButton;//切换到档案的按钮
     public string fileSceneName;
+
+    [Header("音效")]
+    public AudioClip steamClip;
+    public AudioClip cameraClip;//转场音效
     private void Awake()
     {
         Instance = this;
@@ -68,6 +72,7 @@ public class Scene9Maneg : MonoBehaviour
         // steam 图片复位
         steamImage.transform.position = steamStartPos.position;
         steamImage.canvasRenderer.SetAlpha(1f);
+
     }
 
     private void Update()
@@ -105,12 +110,14 @@ public class Scene9Maneg : MonoBehaviour
         isFootCompleted = true;
         currentLevel++;
         Debug.Log("第一关完成");
+
     }
 
     private IEnumerator TransitionToLevel2()
     {
         // 1. Steam 成就动画：从起始点飞到结束点
         Tween steamTween = steamImage.transform.DOMove(steamEndPos.position, 1f).SetEase(Ease.OutCubic);
+        AudioManager.Instance.Play2DSound(steamClip, 0.8f);
         yield return steamTween.WaitForCompletion();
 
         //// 2. 平移第一关整体（父物体）
@@ -126,6 +133,7 @@ public class Scene9Maneg : MonoBehaviour
     private void StartLevel2FadeIn()
     {
         // 使用 Sequence 统一控制所有 SpriteRenderer 的淡入
+        AudioManager.Instance.Play2DSound(cameraClip, 0.8f);
         Sequence fadeSeq = DOTween.Sequence();
         foreach (var sr in puzzleSpriteRenderers)
         {
@@ -192,7 +200,7 @@ public class Scene9Maneg : MonoBehaviour
     {
         fileParent.gameObject.SetActive(true);
         fileButton.gameObject.SetActive(true);
-
+        AudioManager.Instance.Play2DSound(cameraClip, 0.8f);
         puzzleCompleteCamera.Priority = 10;
         fileCamera.Priority = 20;
     }

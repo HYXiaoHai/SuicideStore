@@ -28,6 +28,9 @@ public class PathPuzzle : MonoBehaviour
     public float hoverShakeDuration = 0.2f; // 晃动持续时间
     private Tween currentShakeTween;
 
+    [Header("音效")]
+    public AudioClip clickClip;
+    public AudioClip checkClip;
     private readonly float zOffset = -0.04f;
 
     void Start()
@@ -73,6 +76,8 @@ public class PathPuzzle : MonoBehaviour
         if (!PathPuzzleManage.Instance.isGameStarted || isMoving) return;
         if (!Scene9Maneg.Instance.isPuzzleViewOpen) return;
         if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject()) return;
+
+        AudioManager.Instance.Play2DSound(clickClip, 0.8f);
 
         // 停止任何正在晃动的动画，并强制归零
         if (currentShakeTween != null && currentShakeTween.IsActive())
@@ -121,6 +126,7 @@ public class PathPuzzle : MonoBehaviour
                 bool insertAfter = IsMouseOnRightHalf(targetPiece);
                 Debug.Log("是否在右" + insertAfter);
                 PathPuzzleManage.Instance.RequestInsert(this, targetIdx, insertAfter);
+                AudioManager.Instance.Play2DSound(checkClip, 0.8f);
                 return;
             }
         }
@@ -130,6 +136,7 @@ public class PathPuzzle : MonoBehaviour
         if (slotIndex != -1)
         {
             Debug.Log("检测插槽");
+            AudioManager.Instance.Play2DSound(checkClip, 0.8f);
             PathPuzzleManage.Instance.RequestInsert(this, slotIndex, false);
             return;
         }

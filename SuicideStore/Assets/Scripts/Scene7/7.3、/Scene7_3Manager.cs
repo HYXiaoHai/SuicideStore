@@ -1,10 +1,11 @@
-using UnityEngine;
-using UnityEngine.UI;
-using UnityEngine.SceneManagement;
-using UnityEngine.EventSystems;
-using TMPro;
-using System.Collections;
 using DG.Tweening;
+using System.Collections;
+using TMPro;
+using Unity.VisualScripting;
+using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class Scene7_3Manager : MonoBehaviour
 {
@@ -35,21 +36,19 @@ public class Scene7_3Manager : MonoBehaviour
     public string nextSceneName;
     public float fadeDuration = 0.5f;
 
-    [Header("=== 调试设置 ===")]
-    public bool showDebugLog = true;
+    [Header("音效")]
+    public AudioClip clickClip;//点击音效
+    public AudioClip sliderClip;//滑动音效
+    public AudioClip takePhotoClip;//滑动音效
 
     private int currentPanel = 0;
     private bool canClick = true;
-
+    private bool isDrag = false;
     void Start()
     {
         if (comicCanvas != null)
         {
             comicCanvas.enabled = true;
-        }
-        else if (showDebugLog)
-        {
-            Debug.LogWarning("comicCanvas 未设置！");
         }
 
         for (int i = 0; i < comicPanels.Length; i++)
@@ -90,23 +89,15 @@ public class Scene7_3Manager : MonoBehaviour
                 drag.manager = this;
             }
         }
-        else if (showDebugLog)
-        {
-            Debug.LogWarning("cableCar 未设置！");
-        }
     }
 
     void Update()
     {
-        if (showDebugLog && Input.GetMouseButtonDown(0))
-        {
-            Debug.Log("当前状态 - currentPanel: " + currentPanel + ", canClick: " + canClick + ", comicCanvas.enabled: " + (comicCanvas != null && comicCanvas.enabled));
-        }
-
         if (currentPanel == 1 && canClick && comicCanvas != null && comicCanvas.enabled)
         {
             if (Input.GetMouseButtonDown(0))
             {
+                AudioManager.Instance.Play2DSound(sliderClip, 1f);
                 OnPanel2Click();
             }
         }
@@ -115,6 +106,7 @@ public class Scene7_3Manager : MonoBehaviour
         {
             if (Input.GetMouseButtonDown(0))
             {
+                AudioManager.Instance.Play2DSound(sliderClip, 1f);
                 OnPanel3Click();
             }
         }
@@ -123,6 +115,7 @@ public class Scene7_3Manager : MonoBehaviour
         {
             if (Input.GetMouseButtonDown(0))
             {
+                AudioManager.Instance.Play2DSound(takePhotoClip, 1f);
                 StartCoroutine(FadeToBlackAndLoadScene());
             }
         }
@@ -130,10 +123,6 @@ public class Scene7_3Manager : MonoBehaviour
 
     void OnPanel2Click()
     {
-        if (showDebugLog)
-        {
-            Debug.Log("分镜2点击，切换到分镜3");
-        }
         canClick = false;
         ShowPanel(2);
         Invoke("EnableClick", 0.5f);
@@ -141,10 +130,6 @@ public class Scene7_3Manager : MonoBehaviour
 
     void OnPanel3Click()
     {
-        if (showDebugLog)
-        {
-            Debug.Log("分镜3点击，切换到相机画面");
-        }
         canClick = false;
         SwitchToCameraScreen();
     }
@@ -154,6 +139,11 @@ public class Scene7_3Manager : MonoBehaviour
         if (currentPanel != 0 || comicCanvas == null || !comicCanvas.enabled || cableCar == null)
         {
             return;
+        }
+        if(!isDrag)
+        {
+            AudioManager.Instance.Play2DSound(clickClip, 1f);
+            isDrag = true;
         }
 
         Vector2 currentPos = cableCar.anchoredPosition;
@@ -173,12 +163,13 @@ public class Scene7_3Manager : MonoBehaviour
         {
             return;
         }
-
+        isDrag = false;
         float progress = Vector2.Dot(cableCar.anchoredPosition - startPoint, trackDirection) / trackLength;
 
         if (progress >= 0.95f)
         {
             ShowPanel(1);
+            AudioManager.Instance.Play2DSound(sliderClip, 1f);
             ShowText(text2, blackColor);
         }
         else
@@ -191,13 +182,6 @@ public class Scene7_3Manager : MonoBehaviour
     {
         if (index >= 0 && index < comicPanels.Length)
         {
-            //for (int i = 0; i < comicPanels.Length; i++)
-            //{
-            //    if (comicPanels[i] != null)
-            //    {
-            //        comicPanels[i].gameObject.SetActive(i == index);
-            //    }
-            //}
             comicPanels[index].gameObject.SetActive(true);
             comicPanels[index].DOFade(1f,0.5f);
             currentPanel = index;
@@ -211,11 +195,6 @@ public class Scene7_3Manager : MonoBehaviour
             textDisplay.gameObject.SetActive(true);
             textDisplay.text = text;
             textDisplay.color = color;
-
-            //if (textPosition != null)
-            //{
-            //    textDisplay.rectTransform.position = textPosition.position;
-            //}
         }
     }
 
