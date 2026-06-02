@@ -258,7 +258,9 @@ public sealed class S9Decode92PuzzleSequence : MonoBehaviour
 
     private readonly List<FadeItem> fadeItems = new List<FadeItem>(16);
     private readonly List<SpriteRenderer> spriteRendererBuffer = new List<SpriteRenderer>(32);
-
+    [Header("音效")]
+    public AudioClip clickClip;
+    public bool isDragPuzz = false;//是否拖拽拼图
     private void Awake()
     {
         mainCamera = Camera.main;
@@ -707,6 +709,12 @@ public sealed class S9Decode92PuzzleSequence : MonoBehaviour
             return;
         }
 
+        if(!isDragPuzz)
+        {
+            AudioManager.Instance.Play2DSound(clickClip,0.8f);
+            isDragPuzz = true;
+        }
+
         Vector3 mouseWorld = GetMouseWorldPosition();
         Vector3 pos = mouseWorld + dragOffset;
         pos.z = draggingZ;
@@ -748,6 +756,8 @@ public sealed class S9Decode92PuzzleSequence : MonoBehaviour
 
         if (released == null)
             return;
+
+        isDragPuzz = false;
 
         if (!b12SnappedToMarker && released == pieceB12 && b12SnapTarget != null)
         {

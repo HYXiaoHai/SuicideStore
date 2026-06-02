@@ -14,7 +14,7 @@ public class FloatingBubble : MonoBehaviour, IPointerClickHandler
     private Vector2 moveDirection;
     private bool isFloating = true;
     public bool isSpecial = false;
-    private float targetScale = 0.5f;
+    private float targetScale = 1f;
 
     private void Awake()
     {
@@ -102,11 +102,12 @@ public class FloatingBubble : MonoBehaviour, IPointerClickHandler
     public void SetSpecial(bool special)
     {
         isSpecial = special;
-        targetScale = special ? 0.6f : 0.5f;
+        targetScale = special ? targetScale : targetScale;
     }
 
     public void SetInitialPosition(Vector2 anchoredPos)
     {
         rectTransform.anchoredPosition = anchoredPos;
     }
+    
 }
