@@ -11,7 +11,8 @@ public class S3_Dialogue : MonoBehaviour
 
     [Header("=== 打字速度 ===")]
     public float typeSpeed = 0.12f;
-
+    [Header("交付日记本音效")]
+    public AudioClip audioClip;
     // ======================
     // 你的 S3 对话内容 直接写这里
     // ======================
@@ -93,6 +94,7 @@ public class S3_Dialogue : MonoBehaviour
     void EndDialogue()
     {
         // 对话结束：隐藏继续提示，或者你可以在这里加自己的收尾逻辑
+        AudioManager.Instance.Play2DSound(audioClip,0.8f);
         ShowContinue(false);
         Debug.Log("S3 对话已全部结束！");
         CompleteLevel();

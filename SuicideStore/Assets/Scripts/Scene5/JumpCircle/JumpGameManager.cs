@@ -28,7 +28,8 @@ public class JumpGameManager : MonoBehaviour
     private bool isWaitingForJump = false;
     private int successCount = 0;           // 成功跳过的正式圈个数（0~3）
     public bool gameCompleted =false;
-
+    [Header("音效")]
+    public AudioClip jumpClip;
     void Awake()
     {
         Instance = this;
@@ -95,7 +96,7 @@ public class JumpGameManager : MonoBehaviour
     {
         isWaitingForJump = false;
         currentCircle.StopMoving();
-
+        AudioManager.Instance.Play2DSound(jumpClip,0.8f);
         if (currentIndex == 0)
         {
             // 教学圈通过，开启倒计时，不直接进入下一个圈

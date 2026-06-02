@@ -19,6 +19,9 @@ public class DraggableItem : MonoBehaviour
     public float hoverScale = 1.2f;         // 点击时放大倍数
     public float scaleDuration = 0.1f;      // 缩放动画时长
 
+    [Header("音效")]
+    public AudioClip dragClip;
+
     private readonly float zOffset = -0.04f;   // 固定 Z 偏移
 
     public bool isInsideBag;
@@ -94,9 +97,11 @@ public class DraggableItem : MonoBehaviour
             Vector3 targetPos = targetSlot.transform.position;
             targetPos.z = zOffset;   // 目标位置也修正 Z
             MoveToTarget(targetPos);
+            AudioManager.Instance.Play2DSound(dragClip, 0.8f);
         }
         else if (inBag)
         {
+            AudioManager.Instance.Play2DSound(dragClip,0.8f);
             SetZOffset();   // 书包内也确保 Z
             BagPackingManager.Instance.CheckItemPlacement(this);
         }

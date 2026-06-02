@@ -21,6 +21,14 @@ public class RowManage : MonoBehaviour
     public float gravityScale = 1f;
     public float lastJumpTime;               // ��¼���һ����Ծ��ʱ��
 
+    [Header("音效")]
+    public AudioClip[] walkAudioClips;
+    //public AudioClip jumpAudioClip;
+    private float walkSoundInterval = 0.3f;
+    private float walkSoundTimer = 0f;
+    public AudioClip landAudioClip;   // 落地音效
+    private bool wasGrounded = false; // 上一帧地面状态
+
     [Header("地面检测")]
     public LayerMask groundLayer;
     public Transform groundCheck;
@@ -59,6 +67,7 @@ public class RowManage : MonoBehaviour
     private float coyoteTimer = 0f;
     private float jumpBufferTimer = 0f;
     private bool isJumping = false;
+    public bool isGrounded = false;                //缓存地面状态
     private SpriteRenderer spriteRenderer;
     private int currentDirection = 1;
 
@@ -73,6 +82,7 @@ public class RowManage : MonoBehaviour
         playerRb.gravityScale = 0f;
 
         canMove = false;
+        wasGrounded = isGrounded;
     }
     // 供外部调用的公开方法，开始第二关
     public void BeginGame()
@@ -139,10 +149,26 @@ public class RowManage : MonoBehaviour
         float horizontal = Input.GetAxisRaw("Horizontal");
         Debug.Log("设置行走动画");
         playerAnimator.SetBool("isMoving", Mathf.Abs(horizontal) > 0);
-
+        moveInput = horizontal;
         // 玩家转向（根据输入方向）
         if (horizontal != 0)
             playerSprite.flipX = horizontal < 0;
+        
+        //走路音效
+        if (isGrounded && Mathf.Abs(moveInput) > 0)
+        {
+            walkSoundTimer -= Time.deltaTime;
+            if (walkSoundTimer <= 0f)
+            {
+                // 从数组随机选择一个移动音效
+                if (walkAudioClips != null && walkAudioClips.Length > 0)
+                {
+                    AudioClip randomClip = walkAudioClips[Random.Range(0, walkAudioClips.Length)];
+                    AudioManager.Instance.Play2DSound(randomClip, 0.5f);
+                }
+                walkSoundTimer = walkSoundInterval;
+            }
+        }
 
         //++++++++++
         //地面检测
@@ -163,7 +189,15 @@ public class RowManage : MonoBehaviour
         if (jumpBufferTimer > 0)
             jumpBufferTimer -= Time.deltaTime;
 
-
+        // 落地音效检测
+        if (!wasGrounded && isGrounded)
+        {
+            if (landAudioClip != null)
+            {
+                AudioManager.Instance.Play2DSound(landAudioClip, 0.6f); // 音量可调整
+            }
+        }
+        wasGrounded = isGrounded;
         // 根据当前状态处理移动
         switch (currentState)
         {
@@ -349,7 +383,7 @@ public class RowManage : MonoBehaviour
     //角色跳跃
     private void UpdateGroundDetection()
     {
-        bool isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
+        isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
         playerAnimator.SetBool("isGrounded", isGrounded);
         if (isGrounded)
         {

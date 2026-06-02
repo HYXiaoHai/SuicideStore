@@ -12,12 +12,13 @@ public class GrowthComparison : MonoBehaviour
     [Header("滑块引用")]
     public Slider growthSlider;
 
-    [Header("身高文本")]
-    public TextMeshProUGUI heightText;
-
     [Header("参数设置")]
     public float minHeight = 80f;
     public float maxHeight = 120f;
+
+    [Header("音效")]
+    public AudioClip growthClip;//身高切换音效
+
     //public float minScale = 1f;
     //public float maxScale = 1.3f;
 
@@ -88,16 +89,10 @@ public class GrowthComparison : MonoBehaviour
         AnimateAlpha(childImage, targetAlpha2, ref activeTween2);
         AnimateAlpha(adultImage, targetAlpha3, ref activeTween3);
 
-        //更新身高文本
-        if (heightText != null)
-        {
-            float height = Mathf.Lerp(minHeight, maxHeight, value);
-            heightText.text = $"{height:F0}cm";
-        }
-
         // 检查是否完成（value 达到 1）
         if (!hasTriggeredSwitch && Mathf.Approximately(value, 1f))
         {
+            AudioManager.Instance.Play2DSound(growthClip, 0.5f);
             hasTriggeredSwitch = true;
             OnGrowthComplete();
         }
