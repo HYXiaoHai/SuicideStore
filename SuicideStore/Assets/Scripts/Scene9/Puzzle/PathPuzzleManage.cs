@@ -17,6 +17,7 @@ public class PathPuzzleManage : MonoBehaviour
     public bool isGameStarted = false;   // ³õÊ¼²»¿ÉÍÏ×§
     private bool isMoving = false;
 
+    
     void Awake()
     {
         Instance = this;

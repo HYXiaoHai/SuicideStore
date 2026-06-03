@@ -14,7 +14,8 @@ public class LanternPortal : MonoBehaviour
 
     [HideInInspector]
     public bool canTeleport = false;       // 由灯笼交互脚本激活
-
+    [Header("音效")]
+    public AudioClip portalAudioClip;
     private void OnTriggerEnter2D(Collider2D other)
     {
         // 条件检查：传送门未激活、不是玩家、还在冷却中 → 返回
@@ -34,7 +35,10 @@ public class LanternPortal : MonoBehaviour
 
         // 传送位置
         if (exitPoint != null)
+        {
+            AudioManager.Instance.Play2DSound(portalAudioClip, 0.5f);
             other.transform.position = exitPoint.position;
+        }
         else
             Debug.LogWarning("传送门出口未设置，位置不变");
 

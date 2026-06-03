@@ -261,11 +261,11 @@ public class DefendManage : MonoBehaviour
         DialogueBubble specialBubble = null;
         if (defendNum == 0) // 注意：defendNum 初始为0，点击后变为1，所以判断时用 defendNum 还是用未增加前的？请根据实际逻辑调整
         {
-            specialBubble = SendBubble(rightFather, specicalDialogue0, true, 1.3f, isSpecial: true);
+            specialBubble = SendBubble(rightFather, specicalDialogue0, true, 1f, isSpecial: true);
         }
         else if (defendNum == 1)
         {
-            specialBubble = SendBubble(rightFather, specicalDialogue1, true, 1.4f, isSpecial: true);
+            specialBubble = SendBubble(rightFather, specicalDialogue1, true, 1f, isSpecial: true);
         }
 
         // 增加辩解次数
@@ -347,7 +347,7 @@ public class DefendManage : MonoBehaviour
             DialogueBubble bubble = finalBubbleObj.GetComponent<DialogueBubble>();
             if (bubble != null)
             {
-                bubble.AnimateBubble(specicalDialogue2, rightDialogueShotStart, rightDialogueShotEnd, 3f, 1.5f);
+                bubble.AnimateBubble(specicalDialogue2, rightDialogueShotStart, rightDialogueShotEnd, 3f, 1f);
             }
             else
             {

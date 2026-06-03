@@ -9,7 +9,7 @@ public class FloatingBubbleManager : MonoBehaviour
     public static FloatingBubbleManager Instance;
 
     [Header("漂浮气泡预制体")]
-    public GameObject floatingBubblePrefab;
+    public GameObject[] floatingBubblePrefabs;
     [Header("漂浮气泡父物体")]
     public Transform floatingBubbleFather;
 
@@ -71,14 +71,14 @@ public class FloatingBubbleManager : MonoBehaviour
             return false;
         }
 
-        if (floatingBubblePrefab == null)
+        if (floatingBubblePrefabs == null)
         {
             Debug.LogError("FloatingBubbleManager: floatingBubblePrefab 未赋值");
             return false;
         }
-
         Transform parent = floatingBubbleFather != null ? floatingBubbleFather : transform;
-        GameObject bubbleObj = Instantiate(floatingBubblePrefab, parent);
+        GameObject randObject = floatingBubblePrefabs[Random.Range(0, floatingBubblePrefabs.Length)];
+        GameObject bubbleObj = Instantiate(randObject, parent);
         FloatingBubble bubble = bubbleObj.GetComponent<FloatingBubble>();
         if (bubble == null)
         {
@@ -86,9 +86,6 @@ public class FloatingBubbleManager : MonoBehaviour
             Destroy(bubbleObj);
             return false;
         }
-
-        var text = bubbleObj.GetComponentInChildren<TMPro.TMP_Text>();
-        if (text != null) text.text = isSpecial ? content : " ";
 
         Vector2 randomPos = GetRandomPositionInsideBoundary();
         bubble.SetInitialPosition(randomPos);

@@ -54,6 +54,12 @@ public class QteManager : MonoBehaviour
     public float vignetteFadeOutDuration = 0.5f;
     public Color failVignetteColor = Color.red;
 
+    [Header("音效")]
+    public AudioClip glassClip;//裂痕音效
+    public AudioClip[] glassStepClips;//应力音效
+    private float lastGlassCrackTime = -10f;
+    private float glassCrackCooldown = 2f;
+
     [Header("事件回调")]
     public UnityEvent onAllRoundsCompleted;
     public UnityEvent onUnwinnableFailed;
@@ -230,10 +236,17 @@ public class QteManager : MonoBehaviour
                 currentCrackFrame++;
                 if (currentCrackFrame < crackFrames.Length)
                     glassImage.sprite = crackFrames[currentCrackFrame];
+
+                // 随机播放一个应力音效
+                if (glassStepClips != null && glassStepClips.Length > 0)
+                {
+                    AudioClip stepClip = glassStepClips[Random.Range(0, glassStepClips.Length)];
+                    AudioManager.Instance.Play2DSound(stepClip, 0.5f); // 音量比例0.5可调
+                }
             }
             else
             {
-                break; // 已达到最大帧，不再增加
+                break;
             }
         }
     }
@@ -241,6 +254,13 @@ public class QteManager : MonoBehaviour
     {
         if (glassImage == null || crackFrames.Length == 0)
             yield break;
+        // 播放玻璃裂痕音效（带冷却，避免重叠）
+        if (glassClip != null && Time.time - lastGlassCrackTime >= glassCrackCooldown)
+        {
+            AudioManager.Instance.Play2DSound(glassClip, 0.6f); // 音量比例0.6可调
+            lastGlassCrackTime = Time.time;
+        }
+
         targetFrameIndex = Mathf.Clamp(targetFrameIndex, 0, crackFrames.Length - 1);
         if (currentCrackFrame >= targetFrameIndex)
             yield break;

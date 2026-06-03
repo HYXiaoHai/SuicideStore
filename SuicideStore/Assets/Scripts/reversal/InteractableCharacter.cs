@@ -11,7 +11,8 @@ public class InteractableCharacter : MonoBehaviour
     private GameObject currentPlayer;       // 记录进入范围的玩家对象
     public bool isCompleted = false; //是否已经触发
     public SpriteRenderer interactPrompt;//对应的交互提示
-
+    [Header("音效")]
+    public AudioClip interacClip;
     void Start()
     {
     }
@@ -54,6 +55,8 @@ public class InteractableCharacter : MonoBehaviour
 
         Debug.Log(gameObject.name + " 被交互了！");
         isCompleted = true;
+
+        AudioManager.Instance.Play2DSound(interacClip, 1f);
 
         // 解锁物品交互（延迟1秒）
         if (ReversalMange.Instance != null)

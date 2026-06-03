@@ -33,13 +33,18 @@ public class MemoryWalkManager : MonoBehaviour
     [Header("事件")]
     public UnityEvent onComplete;
 
+    [Header("音效")]
+    public AudioClip[] crackClips;               // 裂痕音效数组
+    private float lastCrackSoundTime = -10f;
+    private float crackSoundMinInterval = 0.5f;  // 最小间隔（秒），避免叠加
+
     // 运行时状态
     private int currentFootprintIndex = 0;
     private int currentCrackFrame = 0;
     private bool isActive = false;
     private Vector3 cameraVelocity = Vector3.zero;
 
-    // 提示相关
+    //提示相关
     private Coroutine idleCoroutine = null;
     private Tween promptFadeTween = null;
     private Tween promptScaleTween = null;
@@ -154,9 +159,16 @@ public class MemoryWalkManager : MonoBehaviour
         int targetCrackFrame = footprintToCrackFrame[currentFootprintIndex];
         if (targetCrackFrame != currentCrackFrame && targetCrackFrame < crackFrames.Length)
         {
-            // 平滑过渡（可选，也可直接跳转，这里直接跳转更准确）
             currentCrackFrame = targetCrackFrame;
             crackRenderer.sprite = crackFrames[currentCrackFrame];
+
+            // 播放裂痕音效（随机选择，带冷却）
+            if (crackClips != null && crackClips.Length > 0 && Time.time - lastCrackSoundTime >= crackSoundMinInterval)
+            {
+                AudioClip randomClip = crackClips[Random.Range(0, crackClips.Length)];
+                AudioManager.Instance.Play2DSound(randomClip, 0.5f); // 音量比例0.7可调
+                lastCrackSoundTime = Time.time;
+            }
         }
 
         currentFootprintIndex++;

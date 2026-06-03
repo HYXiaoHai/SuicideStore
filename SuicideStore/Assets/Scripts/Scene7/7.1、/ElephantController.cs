@@ -17,6 +17,10 @@ public class ElephantController : MonoBehaviour
 
     [Header("引用")]
     public Animator animator;
+    [Header("音效")]
+    public AudioClip[] walkAudioClips;
+    private float walkSoundInterval = 0.3f;
+    private float walkSoundTimer = 0f;
 
     private Vector2 moveDirection = Vector2.zero;
     private bool isMoving = false;
@@ -47,6 +51,19 @@ public class ElephantController : MonoBehaviour
 
         if (isMoving)
         {
+            walkSoundTimer -= Time.deltaTime;
+            if (walkSoundTimer <= 0f)
+            {
+                // 从数组随机选择一个移动音效
+                if (walkAudioClips != null && walkAudioClips.Length > 0)
+                {
+                    AudioClip randomClip = walkAudioClips[Random.Range(0, walkAudioClips.Length)];
+                    AudioManager.Instance.Play2DSound(randomClip, 0.5f);
+                }
+                walkSoundTimer = walkSoundInterval;
+            }
+
+
             moveDirection.Normalize();
             Vector3 newPos = transform.position + (Vector3)(moveDirection * moveSpeed * Time.deltaTime);
 

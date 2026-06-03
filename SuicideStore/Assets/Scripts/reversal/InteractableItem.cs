@@ -11,6 +11,8 @@ public class InteractableItem : MonoBehaviour
     private GameObject currentPlayer;       //记录进入范围的玩家对象
     public bool isCompleted = false; //是否已经触发
     public SpriteRenderer interactPrompt;//对应的交互提示
+    [Header("音效")]
+    public AudioClip interacClip;
     void Start()
     {
     }
@@ -56,6 +58,8 @@ public class InteractableItem : MonoBehaviour
         if (isCompleted) return;
         if (!CanInteract()) return;
         isCompleted = true;
+        
+        AudioManager.Instance.Play2DSound(interacClip,1f);
 
         // 通知关卡管理器，增加完成计数
         if (ReversalMange.Instance != null)

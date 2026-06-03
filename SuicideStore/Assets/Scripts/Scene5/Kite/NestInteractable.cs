@@ -23,8 +23,13 @@ public class NestInteractable : BaseInteractable
                                 // 永久关闭交互提示
     [Header("交互范围（需手动拖拽）")]
     public InteractRange interactRange;   // 关联的交互区域
+
+    [Header("音效")]
+    public AudioClip interactAudioClip;
     public override void OnInteract()
     {
+        AudioManager.Instance.Play2DSound(interactAudioClip, 0.5f);
+
         // 同时播放移动和旋转动画
         Sequence seq = DOTween.Sequence();
         seq.Join(branchToTransform1.transform.DOMove(target1Position, duration));

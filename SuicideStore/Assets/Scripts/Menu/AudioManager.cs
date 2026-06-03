@@ -15,7 +15,7 @@ public class AudioManager : MonoBehaviour
     [Header("音效设置")]
     public GameObject audioSourcePrefab;
     public Transform audioSourcePoolParent;
-
+    public AudioSource sfx2DSource; 
     // 音量级别（0-10）
     private int masterVolume = 10;
     private int bgmVolume = 10;
@@ -243,7 +243,19 @@ public class AudioManager : MonoBehaviour
         float finalVolume = GetFinalSFXVolume(volumeScale);
         AudioSource.PlayClipAtPoint(clip, Camera.main != null ? Camera.main.transform.position : Vector3.zero, finalVolume);
     }
-
+    public void Play2DSound(AudioClip clip, float volumeScale = 1f)
+    {
+        if (clip == null) return;
+        if (sfx2DSource == null)
+        {
+            // 动态创建
+            GameObject go = new GameObject("2DSFXSource");
+            go.transform.SetParent(transform);
+            sfx2DSource = go.AddComponent<AudioSource>();
+            sfx2DSource.spatialBlend = 0f; // 完全2D
+        }
+        sfx2DSource.PlayOneShot(clip, GetFinalSFXVolume(volumeScale));
+    }
     public AudioSource PlayLoopingSound(AudioClip clip, bool loop = true, float volumeScale = 1f)
     {
         if (clip == null) return null;

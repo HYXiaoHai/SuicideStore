@@ -15,6 +15,9 @@ public class PhotoSystem : MonoBehaviour
     public float[] lightTargetIntensities;
     public float[] volumetricTargetIntensities;
     public float lightAnimationDuration = 0.5f;
+    [Header("心跳效果")]
+    public float heartbeatAmplitude = 0.1f;      // 浮动幅度（绝对值，例如 0.1）
+    public float heartbeatDuration = 1f;       // 单次浮动周期（秒）
 
     [Header("对话设置")]
     public GameObject dialoguePanel;
@@ -26,6 +29,9 @@ public class PhotoSystem : MonoBehaviour
     private PhotoTrigger[] photoTriggers;
     public DoorTrigger doorTrigger;
 
+    // 存储每个灯光的心跳动画
+    private Tweener[] heartbeatIntensityTweeners;
+    private Tweener[] heartbeatVolumeTweeners;
     void Start()
     {
         Initialize();
@@ -53,6 +59,10 @@ public class PhotoSystem : MonoBehaviour
 
         if (dialoguePanel != null)
             dialoguePanel.SetActive(false);
+
+        // 初始化心跳数组
+        heartbeatIntensityTweeners = new Tweener[lights.Length];
+        heartbeatVolumeTweeners = new Tweener[lights.Length];
 
         // 所有灯光初始强度为0，并优化性能：强度为0的灯光直接禁用
         for (int i = 0; i < lights.Length; i++)
@@ -82,16 +92,24 @@ public class PhotoSystem : MonoBehaviour
 
                 float targetIntensity = (activeIndex < lightTargetIntensities.Length) ? lightTargetIntensities[activeIndex] : 0.76f;
                 float targetVol = (activeIndex < volumetricTargetIntensities.Length) ? volumetricTargetIntensities[activeIndex] : 0.37f;
+                // 先停止该灯光的任何现有心跳
+                StopHeartbeat(localIndex);
 
                 DOTween.To(() => light.intensity, x => light.intensity = x, targetIntensity, lightAnimationDuration)
                     .SetEase(Ease.OutQuad)
-                    .OnComplete(() => CheckAndSetLightEnabled(light));
+                    .OnComplete(() => { CheckAndSetLightEnabled(light);
+                        if (light.enabled && light.intensity > 0.01f)
+                            StartHeartbeat(localIndex, targetIntensity, targetVol);
+                    });
+
                 DOTween.To(() => light.volumeIntensity, x => light.volumeIntensity = x, targetVol, lightAnimationDuration)
                     .SetEase(Ease.OutQuad)
                     .OnComplete(() => CheckAndSetLightEnabled(light));
             }
             else
             {
+                // 熄灭灯光：停止心跳，然后渐灭
+                StopHeartbeat(localIndex);
                 // 熄灭灯光（动画结束后如果强度为0则禁用组件）
                 DOTween.To(() => light.intensity, x => light.intensity = x, 0f, lightAnimationDuration)
                     .SetEase(Ease.OutQuad)
@@ -103,7 +121,50 @@ public class PhotoSystem : MonoBehaviour
         }
     }
 
+
+    // 为指定灯光启动心跳效果（在基础值上周期性浮动）
+    private void StartHeartbeat(int index, float baseIntensity, float baseVolume)
+    {
+        if (index < 0 || index >= lights.Length) return;
+        Light2D light = lights[index];
+        if (light == null) return;
+
+        // 心跳动画：强度在 [baseIntensity - amplitude, baseIntensity + amplitude] 之间来回
+        float lowIntensity = Mathf.Max(0, baseIntensity - heartbeatAmplitude);
+        float highIntensity = baseIntensity + heartbeatAmplitude;
+        float lowVolume = Mathf.Max(0, baseVolume - heartbeatAmplitude);
+        float highVolume = baseVolume + heartbeatAmplitude;
+
+        // 使用 DOTween 的 Sequence 或者循环的 Yoyo 动画
+        Tweener intensityTweener = DOTween.To(() => light.intensity, x => light.intensity = x, highIntensity, heartbeatDuration / 2f)
+            .SetEase(Ease.InOutSine)
+            .SetLoops(-1, LoopType.Yoyo);
+        Tweener volumeTweener = DOTween.To(() => light.volumeIntensity, x => light.volumeIntensity = x, highVolume, heartbeatDuration / 2f)
+            .SetEase(Ease.InOutSine)
+            .SetLoops(-1, LoopType.Yoyo);
+
+        heartbeatIntensityTweeners[index] = intensityTweener;
+        heartbeatVolumeTweeners[index] = volumeTweener;
+    }
+
+    // 停止指定灯光的心跳
+    private void StopHeartbeat(int index)
+    {
+        if (index < 0 || index >= lights.Length) return;
+        if (heartbeatIntensityTweeners[index] != null)
+        {
+            heartbeatIntensityTweeners[index].Kill();
+            heartbeatIntensityTweeners[index] = null;
+        }
+        if (heartbeatVolumeTweeners[index] != null)
+        {
+            heartbeatVolumeTweeners[index].Kill();
+            heartbeatVolumeTweeners[index] = null;
+        }
+    }
+
     // 辅助方法：根据强度是否为零来启用/禁用 Light2D 组件
+
     private void CheckAndSetLightEnabled(Light2D light)
     {
         if (light == null) return;

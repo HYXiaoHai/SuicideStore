@@ -18,7 +18,8 @@ public class Bubble : MonoBehaviour
 
     private Tweener floatTween;
     private Vector3 originalPosition;
-
+    [Header("音效")]
+    public AudioClip interactClip;
     void Awake()
     {
         originalPosition = transform.position;
@@ -46,6 +47,7 @@ public class Bubble : MonoBehaviour
     {
         if (isComplate) return;
         isComplate = true;
+        AudioManager.Instance.Play2DSound(interactClip, 0.8f);
         bubbleSprite.DOFade(0f, interactDuration);  //点击后淡出消失
         outbubbleSprite.DOFade(1f, interactDuration);  //点击后渐显
         floatTween?.Kill();                         // 停止浮动

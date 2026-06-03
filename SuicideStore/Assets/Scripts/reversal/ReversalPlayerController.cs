@@ -23,6 +23,14 @@ public class ReversalPlayerController : MonoBehaviour
     public float gravityScale = 1f;
     public float lastJumpTime;               // ��¼���һ����Ծ��ʱ��
 
+    [Header("音效")]
+    public AudioClip[] walkAudioClips;
+    //public AudioClip jumpAudioClip;
+    private float walkSoundInterval = 0.3f;
+    private float walkSoundTimer = 0f;
+    public AudioClip landAudioClip;   // 落地音效
+    private bool wasGrounded = false; // 上一帧地面状态
+
     [Header("地面检测")]
     public LayerMask groundLayer;
     public Transform groundCheck;
@@ -43,6 +51,7 @@ public class ReversalPlayerController : MonoBehaviour
     private float coyoteTimer = 0f;
     private float jumpBufferTimer = 0f;
     private bool isJumping = false;
+    private bool isGrounded = false;
 
     void Start()
     {
@@ -76,6 +85,22 @@ public class ReversalPlayerController : MonoBehaviour
         //移动动画
         playerAnimitor.SetBool("isMoving", Mathf.Abs(moveInput) > 0);
 
+        //走路音效
+        if (isGrounded && Mathf.Abs(moveInput) > 0)
+        {
+            walkSoundTimer -= Time.deltaTime;
+            if (walkSoundTimer <= 0f)
+            {
+                // 从数组随机选择一个移动音效
+                if (walkAudioClips != null && walkAudioClips.Length > 0)
+                {
+                    AudioClip randomClip = walkAudioClips[Random.Range(0, walkAudioClips.Length)];
+                    AudioManager.Instance.Play2DSound(randomClip, 0.5f);
+                }
+                walkSoundTimer = walkSoundInterval;
+            }
+        }
+
         if (Input.GetButtonDown("Jump"))
         {
             jumpBufferTimer = jumpBufferTime;
@@ -88,13 +113,23 @@ public class ReversalPlayerController : MonoBehaviour
         UpdateGravity();
         HandleFlip();
 
+        // 落地音效检测
+        if (!wasGrounded && isGrounded)
+        {
+            if (landAudioClip != null)
+            {
+                AudioManager.Instance.Play2DSound(landAudioClip, 0.6f); // 音量可调整
+            }
+        }
+        wasGrounded = isGrounded;
+
         if (jumpBufferTimer > 0)
             jumpBufferTimer -= Time.deltaTime;
     }
 
     private void UpdateGroundDetection()
     {
-        bool isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
+        isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
         playerAnimitor.SetBool("isGrounded", isGrounded);
         if (isGrounded)
         {

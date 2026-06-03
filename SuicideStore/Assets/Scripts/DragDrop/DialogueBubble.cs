@@ -44,7 +44,7 @@ public class DialogueBubble : MonoBehaviour
     public void PlayMoveAnimation(RectTransform end, float duration = 1.5f, TweenCallback onComplete = null)
     {
         Sequence seq = DOTween.Sequence();
-        seq.Join(rectTransform.DOAnchorPos(end.anchoredPosition, duration).SetEase(Ease.InSine));
+        //seq.Join(rectTransform.DOAnchorPos(end.anchoredPosition, duration).SetEase(Ease.InSine));
         seq.Join(transform.DOScale(0.5f, duration).SetEase(Ease.InSine));
         seq.Join(canvasGroup.DOFade(0f, duration).SetEase(Ease.InExpo));
         seq.OnComplete(() => {
@@ -72,10 +72,4 @@ public class DialogueBubble : MonoBehaviour
             Destroy(gameObject);
         });
     }
-
-    //// 以下旧方法可保留但不再使用
-    //public void ShowBubble(string content, float stayDuration = 2f, float moveDistance = 800f, float floatDuration = 4f) { }
-    //public void SetText(string content) { if (_text != null) _text.text = content; canvasGroup.alpha = 1; }
-    //public void StartFloat(float moveDistance = 80f, float duration = 0.5f, float delay = 0f) { }
-    //public void Initialize(string content, float moveDistance = 800f, float duration = 4f, float delay = 2f) { }
 }

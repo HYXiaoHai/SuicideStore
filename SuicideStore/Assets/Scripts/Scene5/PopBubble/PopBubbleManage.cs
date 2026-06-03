@@ -25,6 +25,10 @@ public class PopBubbleManage : MonoBehaviour
     public float changeDelay = 1f;//完成后多久切换镜头（延迟）
     private bool hasTriggeredSwitch = false; //防止重复触发
 
+    [Header("下一关环境音")]
+    public AudioClip envClip;
+    public AudioSource envSourse;
+    public Transform envClipPos;
     void Awake()
     {
         Instance = this;
@@ -92,6 +96,13 @@ public class PopBubbleManage : MonoBehaviour
                 if (Scene5Manage.Instance.level3manage != null)
                 {
                     Scene5Manage.Instance.level3manage.BeginGame();
+                    // 在关卡初始化时播放环境音
+                    envSourse = AudioManager.Instance.PlayLoopingSound(envClip, loop: true, volumeScale: 0.5f);
+
+                    envSourse.transform.position = envClipPos.position;  // 例如 new Vector3(10, 5, 0)
+                    envSourse.minDistance = 8f;   //距离音源 5 米内音量最大
+                    envSourse.maxDistance = 17f;  //30米外几乎听不到
+                    envSourse.rolloffMode = AudioRolloffMode.Linear;
                 }
                 else
                 {
@@ -112,5 +123,10 @@ public class PopBubbleManage : MonoBehaviour
         Debug.Log("所有气泡点击完成，游戏胜利！");
         // 暂时空函数，以后可扩展转场或奖励
         // 例如：Scene5Manage.Instance.ChangeCamera(4, 1f);
+    }
+
+    private void OnDestroy()
+    {
+        AudioManager.Instance.StopLoopingSound(envSourse);
     }
 }

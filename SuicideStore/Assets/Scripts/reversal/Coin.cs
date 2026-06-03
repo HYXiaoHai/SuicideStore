@@ -22,6 +22,9 @@ public class Coin : MonoBehaviour
     private Tweener moveTweener;   // 当前移动动画的引用
     private bool isCollected = false;          // 防止重复触发
     private bool isLevelCoin = false;           // 是否是关卡完成金币
+
+    [Header("音效")]
+    public AudioClip takeClip;
     void Start()
     {
 
@@ -32,7 +35,7 @@ public class Coin : MonoBehaviour
         if (collision.CompareTag("Player") && !canTrack)
         {
             isCollected = true;
-
+            AudioManager.Instance.Play2DSound(takeClip,1f);
             // 如果是关卡完成金币，通知管理器
             if (isLevelCoin && ReversalMange.Instance != null)
             {

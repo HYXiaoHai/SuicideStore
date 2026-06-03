@@ -96,7 +96,7 @@ public class InterludeController : MonoBehaviour
             if (!didWarnButtonBinding)
             {
                 didWarnButtonBinding = true;
-                Debug.LogError("InterludeController: 未找到 Continue Button。请在 Inspector 里把场景中的 Button 拖到 Continue Button。");
+                //Debug.LogError("InterludeController: 未找到 Continue Button。请在 Inspector 里把场景中的 Button 拖到 Continue Button。");
             }
         }
 

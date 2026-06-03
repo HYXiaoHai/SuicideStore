@@ -11,6 +11,9 @@ public class StarInteractable : BaseInteractable
 
     [Header("交互范围（需手动拖拽）")]
     public InteractRange interactRange;   // 关联的交互区域
+
+    [Header("音效")]
+    public AudioClip interactAudioClip;
     public override void OnInteract()
     {
         if (branchToTransform == null)
@@ -18,6 +21,8 @@ public class StarInteractable : BaseInteractable
             Debug.LogError("StarInteractable: branchToTransform 未赋值！请在 Inspector 中指定需要变换的树枝。");
             return;
         }
+        AudioManager.Instance.Play2DSound(interactAudioClip,0.5f);
+
         // 星星消失
         gameObject.SetActive(false);
         DisableBranchCollider();

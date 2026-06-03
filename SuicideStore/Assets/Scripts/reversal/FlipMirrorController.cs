@@ -13,6 +13,8 @@ public class FlipMirrorController : MonoBehaviour
     private Vector3 offset;
     private Camera mainCamera;
     public bool canMove = true;
+    [Header("“Ù–ß")]
+    public AudioClip changeClip;
     [Header("ÕÊº“øÿ÷∆")]
     public ReversalPlayerController playerController;
     void Start()
@@ -62,6 +64,7 @@ public class FlipMirrorController : MonoBehaviour
     }
     public void SwitchMode()
     {
+        AudioManager.Instance.Play2DSound(changeClip, 1f);
         isDefaultMode = !isDefaultMode;
         ApplyMode(isDefaultMode);
 
