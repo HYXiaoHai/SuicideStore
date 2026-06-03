@@ -7,10 +7,16 @@ public class PhotoTrigger : MonoBehaviour
     public PhotoSystem photoSystem;
     public SpriteRenderer ePrompt;
     public AudioClip clickAudioClip;
+    public SpriteRenderer interacRenderer;//½»»¥ºóÍ¼Æ¬
 
     private bool isPlayerInside = false;
     private bool isTriggered = false;
+    private SpriteRenderer defualSprite;//Ä¬ÈÏ
 
+    private void Start()
+    {
+        defualSprite = GetComponent<SpriteRenderer>();
+    }
     void OnTriggerEnter2D(Collider2D other)
     {
         if (photoSystem.currentPhotoIndex != photoIndex) return;
@@ -36,9 +42,15 @@ public class PhotoTrigger : MonoBehaviour
         {
             isTriggered = true;
             HidePrompt();
+            OnInterac();
             AudioManager.Instance.PlayShortSound(clickAudioClip, 0.8f);
             photoSystem.OnPhotoTrigger(photoIndex);
         }
+    }
+    void OnInterac()
+    {
+        defualSprite.DOFade(0f,0.5f);
+        interacRenderer.DOFade(1f,0.5f);
     }
 
     void ShowPrompt()

@@ -19,11 +19,11 @@ public class PhotoSystem : MonoBehaviour
     public float heartbeatAmplitude = 0.1f;      // 浮动幅度（绝对值，例如 0.1）
     public float heartbeatDuration = 1f;       // 单次浮动周期（秒）
 
-    [Header("对话设置")]
-    public GameObject dialoguePanel;
-    public TextMeshProUGUI dialogueText;
-    public string[] dialogueTexts;
-    public float dialogueDuration = 2f;
+    //[Header("对话设置")]
+    //public GameObject dialoguePanel;
+    //public TextMeshProUGUI dialogueText;
+    //public string[] dialogueTexts;
+    //public float dialogueDuration = 2f;
 
     private bool[] photoTriggered;
     private PhotoTrigger[] photoTriggers;
@@ -57,8 +57,8 @@ public class PhotoSystem : MonoBehaviour
             }
         }
 
-        if (dialoguePanel != null)
-            dialoguePanel.SetActive(false);
+        //if (dialoguePanel != null)
+        //    dialoguePanel.SetActive(false);
 
         // 初始化心跳数组
         heartbeatIntensityTweeners = new Tweener[lights.Length];
@@ -179,7 +179,6 @@ public class PhotoSystem : MonoBehaviour
         if (photoTriggered[photoIndex]) return;
 
         photoTriggered[photoIndex] = true;
-        ShowDialogue(photoIndex);
 
         // 切换到下一个灯光
         if (photoIndex + 1 < lights.Length)
@@ -190,22 +189,19 @@ public class PhotoSystem : MonoBehaviour
         StartCoroutine(NextPhoto(photoIndex));
     }
 
-    void ShowDialogue(int photoIndex)
-    {
-        if (dialoguePanel != null && dialogueText != null)
-        {
-            int idx = Mathf.Min(photoIndex, dialogueTexts.Length - 1);
-            dialogueText.text = dialogueTexts[idx];
-            dialoguePanel.SetActive(true);
-        }
-    }
+    //void ShowDialogue(int photoIndex)
+    //{
+    //    if (dialoguePanel != null && dialogueText != null)
+    //    {
+    //        int idx = Mathf.Min(photoIndex, dialogueTexts.Length - 1);
+    //        dialogueText.text = dialogueTexts[idx];
+    //        dialoguePanel.SetActive(true);
+    //    }
+    //}
 
     IEnumerator NextPhoto(int photoIndex)
     {
-        yield return new WaitForSeconds(dialogueDuration);
-        if (dialoguePanel != null)
-            dialoguePanel.SetActive(false);
-
+        yield return new WaitForSeconds(lightAnimationDuration);
         currentPhotoIndex = photoIndex + 1;
         if (currentPhotoIndex >= photos.Length)
         {
