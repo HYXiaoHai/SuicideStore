@@ -12,16 +12,16 @@ public class DrawingTool : MonoBehaviour
 
     private Vector3 originalPosition;
     private bool isMoving = false;
-    private Vector3 originalScale;          // ¼ÇÂ¼Ô­Ê¼Ëõ·Å
-    private Tween scaleTween;               // Ëõ·Å¶¯»­ÒýÓÃ
-    [Header("µ±Ç°¹¤¾ß")]
+    private Vector3 originalScale;          // ï¿½ï¿½Â¼Ô­Ê¼ï¿½ï¿½ï¿½ï¿½
+    private Tween scaleTween;               // ï¿½ï¿½ï¿½Å¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    [Header("ï¿½ï¿½Ç°ï¿½ï¿½ï¿½ï¿½")]
     public ToolType toolType = ToolType.None;
     
-    [Header("ÍÏ×§ÊÖ¸Ð")]
-    public float hoverScale = 1.2f;         // µã»÷Ê±·Å´ó±¶Êý
-    public float scaleDuration = 0.1f;      // Ëõ·Å¶¯»­Ê±³¤
+    [Header("ï¿½ï¿½×§ï¿½Ö¸ï¿½")]
+    public float hoverScale = 1.2f;         // ï¿½ï¿½ï¿½Ê±ï¿½Å´ï¿½ï¿½ï¿½
+    public float scaleDuration = 0.1f;      // ï¿½ï¿½ï¿½Å¶ï¿½ï¿½ï¿½Ê±ï¿½ï¿½
 
-    private readonly float zOffset = -0.04f;   // ¹Ì¶¨ Z Æ«ÒÆ
+    private readonly float zOffset = -0.04f;   // ï¿½Ì¶ï¿½ Z Æ«ï¿½ï¿½
     void Start()
     {
         mainCamera = Camera.main;
@@ -40,15 +40,17 @@ public class DrawingTool : MonoBehaviour
 
     void OnMouseDown()
     {
-        // µ÷ÊÔ£ºÊä³öµã»÷ÐÅÏ¢£¬°ïÖúÅÐ¶ÏÊÇ·ñÃüÖÐ
-        Debug.Log($"Êó±êµã»÷ÎïÆ·£º{gameObject.name}");
-        foreach (DrawingController dc in DrawManage.instance.drawingControllers)
+        Debug.Log($"ç‚¹å‡»å·¥å…·ï¼š{gameObject.name}");
+        if (DrawManage.instance != null && DrawManage.instance.drawingControllers != null)
         {
-            Debug.Log(dc);
-            Debug.Log(dc._toolManager);
-            dc._toolManager.SetTool(toolType);
+            foreach (DrawingController dc in DrawManage.instance.drawingControllers)
+            {
+                if (dc != null && dc._toolManager != null)
+                {
+                    dc._toolManager.SetTool(toolType);
+                }
+            }
         }
-        // ²¥·Å·Å´ó¶¯»­
         scaleTween?.Kill();
         scaleTween = transform.DOScale(originalScale * hoverScale, scaleDuration).SetEase(Ease.OutBack);
 
@@ -60,7 +62,7 @@ public class DrawingTool : MonoBehaviour
     {
         if (isMoving) return;
         transform.position = GetMouseWorldPos() + offset;
-        SetZOffset();   // ÍÏ×§Ê±±£³Ö Z
+        SetZOffset();   // ï¿½ï¿½×§Ê±ï¿½ï¿½ï¿½ï¿½ Z
     }
 
     void OnMouseUp()
@@ -69,9 +71,15 @@ public class DrawingTool : MonoBehaviour
         scaleTween = transform.DOScale(originalScale, scaleDuration).SetEase(Ease.OutQuad);
 
         if (isMoving) return;
-        foreach (DrawingController dc in DrawManage.instance.drawingControllers)
+        if (DrawManage.instance != null && DrawManage.instance.drawingControllers != null)
         {
-            dc._toolManager.SetTool(ToolType.None);
+            foreach (DrawingController dc in DrawManage.instance.drawingControllers)
+            {
+                if (dc != null && dc._toolManager != null)
+                {
+                    dc._toolManager.SetTool(ToolType.None);
+                }
+            }
         }
         MoveToTarget(originalPosition);
     }
@@ -83,7 +91,7 @@ public class DrawingTool : MonoBehaviour
             .SetEase(Ease.OutQuad)
             .OnComplete(() =>
             {
-                SetZOffset();   // ÒÆ¶¯Íê³ÉºóÔÙ´ÎÈ·±£ Z
+                SetZOffset();   // ï¿½Æ¶ï¿½ï¿½ï¿½Éºï¿½ï¿½Ù´ï¿½È·ï¿½ï¿½ Z
                 isMoving = false;
             });
     }
