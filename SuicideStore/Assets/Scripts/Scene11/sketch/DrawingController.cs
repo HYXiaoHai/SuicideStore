@@ -15,6 +15,10 @@ public class DrawingController : MonoBehaviour
     [Range(0f, 1f)] public float winThreshold = 0.9f; // 涂满 90% 算过关
     [Range(0f, 1f)] public float clearThreshold = 0.05f; // 剩下不到 5% 算擦除干净
 
+    [Header("音效")]
+    public AudioClip drawingLoopClip;      // 长音效（循环播放）
+    private AudioSource currentLoopingSound;
+    private bool isActuallyDrawing; // 标记本次绘制周期是否有真正绘制
     [Header("材质引用")]
     public Material pencilMaterial;
     public Material eraserMaterial;
@@ -54,9 +58,17 @@ public class DrawingController : MonoBehaviour
         isBegin = false;
 
         _painter = new MaskPainter2D(_maskRT, mainCamera, targetSprite.transform);
-     
+
         // 订阅绘制事件：第一次绘制时标记
-        _painter.OnDraw += () => hasDrawn = true;
+        _painter.OnDraw += () =>
+        {
+            hasDrawn = true;
+            // 真正绘制时，如果循环音效未启动且当前工具有效，则启动
+            if (drawingLoopClip != null && currentLoopingSound == null && _toolManager != null && _toolManager.currentType != ToolType.None)
+            {
+                currentLoopingSound = AudioManager.Instance.PlayLoopingSound(drawingLoopClip, true, 0.6f);
+            }
+        };
         _toolManager = new ToolManager(pencilMaterial, eraserMaterial, _painter);
         Debug.Log(gameObject + ":" + _toolManager);
     }
@@ -64,15 +76,28 @@ public class DrawingController : MonoBehaviour
     void Update()
     {
         //如果 _toolManager 还没初始化成功（比如 Start 报错了），直接返回，避免每帧刷报错
+        if (GameManage.Instance.isSetting) return;
+
         if (_toolManager == null || _painter == null) return;
-        if (Input.GetMouseButtonDown(0)) _toolManager.StartDrawing();
+        if (Input.GetMouseButtonDown(0))
+        {
+            _toolManager.StartDrawing();
+            // 重置标志，等待真正绘制
+            isActuallyDrawing = false;
+        }
         if (Input.GetMouseButtonUp(0))
         {
             _toolManager.StopDrawing();
-            if(hasDrawn)
+            // 停止循环音效
+            if (currentLoopingSound != null)
+            {
+                AudioManager.Instance.StopLoopingSound(currentLoopingSound);
+                currentLoopingSound = null;
+            }
+            if (hasDrawn)
                 CheckProgress();
+            hasDrawn = false; // 重置绘制标记，以便下一轮
         }
-
         _toolManager.DoUpdate();
     }
 

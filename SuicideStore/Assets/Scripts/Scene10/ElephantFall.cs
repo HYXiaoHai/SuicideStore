@@ -12,6 +12,9 @@ public class ElephantFall : MonoBehaviour
     public float balloonUpwardDistance = 3f;
     public float balloonMoveDuration = 0.5f;
 
+    [Header("音效")]
+    public AudioClip balloonSound;
+
     [Header("=== 场景设置 ===")]
     public string nextSceneName = "S10-10.6-door";
     public float fallDelay = 1.5f;
@@ -78,6 +81,7 @@ public class ElephantFall : MonoBehaviour
         if (elephantRb != null)
         {
             elephantRb.isKinematic = false;
+            AudioManager.Instance.Play2DSound(balloonSound, 0.8f);
             elephantRb.gravityScale = 1;
         }
 

@@ -14,9 +14,11 @@ public class DrawingTool : MonoBehaviour
     private bool isMoving = false;
     private Vector3 originalScale;          // ��¼ԭʼ����
     private Tween scaleTween;               // ���Ŷ�������
-    [Header("��ǰ����")]
+    [Header("工具类型")]
     public ToolType toolType = ToolType.None;
-    
+    [Header("音效")]
+    public AudioClip tackClip;
+
     [Header("��ק�ָ�")]
     public float hoverScale = 1.2f;         // ���ʱ�Ŵ���
     public float scaleDuration = 0.1f;      // ���Ŷ���ʱ��
@@ -41,6 +43,8 @@ public class DrawingTool : MonoBehaviour
     void OnMouseDown()
     {
         Debug.Log($"点击工具：{gameObject.name}");
+        if (GameManage.Instance.isSetting) return;
+
         if (DrawManage.instance != null && DrawManage.instance.drawingControllers != null)
         {
             foreach (DrawingController dc in DrawManage.instance.drawingControllers)
@@ -51,15 +55,19 @@ public class DrawingTool : MonoBehaviour
                 }
             }
         }
+        //拿起音效
+        AudioManager.Instance.Play2DSound(tackClip,0.8f);
+
         scaleTween?.Kill();
         scaleTween = transform.DOScale(originalScale * hoverScale, scaleDuration).SetEase(Ease.OutBack);
 
-        originalPosition = transform.position;
+        //originalPosition = transform.position;
         offset = transform.position - GetMouseWorldPos();
     }
 
     void OnMouseDrag()
     {
+        if (GameManage.Instance.isSetting) return;
         if (isMoving) return;
         transform.position = GetMouseWorldPos() + offset;
         SetZOffset();   // ��קʱ���� Z
@@ -69,7 +77,6 @@ public class DrawingTool : MonoBehaviour
     {
         scaleTween?.Kill();
         scaleTween = transform.DOScale(originalScale, scaleDuration).SetEase(Ease.OutQuad);
-
         if (isMoving) return;
         if (DrawManage.instance != null && DrawManage.instance.drawingControllers != null)
         {

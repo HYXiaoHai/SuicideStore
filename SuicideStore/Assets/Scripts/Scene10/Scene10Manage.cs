@@ -13,21 +13,8 @@ public class Scene10Manage : MonoBehaviour
     public GameObject rightRoundFather;
     public GameObject leftRoundFather;
     public SpriteRenderer levelBg;//关卡总背景
-    public Sprite level1Bg_Sprit;//
+    //public Sprite level1Bg_Sprit;//
     public Sprite level2Bg_Sprit;
-    [Header("level1")]
-    public CanvasGroup level1GameCanvas;
-    public GameObject rightLevel1Father;
-    public GameObject leftLevel1Father;//左父物体
-    public SpriteRenderer l1bubble1;//左侧气泡1
-    public SpriteRenderer l2bubble2;//左侧气泡2
-    public SpriteRenderer dialogBox1;//右侧对话框
-    public SpriteRenderer dialogBox2;//右侧对话框
-    public TMP_Text levelText;
-    public Button button1;
-    public Button button2;
-    public int buttonNum = 0;
-    private SpriteRenderer[] level1Renderers;
 
     [Header("level2")]
     public GameObject rightLevel2Father;//第二关右父物体
@@ -65,77 +52,27 @@ public class Scene10Manage : MonoBehaviour
     }
     void Start()
     {
-        level1GameCanvas.gameObject.SetActive(true);
+        //level1GameCanvas.gameObject.SetActive(true);
         level3GameCanvas.gameObject.SetActive(false);
 
-        level1Renderers = new SpriteRenderer[] { dialogBox1, dialogBox2, l1bubble1, l2bubble2 };//用于结束时隐藏的
+        //level1Renderers = new SpriteRenderer[] { dialogBox1, dialogBox2, l1bubble1, l2bubble2 };//用于结束时隐藏的
         level2Renderers = new SpriteRenderer[] { mother, father, son ,pencil, eraser, l2Bubble1,level2BG };//用于开始时显现的
 
-        button1.onClick.AddListener(OnButton1Click);
-        button2.onClick.AddListener(OnButton2Click);
-        StartLevel1();
-    }
-    //开启第一关
-    public void StartLevel1()
-    {
-        currentLevel = 1;
-        buttonNum = 0;
-        button2.gameObject.SetActive(false);
-    }
-    //第一关 按钮1
-    public void OnButton1Click()
-    {
-        //先点击button1
-        l1bubble1.DOFade(1f, 1f);
-        button1.gameObject.SetActive(false);
-        buttonNum++;//1
-        dialogBox2.DOFade(1f, 1f).OnComplete(() => {
-            button2.gameObject.SetActive(true);//开启button2
-        });
-    }
-    //第一关 按钮2
-    public void OnButton2Click()
-    {
-        buttonNum++;
-        if (buttonNum == 2)//第1次点击button2显示文案
-        {
-            l2bubble2.DOFade(1f, 1f);
-        }
-        else if (buttonNum >= 3)//第2次点击button2完成关卡
-        {
-            button2.gameObject.SetActive(false);
-            Level1Complect();
-        }
-    }
-    //完成第一关
-    public void Level1Complect()
-    {
-        Sequence fadeSeq = DOTween.Sequence();
-        foreach (var item in level1Renderers)
-        {
-            fadeSeq.Join(item.DOFade(0f, 1f));
-        }
-        fadeSeq.Join(levelBg.DOFade(0f, 1f));
-        fadeSeq.Join(levelText.DOFade(0f, 1f));
-        fadeSeq.OnComplete(() =>
-        {
-            rightLevel1Father.SetActive(false);
-            leftLevel1Father.SetActive(false);
-            level1GameCanvas.gameObject.SetActive(false);
-            StartLevel2();
-        });
-        fadeSeq.Play();
+        ////button1.onClick.AddListener(OnButton1Click);
+        //button2.onClick.AddListener(OnButton2Click);
+        //StartLevel1();
+        StartLevel2();
     }
     //开启第二关
     public void StartLevel2()
     {
-        rightLevel2Father.SetActive(true);
-        foreach (var item in level2Renderers)
-        {
-            item.DOFade(1f, 1f);
-        }
-        levelBg.sprite = level2Bg_Sprit;
-        levelBg.DOFade(1f, 1f);
+        //rightLevel2Father.SetActive(true);
+        //foreach (var item in level2Renderers)
+        //{
+        //    item.DOFade(1f, 1f);
+        //}
+        //levelBg.sprite = level2Bg_Sprit;
+        //levelBg.DOFade(1f, 1f);
         levl2Text.DOFade(1f, 1f);
     }
     //
@@ -192,10 +129,5 @@ public class Scene10Manage : MonoBehaviour
     {
         yield return new WaitForSeconds(duration);
         SceneManager.LoadScene(nextSceneName);
-    }
-    // Update is called once per frame
-    void Update()
-    {
-        
     }
 }

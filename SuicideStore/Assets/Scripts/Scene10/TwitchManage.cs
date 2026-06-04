@@ -39,7 +39,6 @@ public class TwitchManage : MonoBehaviour
     private Tween activeTween_Text2;
     private Tween activeTween_Text4;
     private Tween activeTween_Image4;
-    // Start is called before the first frame update
     void Start()
     {
         if (twitchTarget != null)
@@ -51,12 +50,6 @@ public class TwitchManage : MonoBehaviour
             twitchSlider.value = 0f;
         }
         UpdateDisplay(0f);
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
     }
     void OnSliderChanged(float value)
     {

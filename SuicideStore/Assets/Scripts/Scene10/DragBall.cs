@@ -38,6 +38,7 @@ public class DragBall : MonoBehaviour
 
     void OnMouseDown()
     {
+        if (GameManage.Instance.isSetting) return;
         if (isCollected || isReturning) return; // 已收集或正在回位时不可拖拽
 
         isDragging = true;
@@ -52,6 +53,7 @@ public class DragBall : MonoBehaviour
 
     void OnMouseDrag()
     {
+        if (GameManage.Instance.isSetting) return;
         if (isCollected || !isDragging || isReturning) return;
         Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         transform.position = new Vector3(mousePos.x + offset.x, mousePos.y + offset.y, transform.position.z);

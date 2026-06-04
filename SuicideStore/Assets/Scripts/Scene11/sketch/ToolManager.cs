@@ -10,7 +10,7 @@ public class ToolManager
 
     private Material _currentBrushMat;
     private bool _isPressing = false;
-    private ToolType currentType;
+    public ToolType currentType;
     public ToolManager(Material pencil, Material eraser, MaskPainter2D painter)
     {
         _pencilMat = pencil;
