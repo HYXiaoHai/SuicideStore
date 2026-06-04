@@ -33,6 +33,26 @@ public class S11_3_LineConnector : MonoBehaviour
             paintSystem.OnDrawingPositionUpdated += OnDrawingPosition;
             paintSystem.OnDrawingFinished += OnDrawingFinished;
         }
+
+        // 初始只显示第一个点
+        HideAllWaypoints();
+        if (waypoints.Length > 0)
+            ShowWaypoint(0);
+    }
+
+    void HideAllWaypoints()
+    {
+        foreach (var wp in waypoints)
+        {
+            if (wp != null)
+                wp.gameObject.SetActive(false);
+        }
+    }
+
+    void ShowWaypoint(int index)
+    {
+        if (index >= 0 && index < waypoints.Length && waypoints[index] != null)
+            waypoints[index].gameObject.SetActive(true);
     }
 
     void Update()
@@ -59,6 +79,9 @@ public class S11_3_LineConnector : MonoBehaviour
         {
             currentWaypointIndex++;
             
+            if (currentWaypointIndex < waypoints.Length)
+                ShowWaypoint(currentWaypointIndex);
+            
             if (currentWaypointIndex >= waypoints.Length)
             {
                 OnConnectComplete();
@@ -70,14 +93,12 @@ public class S11_3_LineConnector : MonoBehaviour
     {
         if (currentWaypointIndex < waypoints.Length && !isComplete)
         {
-            // 如果没连完，回退
-            if (paintSystem != null)
-            {
-                paintSystem.RetractLine(() => {
-                    currentWaypointIndex = 0;
-                    isWaitingForStart = true;
-                });
-            }
+            paintSystem.RetractLine(() => {
+                currentWaypointIndex = 0;
+                isWaitingForStart = true;
+                HideAllWaypoints();
+                ShowWaypoint(0);
+            });
         }
     }
 
@@ -89,21 +110,14 @@ public class S11_3_LineConnector : MonoBehaviour
         {
             SpriteRenderer sr = silhouetteObject.GetComponent<SpriteRenderer>();
             if (sr != null)
-            {
                 sr.DOFade(1f, fadeInDuration);
-            }
             else
-            {
                 silhouetteObject.SetActive(true);
-            }
         }
 
-        // 通知管理器
         S11_3_Manager manager = FindObjectOfType<S11_3_Manager>();
         if (manager != null)
-        {
             manager.OnLineConnectComplete();
-        }
     }
 
     private Vector3 GetMousePosition()

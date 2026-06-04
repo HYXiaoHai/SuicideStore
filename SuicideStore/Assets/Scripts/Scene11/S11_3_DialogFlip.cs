@@ -1,36 +1,55 @@
 using UnityEngine;
+using UnityEngine.UI;
 using DG.Tweening;
 
 public class S11_3_DialogFlip : MonoBehaviour
 {
     [Header("对话框正反面")]
-    public GameObject frontSide;
-    public GameObject backSide;
+    public Sprite frontSprite;
+    public Sprite backSprite;
+    
+    [Header("引用的Image组件")]
+    public Image frontImage;
+    public Image backImage;
 
     [Header("动画设置")]
     public float flipDuration = 0.5f;
     public float scaleToCenterDuration = 0.3f;
     public float centerScale = 1.5f;
 
-    [Header("状态")]
     public bool isFlipped = false;
     public bool isCentered = false;
-
     private Vector3 originalPosition;
     private Vector3 originalScale;
-    private Vector3 originalRotation;
+    private Button button;
 
     void Start()
     {
         originalPosition = transform.position;
         originalScale = transform.localScale;
-        originalRotation = transform.eulerAngles;
 
-        if (frontSide != null) frontSide.SetActive(true);
-        if (backSide != null) backSide.SetActive(false);
+        if (frontImage != null && frontSprite != null)
+            frontImage.sprite = frontSprite;
+        if (backImage != null && backSprite != null)
+            backImage.sprite = backSprite;
+
+        if (frontImage != null) frontImage.enabled = true;
+        if (backImage != null) backImage.enabled = false;
+
+        button = GetComponent<Button>();
+        if (button != null)
+            button.onClick.AddListener(OnButtonClicked);
     }
 
-    // 放大到屏幕中央
+    public void OnButtonClicked()
+    {
+        S11_3_Manager manager = FindObjectOfType<S11_3_Manager>();
+        if (manager != null && manager.IsLineComplete())
+        {
+            manager.OnDialogClicked(this);
+        }
+    }
+
     public void ScaleToCenter()
     {
         if (isCentered) return;
@@ -45,44 +64,30 @@ public class S11_3_DialogFlip : MonoBehaviour
         seq.Play();
     }
 
-    // 翻转对话框
     public void Flip()
     {
         if (!isCentered) return;
 
         Sequence seq = DOTween.Sequence();
         
-        // 先转到 90 度
-        seq.Append(transform.DORotate(originalRotation + new Vector3(0, 90, 0), flipDuration / 2f).OnComplete(() => {
-            if (frontSide != null) frontSide.SetActive(isFlipped);
-            if (backSide != null) backSide.SetActive(!isFlipped);
+        seq.Append(transform.DORotate(new Vector3(0, 90, 0), flipDuration / 2f).OnComplete(() => {
+            if (frontImage != null) frontImage.enabled = isFlipped;
+            if (backImage != null) backImage.enabled = !isFlipped;
         }));
         
-        // 再转回来
-        seq.Append(transform.DORotate(originalRotation, flipDuration / 2f));
+        seq.Append(transform.DORotate(Vector3.zero, flipDuration / 2f));
         seq.OnComplete(() => isFlipped = !isFlipped);
         seq.Play();
     }
 
-    // 点击检测
-    void OnMouseDown()
-    {
-        S11_3_Manager manager = FindObjectOfType<S11_3_Manager>();
-        if (manager != null)
-        {
-            manager.OnDialogClicked(this);
-        }
-    }
-
-    // 重置到原始状态
     public void ResetToOriginal()
     {
         transform.DOMove(originalPosition, scaleToCenterDuration);
         transform.DOScale(originalScale, scaleToCenterDuration);
-        transform.DORotate(originalRotation, scaleToCenterDuration / 2f);
+        transform.DORotate(Vector3.zero, scaleToCenterDuration / 2f);
         
-        if (frontSide != null) frontSide.SetActive(true);
-        if (backSide != null) backSide.SetActive(false);
+        if (frontImage != null) frontImage.enabled = true;
+        if (backImage != null) backImage.enabled = false;
         
         isFlipped = false;
         isCentered = false;

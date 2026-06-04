@@ -76,6 +76,32 @@ public class S10PuzzleController : MonoBehaviour
     [SerializeField] private string cameraClampBottomName = "bg (1)";
     [SerializeField] private float cameraScrollSpeed = 1.8f;
     [SerializeField] private float cameraMiddleDragSpeed = 1.0f;
+    [SerializeField] private bool enableAutoCameraMoveAfterSolved = true;
+    [SerializeField] private float autoCameraMoveDuration = 1.0f;
+
+    [System.Serializable]
+    public struct StarMessageGroup
+    {
+        public GameObject rootObject;
+        public UnityEngine.UI.Image backgroundImage;
+        public TMPro.TextMeshProUGUI text;
+    }
+
+    [Header("Stars Click Sequence")]
+    [SerializeField] private Transform[] starClickAreas = new Transform[3];
+    [SerializeField] private string[] starNames = new string[3] { "Star1", "Star2", "Star3" };
+    [SerializeField] private StarMessageGroup[] starMessageGroups = new StarMessageGroup[3];
+    [SerializeField] private float starFadeDuration = 0.5f;
+
+    [Header("Final Camera Move")]
+    [SerializeField] private bool enableFinalCameraMove = true;
+    [SerializeField] private float finalCameraTargetY = -5f;
+    [SerializeField] private float finalCameraMoveDuration = 1.0f;
+
+    [Header("Final Auto Messages")]
+    [SerializeField] private bool enableFinalAutoMessages = true;
+    [SerializeField] private TMPro.TextMeshProUGUI[] finalTexts = new TMPro.TextMeshProUGUI[3];
+    [SerializeField] private float finalMessageDelay = 2.0f;
 
     private readonly Collider2D[] overlapBuffer = new Collider2D[16];
 
@@ -126,6 +152,23 @@ public class S10PuzzleController : MonoBehaviour
     private float cameraWorldPerPixelY;
     private float nextBackground2ResolveTime;
     private bool clickRevealDone;
+    private bool autoCameraMoving;
+    private float autoCameraMoveStartTime;
+    private float autoCameraMoveInvDuration;
+    private Vector3 autoCameraMoveFrom;
+    private Vector3 autoCameraMoveTo;
+
+    private bool[] starsClicked = new bool[3];
+    private int starsClickedCount;
+    private bool starsPhaseActive;
+    private bool finalCameraMoving;
+    private float finalCameraMoveStartTime;
+    private float finalCameraMoveInvDuration;
+    private Vector3 finalCameraMoveFrom;
+    private Vector3 finalCameraMoveTo;
+    private bool finalMessagesPhase;
+    private int currentFinalMessageIndex;
+    private float lastFinalMessageTime;
 
     private static readonly System.Collections.Generic.Dictionary<string, int> groupPlacedMaskById = new System.Collections.Generic.Dictionary<string, int>(8);
     private static readonly System.Collections.Generic.Dictionary<string, bool> groupCompletedById = new System.Collections.Generic.Dictionary<string, bool>(8);
@@ -294,6 +337,30 @@ public class S10PuzzleController : MonoBehaviour
         if (completionMoveActive)
         {
             UpdateCompletionMove();
+            return;
+        }
+
+        if (autoCameraMoving)
+        {
+            UpdateAutoCameraMove();
+            return;
+        }
+
+        if (finalCameraMoving)
+        {
+            UpdateFinalCameraMove();
+            return;
+        }
+
+        if (starsPhaseActive)
+        {
+            HandleStarClicks();
+            return;
+        }
+
+        if (finalMessagesPhase)
+        {
+            UpdateFinalMessages();
             return;
         }
 
@@ -720,8 +787,194 @@ public class S10PuzzleController : MonoBehaviour
 
         cameraControlEnabled = true;
         cameraBasePosition = cachedCameraTransform.position;
-        float y = Mathf.Clamp(cameraBasePosition.y, cameraMinY, cameraMaxY);
-        cachedCameraTransform.position = new Vector3(cameraBasePosition.x, y, cameraBasePosition.z);
+
+        if (enableAutoCameraMoveAfterSolved && cameraClampBottom != null)
+        {
+            autoCameraMoving = true;
+            autoCameraMoveStartTime = Time.unscaledTime;
+            autoCameraMoveInvDuration = autoCameraMoveDuration > 0.0001f ? 1f / autoCameraMoveDuration : 0f;
+            autoCameraMoveFrom = cachedCameraTransform.position;
+            autoCameraMoveTo = new Vector3(cachedCameraTransform.position.x, cameraClampBottom.position.y, cachedCameraTransform.position.z);
+        }
+        else
+        {
+            float y = Mathf.Clamp(cameraBasePosition.y, cameraMinY, cameraMaxY);
+            cachedCameraTransform.position = new Vector3(cameraBasePosition.x, y, cameraBasePosition.z);
+        }
+    }
+
+    private void UpdateAutoCameraMove()
+    {
+        if (cachedCameraTransform == null)
+            return;
+
+        float t = autoCameraMoveInvDuration > 0f ? (Time.unscaledTime - autoCameraMoveStartTime) * autoCameraMoveInvDuration : 1f;
+        if (t >= 1f)
+        {
+            t = 1f;
+            autoCameraMoving = false;
+            StartStarsPhase();
+        }
+
+        Vector3 pos = Vector3.LerpUnclamped(autoCameraMoveFrom, autoCameraMoveTo, t);
+        cachedCameraTransform.position = new Vector3(cameraBasePosition.x, pos.y, cameraBasePosition.z);
+    }
+
+    private void StartStarsPhase()
+    {
+        starsPhaseActive = true;
+        starsClicked = new bool[3];
+        starsClickedCount = 0;
+
+        for (int i = 0; i < starMessageGroups.Length; i++)
+        {
+            if (starMessageGroups[i].rootObject != null)
+            {
+                starMessageGroups[i].rootObject.SetActive(false);
+            }
+        }
+
+        ResolveStarReferences();
+    }
+
+    private void ResolveStarReferences()
+    {
+        for (int i = 0; i < starNames.Length; i++)
+        {
+            if (starClickAreas[i] == null && !string.IsNullOrEmpty(starNames[i]))
+            {
+                GameObject go = GameObject.Find(starNames[i]);
+                if (go != null)
+                    starClickAreas[i] = go.transform;
+            }
+        }
+    }
+
+    private void HandleStarClicks()
+    {
+        if (Input.GetMouseButtonDown(0))
+        {
+            Vector3 worldPos = ScreenToWorld(Input.mousePosition);
+            
+            for (int i = 0; i < starClickAreas.Length; i++)
+            {
+                if (starsClicked[i] || starClickAreas[i] == null)
+                    continue;
+
+                Collider2D collider = starClickAreas[i].GetComponent<Collider2D>();
+                if (collider != null && collider.OverlapPoint(worldPos))
+                {
+                    ShowStarMessage(i);
+                    break;
+                }
+            }
+        }
+    }
+
+    private void ShowStarMessage(int index)
+    {
+        starsClicked[index] = true;
+        starsClickedCount++;
+
+        StarMessageGroup group = starMessageGroups[index];
+        if (group.rootObject != null)
+        {
+            group.rootObject.SetActive(true);
+            
+            if (group.backgroundImage != null)
+            {
+                group.backgroundImage.canvasRenderer.SetAlpha(0);
+                group.backgroundImage.CrossFadeAlpha(1f, starFadeDuration, false);
+            }
+            
+            if (group.text != null)
+            {
+                group.text.canvasRenderer.SetAlpha(0);
+                group.text.CrossFadeAlpha(1f, starFadeDuration, false);
+            }
+        }
+
+        if (starsClickedCount >= 3)
+        {
+            starsPhaseActive = false;
+            StartCoroutine(StartFinalCameraMoveAfterDelay(0.5f));
+        }
+    }
+
+    private System.Collections.IEnumerator StartFinalCameraMoveAfterDelay(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        StartFinalCameraMove();
+    }
+
+    private void StartFinalCameraMove()
+    {
+        if (!enableFinalCameraMove || cachedCameraTransform == null)
+        {
+            StartFinalMessagesPhase();
+            return;
+        }
+
+        finalCameraMoving = true;
+        finalCameraMoveStartTime = Time.unscaledTime;
+        finalCameraMoveInvDuration = finalCameraMoveDuration > 0.0001f ? 1f / finalCameraMoveDuration : 0f;
+        finalCameraMoveFrom = cachedCameraTransform.position;
+        finalCameraMoveTo = new Vector3(cachedCameraTransform.position.x, finalCameraTargetY, cachedCameraTransform.position.z);
+    }
+
+    private void UpdateFinalCameraMove()
+    {
+        if (cachedCameraTransform == null)
+            return;
+
+        float t = finalCameraMoveInvDuration > 0f ? (Time.unscaledTime - finalCameraMoveStartTime) * finalCameraMoveInvDuration : 1f;
+        if (t >= 1f)
+        {
+            t = 1f;
+            finalCameraMoving = false;
+            StartFinalMessagesPhase();
+        }
+
+        Vector3 pos = Vector3.LerpUnclamped(finalCameraMoveFrom, finalCameraMoveTo, t);
+        cachedCameraTransform.position = pos;
+    }
+
+    private void StartFinalMessagesPhase()
+    {
+        if (!enableFinalAutoMessages)
+            return;
+
+        finalMessagesPhase = true;
+        currentFinalMessageIndex = 0;
+        lastFinalMessageTime = Time.unscaledTime;
+
+        for (int i = 0; i < finalTexts.Length; i++)
+        {
+            if (finalTexts[i] != null)
+            {
+                finalTexts[i].gameObject.SetActive(false);
+            }
+        }
+    }
+
+    private void UpdateFinalMessages()
+    {
+        if (currentFinalMessageIndex >= finalTexts.Length)
+            return;
+
+        float now = Time.unscaledTime;
+        if (now - lastFinalMessageTime >= finalMessageDelay)
+        {
+            if (finalTexts[currentFinalMessageIndex] != null)
+            {
+                finalTexts[currentFinalMessageIndex].gameObject.SetActive(true);
+                finalTexts[currentFinalMessageIndex].canvasRenderer.SetAlpha(0);
+                finalTexts[currentFinalMessageIndex].CrossFadeAlpha(1f, starFadeDuration, false);
+            }
+
+            currentFinalMessageIndex++;
+            lastFinalMessageTime = now;
+        }
     }
 
     private void UpdateCameraControl()
