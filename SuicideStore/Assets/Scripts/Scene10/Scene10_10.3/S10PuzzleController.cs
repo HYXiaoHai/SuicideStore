@@ -1,8 +1,7 @@
+using DG.Tweening;
 using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
-
 public class S10PuzzleController : MonoBehaviour
 {
     [System.Serializable]
@@ -47,63 +46,71 @@ public class S10PuzzleController : MonoBehaviour
     public UnityEvent onAllPiecesPlaced;
 
     [Header("S10-puzzle-10.3 (Completion)")]
-    [SerializeField] private bool enableCompletionSequence = true;
-    [SerializeField] private bool enableGroupCompletion = true;
-    [SerializeField] private string completionGroupId = "S10-puzzle-10.3";
-    [SerializeField] private int completionGroupExpectedPieces = 5;
-    [SerializeField] private string completionGroupMasterObjectName = "P1";
-    [SerializeField] private bool autoHookOnAllPiecesPlaced = true;
-    [SerializeField] private Transform puzzleRootToMove;
+    [SerializeField] public bool enableCompletionSequence = true;
+    //[SerializeField] private bool enableGroupCompletion = true;
+    //[SerializeField] private string completionGroupId = "S10-puzzle-10.3";
+    //[SerializeField] private int completionGroupExpectedPieces = 5;
+    //[SerializeField] private string completionGroupMasterObjectName = "P1";
+    //[SerializeField] private bool autoHookOnAllPiecesPlaced = true;
+    //[SerializeField] private Transform puzzleRootToMove;
     [SerializeField] private Transform puzzleMoveTarget;
-    [SerializeField] private string puzzleMoveTargetName = "1";
-    [SerializeField] private bool moveXOnly;
-    [SerializeField] private bool alignPuzzleByAnchor = true;
-    [SerializeField] private Transform puzzleAlignAnchor;
-    [SerializeField] private string puzzleAlignAnchorName = "拼图底";
+    //[SerializeField] private string puzzleMoveTargetName = "1";
+    //[SerializeField] private bool moveXOnly;
+    //[SerializeField] private bool alignPuzzleByAnchor = true;
+    //[SerializeField] private Transform puzzleAlignAnchor;
+    //[SerializeField] private string puzzleAlignAnchorName = "拼图底";
     [SerializeField] private float puzzleMoveDuration = 0.6f;
     [SerializeField] private GameObject background2;
-    [SerializeField] private string background2Name = "背景2";
-    [SerializeField] private bool hideBackground2OnStart = true;
-    [SerializeField] private bool revealObjectOnClickAfterSolved = true;
-    [SerializeField] private GameObject clickRevealObject;
-    [SerializeField] private string clickRevealObjectName = "2";
+    //[SerializeField] private string background2Name = "背景2";
+    //[SerializeField] private bool hideBackground2OnStart = true;
+    //[SerializeField] private bool revealObjectOnClickAfterSolved = true;
+    //[SerializeField] private GameObject clickRevealObject;
+    //[SerializeField] private string clickRevealObjectName = "2";
+    public GameObject puzzleFather;           // 拼图的父物体，需要拖拽赋值
+    private bool completionAnimating = false; // 防止动画重复执行
 
     [Header("S10-puzzle-10.3 (Camera Vertical Move)")]
-    [SerializeField] private bool enableCameraVerticalMoveAfterSolved = true;
-    [SerializeField] private Transform cameraTransformOverride;
-    [SerializeField] private Transform cameraClampTop;
-    [SerializeField] private string cameraClampTopName = "bg";
-    [SerializeField] private Transform cameraClampBottom;
-    [SerializeField] private string cameraClampBottomName = "bg (1)";
-    [SerializeField] private float cameraScrollSpeed = 1.8f;
-    [SerializeField] private float cameraMiddleDragSpeed = 1.0f;
-    [SerializeField] private bool enableAutoCameraMoveAfterSolved = true;
-    [SerializeField] private float autoCameraMoveDuration = 1.0f;
+    public Transform targetCamera;
+    public bool enableCameraVerticalMoveAfterSolved = true;
+    //[SerializeField] private Transform cameraTransformOverride;
+    //[SerializeField] private Transform cameraClampTop;
+    //[SerializeField] private string cameraClampTopName = "bg";
+    //[SerializeField] private Transform cameraClampBottom;
+    //[SerializeField] private string cameraClampBottomName = "bg (1)";
+    //[SerializeField] private float cameraScrollSpeed = 1.8f;
+    //[SerializeField] private float cameraMiddleDragSpeed = 1.0f;
+    //[SerializeField] private bool enableAutoCameraMoveAfterSolved = true;
+    public float autoCameraMoveDuration = 1.0f;
+    public Transform position1;
+    public Transform position2;
+    public Transform position3;
+
 
     [System.Serializable]
     public struct StarMessageGroup
     {
-        public GameObject rootObject;
-        public UnityEngine.UI.Image backgroundImage;
-        public TMPro.TextMeshProUGUI text;
+        public CanvasGroup rootCanvas;//文字+Image显示
+        public Transform star;//交互的星星物体
     }
 
     [Header("Stars Click Sequence")]
-    [SerializeField] private Transform[] starClickAreas = new Transform[3];
-    [SerializeField] private string[] starNames = new string[3] { "Star1", "Star2", "Star3" };
+    //[SerializeField] private Transform[] starClickAreas = new Transform[3];
+    //[SerializeField] private string[] starNames = new string[3] { "Star1", "Star2", "Star3" };
     [SerializeField] private StarMessageGroup[] starMessageGroups = new StarMessageGroup[3];
     [SerializeField] private float starFadeDuration = 0.5f;
 
     [Header("Final Camera Move")]
-    [SerializeField] private bool enableFinalCameraMove = true;
-    [SerializeField] private float finalCameraTargetY = -5f;
-    [SerializeField] private float finalCameraMoveDuration = 1.0f;
+    //[SerializeField] private bool enableFinalCameraMove = true;
+    //[SerializeField] private float finalCameraTargetY = -5f;
+    //[SerializeField] private float finalCameraMoveDuration = 1.0f;
 
     [Header("Final Auto Messages")]
     [SerializeField] private bool enableFinalAutoMessages = true;
+    [SerializeField] private bool finalMessagesCompleted = false;
     [SerializeField] private TMPro.TextMeshProUGUI[] finalTexts = new TMPro.TextMeshProUGUI[3];
     [SerializeField] private float finalMessageDelay = 2.0f;
-
+    [SerializeField] private float finalMessagesCompleteDelay = 2.0f;
+    public string nextSceneName;
     private readonly Collider2D[] overlapBuffer = new Collider2D[16];
 
     private Transform[] pieceTransforms;
@@ -136,37 +143,37 @@ public class S10PuzzleController : MonoBehaviour
     private Quaternion[] frozenRotations;
     private bool othersFrozen;
 
-    private bool completionMoveActive;
-    private float completionMoveStartTime;
-    private float completionMoveInvDuration;
-    private Vector3 completionMoveFrom;
-    private Vector3 completionMoveTo;
+    //private bool completionMoveActive;
+    //private float completionMoveStartTime;
+    //private float completionMoveInvDuration;
+    //private Vector3 completionMoveFrom;
+    //private Vector3 completionMoveTo;
     private bool completionDone;
 
-    private Transform cachedCameraTransform;
-    private Vector3 cameraBasePosition;
-    private float cameraMinY;
-    private float cameraMaxY;
-    private bool cameraControlEnabled;
-    private bool cameraDragging;
-    private Vector2 cameraDragLastMouse;
-    private float cameraWorldPerPixelY;
-    private float nextBackground2ResolveTime;
-    private bool clickRevealDone;
-    private bool autoCameraMoving;
-    private float autoCameraMoveStartTime;
-    private float autoCameraMoveInvDuration;
-    private Vector3 autoCameraMoveFrom;
-    private Vector3 autoCameraMoveTo;
+    //private Transform cachedCameraTransform;
+    //private Vector3 cameraBasePosition;
+    //private float cameraMinY;
+    //private float cameraMaxY;
+    //private bool cameraControlEnabled;
+    //private bool cameraDragging;
+    //private Vector2 cameraDragLastMouse;
+    //private float cameraWorldPerPixelY;
+    //private float nextBackground2ResolveTime;
+    //private bool clickRevealDone;
+    //private bool autoCameraMoving;
+    //private float autoCameraMoveStartTime;
+    //private float autoCameraMoveInvDuration;
+    //private Vector3 autoCameraMoveFrom;
+    //private Vector3 autoCameraMoveTo;
 
     private bool[] starsClicked = new bool[3];
     private int starsClickedCount;
     private bool starsPhaseActive;
-    private bool finalCameraMoving;
-    private float finalCameraMoveStartTime;
-    private float finalCameraMoveInvDuration;
-    private Vector3 finalCameraMoveFrom;
-    private Vector3 finalCameraMoveTo;
+    //private bool finalCameraMoving;
+    //private float finalCameraMoveStartTime;
+    //private float finalCameraMoveInvDuration;
+    //private Vector3 finalCameraMoveFrom;
+    //private Vector3 finalCameraMoveTo;
     private bool finalMessagesPhase;
     private int currentFinalMessageIndex;
     private float lastFinalMessageTime;
@@ -194,12 +201,12 @@ public class S10PuzzleController : MonoBehaviour
 
     private void Start()
     {
-        if (autoHookOnAllPiecesPlaced && onAllPiecesPlaced != null)
-            onAllPiecesPlaced.AddListener(BeginCompletionSequence);
+        //if (autoHookOnAllPiecesPlaced && onAllPiecesPlaced != null)
+        //    onAllPiecesPlaced.AddListener(BeginCompletionSequence);
 
         HideAllMessagesOnStart();
 
-        ResolveSequenceReferencesIfNeeded();
+        //ResolveSequenceReferencesIfNeeded();
 
         int count = bindings != null ? bindings.Length : 0;
         pieceTransforms = new Transform[count];
@@ -337,23 +344,23 @@ public class S10PuzzleController : MonoBehaviour
         if (mainCamera == null)
             return;
 
-        if (completionMoveActive)
-        {
-            UpdateCompletionMove();
-            return;
-        }
+        //if (completionMoveActive)
+        //{
+        //    UpdateCompletionMove();
+        //    return;
+        //}
 
-        if (autoCameraMoving)
-        {
-            UpdateAutoCameraMove();
-            return;
-        }
+        //if (autoCameraMoving)
+        //{
+        //    UpdateAutoCameraMove();
+        //    return;
+        //}
 
-        if (finalCameraMoving)
-        {
-            UpdateFinalCameraMove();
-            return;
-        }
+        //if (finalCameraMoving)
+        //{
+        //    UpdateFinalCameraMove();
+        //    return;
+        //}
 
         if (starsPhaseActive)
         {
@@ -382,8 +389,8 @@ public class S10PuzzleController : MonoBehaviour
                 EndDrag();
         }
 
-        if (cameraControlEnabled)
-            UpdateCameraControl();
+        //if (cameraControlEnabled)
+        //    UpdateCameraControl();
     }
 
     private void LateUpdate()
@@ -653,184 +660,221 @@ public class S10PuzzleController : MonoBehaviour
         }
     }
 
-    private void BeginCompletionSequence()
+    public void BeginCompletionSequence()
     {
-        if (!enableCompletionSequence || completionDone)
+        //if (!enableCompletionSequence || completionDone)
+        //    return;
+
+        //if (enableGroupCompletion && !string.IsNullOrEmpty(completionGroupId))
+        //{
+        //    if (!IsGroupCompleted(completionGroupId))
+        //        NotifyGroupPiecePlaced();
+
+        //    if (!IsGroupCompleted(completionGroupId))
+        //        return;
+
+        //    if (IsGroupSequenceStarted(completionGroupId))
+        //        return;
+
+        //    groupSequenceStartedById[completionGroupId] = true;
+        //}
+
+        //ResolveSequenceReferencesIfNeeded();
+
+        //if (puzzleRootToMove == null || puzzleMoveTarget == null)
+        //{
+        //    completionDone = true;
+        //    RevealBackground2AndEnableCamera();
+        //    return;
+        //}
+
+        //completionMoveActive = true;
+        //completionMoveStartTime = Time.unscaledTime;
+        //completionMoveInvDuration = puzzleMoveDuration > 0.0001f ? 1f / puzzleMoveDuration : 0f;
+        //completionMoveFrom = puzzleRootToMove.position;
+        //Vector3 to;
+        //if (alignPuzzleByAnchor && puzzleAlignAnchor != null)
+        //{
+        //    Vector3 delta = puzzleMoveTarget.position - puzzleAlignAnchor.position;
+        //    to = completionMoveFrom + delta;
+        //}
+        //else
+        //{
+        //    to = puzzleMoveTarget.position;
+        //}
+        //bool xOnly = moveXOnly;
+        //if (!string.IsNullOrEmpty(puzzleMoveTargetName) && puzzleMoveTargetName == "1")
+        //    xOnly = false;
+        //if (puzzleMoveTarget != null && puzzleMoveTarget.name == "1")
+        //    xOnly = false;
+
+        //if (xOnly)
+        //{
+        //    to.y = completionMoveFrom.y;
+        //}
+        //to.z = completionMoveFrom.z;
+        //completionMoveTo = to;
+        if (!enableCompletionSequence || completionDone || completionAnimating)
             return;
 
-        if (enableGroupCompletion && !string.IsNullOrEmpty(completionGroupId))
+        completionAnimating = true;
+
+        //ResolveSequenceReferencesIfNeeded();
+
+        Sequence seq = DOTween.Sequence();
+
+        // 1. 移动拼图父物体
+        if (puzzleFather != null && puzzleMoveTarget != null)
         {
-            if (!IsGroupCompleted(completionGroupId))
-                NotifyGroupPiecePlaced();
-
-            if (!IsGroupCompleted(completionGroupId))
-                return;
-
-            if (IsGroupSequenceStarted(completionGroupId))
-                return;
-
-            groupSequenceStartedById[completionGroupId] = true;
+            seq.Append(puzzleFather.transform.DOMove(puzzleMoveTarget.position, puzzleMoveDuration)
+                .SetEase(Ease.InOutQuad));
+        }
+        else if (puzzleFather != null)
+        {
+            seq.Append(puzzleFather.transform.DOMoveY(puzzleFather.transform.position.y + 1f, 0.5f)
+                .SetEase(Ease.OutQuad));
+        }
+        // 2. 移动相机到 position2（使用 targetCamera）
+        if (enableCameraVerticalMoveAfterSolved && targetCamera != null && position2 != null)
+        {
+            seq.Append(targetCamera.DOMove(position2.position, autoCameraMoveDuration)
+                .SetEase(Ease.InOutQuad));
         }
 
-        ResolveSequenceReferencesIfNeeded();
-
-        if (puzzleRootToMove == null || puzzleMoveTarget == null)
+        // 3. 动画完成后，启动星星机制
+        seq.OnComplete(() =>
         {
             completionDone = true;
-            RevealBackground2AndEnableCamera();
-            return;
-        }
-
-        completionMoveActive = true;
-        completionMoveStartTime = Time.unscaledTime;
-        completionMoveInvDuration = puzzleMoveDuration > 0.0001f ? 1f / puzzleMoveDuration : 0f;
-        completionMoveFrom = puzzleRootToMove.position;
-        Vector3 to;
-        if (alignPuzzleByAnchor && puzzleAlignAnchor != null)
-        {
-            Vector3 delta = puzzleMoveTarget.position - puzzleAlignAnchor.position;
-            to = completionMoveFrom + delta;
-        }
-        else
-        {
-            to = puzzleMoveTarget.position;
-        }
-        bool xOnly = moveXOnly;
-        if (!string.IsNullOrEmpty(puzzleMoveTargetName) && puzzleMoveTargetName == "1")
-            xOnly = false;
-        if (puzzleMoveTarget != null && puzzleMoveTarget.name == "1")
-            xOnly = false;
-
-        if (xOnly)
-        {
-            to.y = completionMoveFrom.y;
-        }
-        to.z = completionMoveFrom.z;
-        completionMoveTo = to;
-    }
-
-    private void NotifyGroupPiecePlaced()
-    {
-        int bit = GetGroupPieceBit();
-        if (bit == 0)
-            return;
-
-        int mask = 0;
-        groupPlacedMaskById.TryGetValue(completionGroupId, out mask);
-        mask |= bit;
-        groupPlacedMaskById[completionGroupId] = mask;
-
-        int expected = BuildExpectedMask(completionGroupExpectedPieces);
-        if (expected != 0 && mask == expected)
-            groupCompletedById[completionGroupId] = true;
-    }
-
-    private static bool IsGroupCompleted(string groupId)
-    {
-        bool done;
-        return groupCompletedById.TryGetValue(groupId, out done) && done;
-    }
-
-    private static bool IsGroupSequenceStarted(string groupId)
-    {
-        bool started;
-        return groupSequenceStartedById.TryGetValue(groupId, out started) && started;
-    }
-
-    private int GetGroupPieceBit()
-    {
-        string n = gameObject.name;
-        if (string.IsNullOrEmpty(n))
-            return 0;
-        if (n.Length >= 2 && n[0] == 'P')
-        {
-            int d = n[n.Length - 1] - '0';
-            if (d >= 1 && d <= 30)
-                return 1 << d;
-        }
-        return 0;
-    }
-
-    private static int BuildExpectedMask(int expectedPieces)
-    {
-        int count = Mathf.Clamp(expectedPieces, 0, 30);
-        int mask = 0;
-        for (int i = 1; i <= count; i++)
-            mask |= 1 << i;
-        return mask;
-    }
-
-    private void UpdateCompletionMove()
-    {
-        float t = completionMoveInvDuration > 0f ? (Time.unscaledTime - completionMoveStartTime) * completionMoveInvDuration : 1f;
-        if (t >= 1f)
-        {
-            t = 1f;
-            completionMoveActive = false;
-            completionDone = true;
-        }
-
-        if (puzzleRootToMove != null)
-            puzzleRootToMove.position = Vector3.LerpUnclamped(completionMoveFrom, completionMoveTo, t);
-
-        if (!completionMoveActive)
-            RevealBackground2AndEnableCamera();
-    }
-
-    private void RevealBackground2AndEnableCamera()
-    {
-        if (background2 == null && !string.IsNullOrEmpty(background2Name))
-            background2 = FindGameObjectIncludingInactive(background2Name, SceneManager.GetActiveScene().GetRootGameObjects());
-
-        if (background2 != null && !background2.activeSelf)
-            background2.SetActive(true);
-
-        if (!enableCameraVerticalMoveAfterSolved || cachedCameraTransform == null)
-            return;
-
-        cameraControlEnabled = true;
-        cameraBasePosition = cachedCameraTransform.position;
-
-        if (enableAutoCameraMoveAfterSolved && cameraClampBottom != null)
-        {
-            autoCameraMoving = true;
-            autoCameraMoveStartTime = Time.unscaledTime;
-            autoCameraMoveInvDuration = autoCameraMoveDuration > 0.0001f ? 1f / autoCameraMoveDuration : 0f;
-            autoCameraMoveFrom = cachedCameraTransform.position;
-            autoCameraMoveTo = new Vector3(cachedCameraTransform.position.x, cameraClampBottom.position.y, cachedCameraTransform.position.z);
-        }
-        else
-        {
-            float y = Mathf.Clamp(cameraBasePosition.y, cameraMinY, cameraMaxY);
-            cachedCameraTransform.position = new Vector3(cameraBasePosition.x, y, cameraBasePosition.z);
-        }
-    }
-
-    private void UpdateAutoCameraMove()
-    {
-        if (cachedCameraTransform == null)
-            return;
-
-        float t = autoCameraMoveInvDuration > 0f ? (Time.unscaledTime - autoCameraMoveStartTime) * autoCameraMoveInvDuration : 1f;
-        if (t >= 1f)
-        {
-            t = 1f;
-            autoCameraMoving = false;
+            completionAnimating = false;
+            //cameraControlEnabled = false; // 星星阶段不需要手动控制相机
             StartStarsPhase();
-        }
+        });
 
-        Vector3 pos = Vector3.LerpUnclamped(autoCameraMoveFrom, autoCameraMoveTo, t);
-        cachedCameraTransform.position = new Vector3(cameraBasePosition.x, pos.y, cameraBasePosition.z);
+        seq.Play();
     }
+
+    //private void NotifyGroupPiecePlaced()
+    //{
+    //    int bit = GetGroupPieceBit();
+    //    if (bit == 0)
+    //        return;
+
+    //    int mask = 0;
+    //    //groupPlacedMaskById.TryGetValue(completionGroupId, out mask);
+    //    //mask |= bit;
+    //    //groupPlacedMaskById[completionGroupId] = mask;
+
+    //    //int expected = BuildExpectedMask(completionGroupExpectedPieces);
+    //    //if (expected != 0 && mask == expected)
+    //    //    groupCompletedById[completionGroupId] = true;
+    //}
+
+    //private static bool IsGroupCompleted(string groupId)
+    //{
+    //    bool done;
+    //    return groupCompletedById.TryGetValue(groupId, out done) && done;
+    //}
+
+    //private static bool IsGroupSequenceStarted(string groupId)
+    //{
+    //    bool started;
+    //    return groupSequenceStartedById.TryGetValue(groupId, out started) && started;
+    //}
+
+    //private int GetGroupPieceBit()
+    //{
+    //    string n = gameObject.name;
+    //    if (string.IsNullOrEmpty(n))
+    //        return 0;
+    //    if (n.Length >= 2 && n[0] == 'P')
+    //    {
+    //        int d = n[n.Length - 1] - '0';
+    //        if (d >= 1 && d <= 30)
+    //            return 1 << d;
+    //    }
+    //    return 0;
+    //}
+
+    //private static int BuildExpectedMask(int expectedPieces)
+    //{
+    //    int count = Mathf.Clamp(expectedPieces, 0, 30);
+    //    int mask = 0;
+    //    for (int i = 1; i <= count; i++)
+    //        mask |= 1 << i;
+    //    return mask;
+    //}
+
+    //private void UpdateCompletionMove()
+    //{
+    //    float t = completionMoveInvDuration > 0f ? (Time.unscaledTime - completionMoveStartTime) * completionMoveInvDuration : 1f;
+    //    if (t >= 1f)
+    //    {
+    //        t = 1f;
+    //        completionMoveActive = false;
+    //        completionDone = true;
+    //    }
+
+    //    if (puzzleRootToMove != null)
+    //        puzzleRootToMove.position = Vector3.LerpUnclamped(completionMoveFrom, completionMoveTo, t);
+
+    //    if (!completionMoveActive)
+    //        RevealBackground2AndEnableCamera();
+    //}
+
+    //private void RevealBackground2AndEnableCamera()
+    //{
+    //    if (background2 == null && !string.IsNullOrEmpty(background2Name))
+    //        background2 = FindGameObjectIncludingInactive(background2Name, SceneManager.GetActiveScene().GetRootGameObjects());
+
+    //    if (background2 != null && !background2.activeSelf)
+    //        background2.SetActive(true);
+
+    //    if (!enableCameraVerticalMoveAfterSolved || cachedCameraTransform == null)
+    //        return;
+
+    //    cameraControlEnabled = true;
+    //    cameraBasePosition = cachedCameraTransform.position;
+
+    //    if (enableAutoCameraMoveAfterSolved && cameraClampBottom != null)
+    //    {
+    //        autoCameraMoving = true;
+    //        autoCameraMoveStartTime = Time.unscaledTime;
+    //        autoCameraMoveInvDuration = autoCameraMoveDuration > 0.0001f ? 1f / autoCameraMoveDuration : 0f;
+    //        autoCameraMoveFrom = cachedCameraTransform.position;
+    //        autoCameraMoveTo = new Vector3(cachedCameraTransform.position.x, cameraClampBottom.position.y, cachedCameraTransform.position.z);
+    //    }
+    //    else
+    //    {
+    //        float y = Mathf.Clamp(cameraBasePosition.y, cameraMinY, cameraMaxY);
+    //        cachedCameraTransform.position = new Vector3(cameraBasePosition.x, y, cameraBasePosition.z);
+    //    }
+    //}
+
+    //private void UpdateAutoCameraMove()
+    //{
+    //    if (cachedCameraTransform == null)
+    //        return;
+
+    //    float t = autoCameraMoveInvDuration > 0f ? (Time.unscaledTime - autoCameraMoveStartTime) * autoCameraMoveInvDuration : 1f;
+    //    if (t >= 1f)
+    //    {
+    //        t = 1f;
+    //        autoCameraMoving = false;
+    //        StartStarsPhase();
+    //    }
+
+    //    Vector3 pos = Vector3.LerpUnclamped(autoCameraMoveFrom, autoCameraMoveTo, t);
+    //    cachedCameraTransform.position = new Vector3(cameraBasePosition.x, pos.y, cameraBasePosition.z);
+    //}
 
     private void HideAllMessagesOnStart()
     {
         for (int i = 0; i < starMessageGroups.Length; i++)
         {
-            StarMessageGroup group = starMessageGroups[i];
-            if (group.rootObject != null)
+            if (starMessageGroups[i].rootCanvas != null)
             {
-                group.rootObject.SetActive(false);
+                starMessageGroups[i].rootCanvas.alpha = 0f;
+                starMessageGroups[i].rootCanvas.gameObject.SetActive(false);
             }
         }
 
@@ -849,151 +893,232 @@ public class S10PuzzleController : MonoBehaviour
         starsClicked = new bool[3];
         starsClickedCount = 0;
 
-        ResolveStarReferences();
-    }
-
-    private void ResolveStarReferences()
-    {
-        for (int i = 0; i < starNames.Length; i++)
+        for (int i = 0; i < starMessageGroups.Length; i++)
         {
-            if (starClickAreas[i] == null && !string.IsNullOrEmpty(starNames[i]))
+            if (starMessageGroups[i].rootCanvas != null)
             {
-                GameObject go = GameObject.Find(starNames[i]);
-                if (go != null)
-                    starClickAreas[i] = go.transform;
+                starMessageGroups[i].rootCanvas.gameObject.SetActive(false);
+                starMessageGroups[i].rootCanvas.alpha = 0f;
             }
         }
+        //ResolveStarReferences();
     }
+
+    //private void ResolveStarReferences()
+    //{
+    //    for (int i = 0; i < starNames.Length; i++)
+    //    {
+    //        if (starClickAreas[i] == null && !string.IsNullOrEmpty(starNames[i]))
+    //        {
+    //            GameObject go = GameObject.Find(starNames[i]);
+    //            if (go != null)
+    //                starClickAreas[i] = go.transform;
+    //        }
+    //    }
+    //}
 
     private void HandleStarClicks()
     {
         if (Input.GetMouseButtonDown(0))
         {
-            Vector3 worldPos = ScreenToWorld(Input.mousePosition);
+            //Vector3 worldPos = ScreenToWorld(Input.mousePosition);
 
-            for (int i = 0; i < starClickAreas.Length; i++)
+            //for (int i = 0; i < starClickAreas.Length; i++)
+            //{
+            //    Debug.Log("检查点击" + starsClicked[i]);
+            //    if (starsClicked[i] || starClickAreas[i] == null)
+            //        continue;
+            //    bool hit = CheckStarClick(i, worldPos);
+
+            //    if (hit)
+            //    {
+            //        ShowStarMessage(i);
+            //        break;
+            //    }
+            //}
+            Vector2 screenPos = Input.mousePosition;
+            //// 先尝试使用 EventSystem 检测 UI 点击（如果星星是UI）
+            //if (EventSystem.current != null)
+            //{
+            //    PointerEventData pointerData = new PointerEventData(EventSystem.current);
+            //    pointerData.position = screenPos;
+            //    var results = new System.Collections.Generic.List<RaycastResult>();
+            //    EventSystem.current.RaycastAll(pointerData, results);
+            //    foreach (var result in results)
+            //    {
+            //        for (int i = 0; i < starMessageGroups.Length; i++)
+            //        {
+            //            if (starsClicked[i]) continue;
+            //            Transform star = starMessageGroups[i].star;
+            //            if (star != null && (result.gameObject.transform == star || result.gameObject.transform.IsChildOf(star)))
+            //            {
+            //                ShowStarMessage(i);
+            //                return;
+            //            }
+            //        }
+            //    }
+            //}
+
+            // 否则使用 Physics2D 检测（如果是2D物体）
+            Vector3 worldPos = ScreenToWorld(screenPos);
+            for (int i = 0; i < starMessageGroups.Length; i++)
             {
-                if (starsClicked[i] || starClickAreas[i] == null)
-                    continue;
-
-                bool hit = CheckStarClick(i, worldPos);
-
-                if (hit)
+                if (starsClicked[i]) continue;
+                Transform star = starMessageGroups[i].star;
+                if (star == null) continue;
+                Collider2D collider = star.GetComponent<Collider2D>();
+                if (collider != null && collider.OverlapPoint(worldPos))
                 {
                     ShowStarMessage(i);
-                    break;
+                    return;
                 }
             }
         }
     }
 
-    private bool CheckStarClick(int index, Vector3 worldPos)
-    {
-        Transform star = starClickAreas[index];
+    //private bool CheckStarClick(int index, Vector3 worldPos)
+    //{
+    //    Transform star = starClickAreas[index];
+    //    Debug.Log("检查点击"+star.gameObject);
+    //    Collider2D collider = star.GetComponent<Collider2D>();
+    //    if (collider != null && collider.OverlapPoint(worldPos))
+    //    {
+    //        return true;
+    //    }
 
-        Collider2D collider = star.GetComponent<Collider2D>();
-        if (collider != null && collider.OverlapPoint(worldPos))
-        {
-            return true;
-        }
+    //    Vector2 screenPos = Input.mousePosition;
+    //    RaycastHit2D[] hits = Physics2D.RaycastAll(Camera.main.ScreenToWorldPoint(screenPos), Vector2.zero);
+    //    foreach (RaycastHit2D h in hits)
+    //    {
+    //        if (h.collider != null && (h.collider.transform == star || h.collider.transform.IsChildOf(star)))
+    //        {
+    //            return true;
+    //        }
+    //    }
 
-        Vector2 screenPos = Input.mousePosition;
-        RaycastHit2D[] hits = Physics2D.RaycastAll(Camera.main.ScreenToWorldPoint(screenPos), Vector2.zero);
-        foreach (RaycastHit2D h in hits)
-        {
-            if (h.collider != null && (h.collider.transform == star || h.collider.transform.IsChildOf(star)))
-            {
-                return true;
-            }
-        }
+    //    if (EventSystem.current != null)
+    //    {
+    //        PointerEventData pointerEventData = new PointerEventData(EventSystem.current);
+    //        pointerEventData.position = Input.mousePosition;
 
-        if (EventSystem.current != null)
-        {
-            PointerEventData pointerEventData = new PointerEventData(EventSystem.current);
-            pointerEventData.position = Input.mousePosition;
+    //        System.Collections.Generic.List<RaycastResult> results = new System.Collections.Generic.List<RaycastResult>();
+    //        EventSystem.current.RaycastAll(pointerEventData, results);
 
-            System.Collections.Generic.List<RaycastResult> results = new System.Collections.Generic.List<RaycastResult>();
-            EventSystem.current.RaycastAll(pointerEventData, results);
+    //        foreach (RaycastResult result in results)
+    //        {
+    //            if (result.gameObject.transform == star || result.gameObject.transform.IsChildOf(star))
+    //            {
+    //                return true;
+    //            }
+    //        }
+    //    }
 
-            foreach (RaycastResult result in results)
-            {
-                if (result.gameObject.transform == star || result.gameObject.transform.IsChildOf(star))
-                {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
+    //    return false;
+    //}
 
     private void ShowStarMessage(int index)
     {
+        if (starsClicked[index]) return;
         starsClicked[index] = true;
         starsClickedCount++;
 
         StarMessageGroup group = starMessageGroups[index];
-        if (group.rootObject != null)
+        //if (group.rootObject != null)
+        //{
+        //    group.rootObject.SetActive(true);
+
+        //    if (group.backgroundImage != null)
+        //    {
+        //        group.backgroundImage.canvasRenderer.SetAlpha(0);
+        //        group.backgroundImage.CrossFadeAlpha(1f, starFadeDuration, false);
+        //    }
+
+        //    if (group.text != null)
+        //    {
+        //        group.text.canvasRenderer.SetAlpha(0);
+        //        group.text.CrossFadeAlpha(1f, starFadeDuration, false);
+        //    }
+        //}
+        if (group.rootCanvas != null)
         {
-            group.rootObject.SetActive(true);
-            
-            if (group.backgroundImage != null)
-            {
-                group.backgroundImage.canvasRenderer.SetAlpha(0);
-                group.backgroundImage.CrossFadeAlpha(1f, starFadeDuration, false);
-            }
-            
-            if (group.text != null)
-            {
-                group.text.canvasRenderer.SetAlpha(0);
-                group.text.CrossFadeAlpha(1f, starFadeDuration, false);
-            }
+            group.rootCanvas.gameObject.SetActive(true);
+            group.rootCanvas.alpha = 0f;
+            group.rootCanvas.DOFade(1f, starFadeDuration).SetEase(Ease.OutQuad);
         }
 
+
+        //if (starsClickedCount >= 3)
+        //{
+        //    starsPhaseActive = false;
+        //    if (targetCamera != null && position3 != null)
+        //    {
+        //        //延迟1秒后移动相机
+        //        DOVirtual.DelayedCall(1f, () =>
+        //        {
+        //            targetCamera.DOMove(position3.position, 1.0f).SetEase(Ease.InOutQuad)
+        //                .OnComplete(() => StartFinalMessagesPhase());
+        //        });
+        //    }
+        //    else
+        //    {
+        //        DOVirtual.DelayedCall(1f, () => StartFinalMessagesPhase());
+        //    }
+        //}
         if (starsClickedCount >= 3)
         {
             starsPhaseActive = false;
-            StartCoroutine(StartFinalCameraMoveAfterDelay(0.5f));
+            if (targetCamera != null && position3 != null)
+            {
+                DOVirtual.DelayedCall(1f, () =>
+                {
+                    targetCamera.DOMove(position3.position, 1.0f).SetEase(Ease.InOutQuad)
+                        .OnComplete(() => StartFinalMessagesPhase());
+                });
+            }
+            else
+            {
+                DOVirtual.DelayedCall(1f, () => StartFinalMessagesPhase());
+            }
         }
     }
 
-    private System.Collections.IEnumerator StartFinalCameraMoveAfterDelay(float delay)
-    {
-        yield return new WaitForSeconds(delay);
-        StartFinalCameraMove();
-    }
+    //private System.Collections.IEnumerator StartFinalCameraMoveAfterDelay(float delay)
+    //{
+    //    yield return new WaitForSeconds(delay);
+    //    StartFinalCameraMove();
+    //}
 
-    private void StartFinalCameraMove()
-    {
-        if (!enableFinalCameraMove || cachedCameraTransform == null)
-        {
-            StartFinalMessagesPhase();
-            return;
-        }
+    //private void StartFinalCameraMove()
+    //{
+    //    if (!enableFinalCameraMove || cachedCameraTransform == null)
+    //    {
+    //        StartFinalMessagesPhase();
+    //        return;
+    //    }
 
-        finalCameraMoving = true;
-        finalCameraMoveStartTime = Time.unscaledTime;
-        finalCameraMoveInvDuration = finalCameraMoveDuration > 0.0001f ? 1f / finalCameraMoveDuration : 0f;
-        finalCameraMoveFrom = cachedCameraTransform.position;
-        finalCameraMoveTo = new Vector3(cachedCameraTransform.position.x, finalCameraTargetY, cachedCameraTransform.position.z);
-    }
+    //    finalCameraMoving = true;
+    //    finalCameraMoveStartTime = Time.unscaledTime;
+    //    finalCameraMoveInvDuration = finalCameraMoveDuration > 0.0001f ? 1f / finalCameraMoveDuration : 0f;
+    //    finalCameraMoveFrom = cachedCameraTransform.position;
+    //    finalCameraMoveTo = new Vector3(cachedCameraTransform.position.x, finalCameraTargetY, cachedCameraTransform.position.z);
+    //}
 
-    private void UpdateFinalCameraMove()
-    {
-        if (cachedCameraTransform == null)
-            return;
+    //private void UpdateFinalCameraMove()
+    //{
+    //    if (cachedCameraTransform == null)
+    //        return;
 
-        float t = finalCameraMoveInvDuration > 0f ? (Time.unscaledTime - finalCameraMoveStartTime) * finalCameraMoveInvDuration : 1f;
-        if (t >= 1f)
-        {
-            t = 1f;
-            finalCameraMoving = false;
-            StartFinalMessagesPhase();
-        }
+    //    float t = finalCameraMoveInvDuration > 0f ? (Time.unscaledTime - finalCameraMoveStartTime) * finalCameraMoveInvDuration : 1f;
+    //    if (t >= 1f)
+    //    {
+    //        t = 1f;
+    //        finalCameraMoving = false;
+    //        StartFinalMessagesPhase();
+    //    }
 
-        Vector3 pos = Vector3.LerpUnclamped(finalCameraMoveFrom, finalCameraMoveTo, t);
-        cachedCameraTransform.position = pos;
-    }
+    //    Vector3 pos = Vector3.LerpUnclamped(finalCameraMoveFrom, finalCameraMoveTo, t);
+    //    cachedCameraTransform.position = pos;
+    //}
 
     private void StartFinalMessagesPhase()
     {
@@ -1003,6 +1128,7 @@ public class S10PuzzleController : MonoBehaviour
         finalMessagesPhase = true;
         currentFinalMessageIndex = 0;
         lastFinalMessageTime = Time.unscaledTime;
+        finalMessagesCompleted = false;      // 新增标志
 
         for (int i = 0; i < finalTexts.Length; i++)
         {
@@ -1016,7 +1142,20 @@ public class S10PuzzleController : MonoBehaviour
     private void UpdateFinalMessages()
     {
         if (currentFinalMessageIndex >= finalTexts.Length)
+        {
+            // 所有文案已经显示完毕，且尚未触发完成事件
+            if (!finalMessagesCompleted)
+            {
+                finalMessagesCompleted = true;
+                finalMessagesPhase = false;   
+  
+                DOVirtual.DelayedCall(finalMessagesCompleteDelay, () =>
+                {
+                    LoadNextScene();
+                });
+            }
             return;
+        }
 
         float now = Time.unscaledTime;
         if (now - lastFinalMessageTime >= finalMessageDelay)
@@ -1027,269 +1166,272 @@ public class S10PuzzleController : MonoBehaviour
                 finalTexts[currentFinalMessageIndex].canvasRenderer.SetAlpha(0);
                 finalTexts[currentFinalMessageIndex].CrossFadeAlpha(1f, starFadeDuration, false);
             }
-
             currentFinalMessageIndex++;
             lastFinalMessageTime = now;
         }
     }
 
-    private void UpdateCameraControl()
+    public void LoadNextScene()
     {
-        if (cachedCameraTransform == null)
-            return;
-
-        EnsureBackground2Visible();
-        TryRevealObjectOnClick();
-
-        float dy = 0f;
-
-        Vector2 scroll = Input.mouseScrollDelta;
-        if (scroll.y != 0f)
-            dy += -scroll.y * cameraScrollSpeed;
-
-        if (Input.GetMouseButtonDown(2))
-        {
-            cameraDragging = true;
-            cameraDragLastMouse = Input.mousePosition;
-        }
-        else if (Input.GetMouseButtonUp(2))
-        {
-            cameraDragging = false;
-        }
-
-        if (cameraDragging && Input.GetMouseButton(2))
-        {
-            Vector2 now = Input.mousePosition;
-            float pixelDeltaY = now.y - cameraDragLastMouse.y;
-            cameraDragLastMouse = now;
-            dy += -pixelDeltaY * cameraWorldPerPixelY * cameraMiddleDragSpeed;
-        }
-
-        if (dy == 0f)
-            return;
-
-        Vector3 pos = cachedCameraTransform.position;
-        float newY = Mathf.Clamp(pos.y + dy, cameraMinY, cameraMaxY);
-        cachedCameraTransform.position = new Vector3(cameraBasePosition.x, newY, cameraBasePosition.z);
+        SceneManager.LoadScene(nextSceneName);
     }
+    //private void UpdateCameraControl()
+    //{
+    //    if (cachedCameraTransform == null)
+    //        return;
 
-    private void EnsureBackground2Visible()
-    {
-        if (background2 == null && !string.IsNullOrEmpty(background2Name))
-        {
-            float now = Time.unscaledTime;
-            if (now >= nextBackground2ResolveTime)
-            {
-                background2 = FindGameObjectIncludingInactive(background2Name, SceneManager.GetActiveScene().GetRootGameObjects());
-                nextBackground2ResolveTime = now + 0.5f;
-            }
-        }
+    //    //EnsureBackground2Visible();
+    //    TryRevealObjectOnClick();
 
-        if (background2 != null && !background2.activeSelf)
-            background2.SetActive(true);
-    }
+    //    float dy = 0f;
 
-    private void TryRevealObjectOnClick()
-    {
-        if (!revealObjectOnClickAfterSolved || clickRevealDone)
-            return;
+    //    Vector2 scroll = Input.mouseScrollDelta;
+    //    if (scroll.y != 0f)
+    //        dy += -scroll.y * cameraScrollSpeed;
 
-        bool clicked = false;
-        if (Input.touchCount > 0)
-        {
-            Touch t = Input.GetTouch(0);
-            if (t.phase == TouchPhase.Began)
-                clicked = true;
-        }
-        else if (Input.GetMouseButtonDown(0))
-        {
-            clicked = true;
-        }
+    //    if (Input.GetMouseButtonDown(2))
+    //    {
+    //        cameraDragging = true;
+    //        cameraDragLastMouse = Input.mousePosition;
+    //    }
+    //    else if (Input.GetMouseButtonUp(2))
+    //    {
+    //        cameraDragging = false;
+    //    }
 
-        if (!clicked)
-            return;
+    //    if (cameraDragging && Input.GetMouseButton(2))
+    //    {
+    //        Vector2 now = Input.mousePosition;
+    //        float pixelDeltaY = now.y - cameraDragLastMouse.y;
+    //        cameraDragLastMouse = now;
+    //        dy += -pixelDeltaY * cameraWorldPerPixelY * cameraMiddleDragSpeed;
+    //    }
 
-        if (clickRevealObject == null && !string.IsNullOrEmpty(clickRevealObjectName))
-            clickRevealObject = FindGameObjectIncludingInactive(clickRevealObjectName, SceneManager.GetActiveScene().GetRootGameObjects());
+    //    if (dy == 0f)
+    //        return;
 
-        if (clickRevealObject != null && !clickRevealObject.activeSelf)
-            clickRevealObject.SetActive(true);
+    //    Vector3 pos = cachedCameraTransform.position;
+    //    float newY = Mathf.Clamp(pos.y + dy, cameraMinY, cameraMaxY);
+    //    cachedCameraTransform.position = new Vector3(cameraBasePosition.x, newY, cameraBasePosition.z);
+    //}
 
-        clickRevealDone = true;
-    }
+    //private void EnsureBackground2Visible()
+    //{
+    //    if (background2 == null )
+    //    {
+    //        float now = Time.unscaledTime;
+    //        if (now >= nextBackground2ResolveTime)
+    //        {
+    //            background2 = FindGameObjectIncludingInactive(background2Name, SceneManager.GetActiveScene().GetRootGameObjects());
+    //            nextBackground2ResolveTime = now + 0.5f;
+    //        }
+    //    }
 
-    private void ResolveSequenceReferencesIfNeeded()
-    {
-        if (!enableCompletionSequence)
-            return;
+    //    if (background2 != null && !background2.activeSelf)
+    //        background2.SetActive(true);
+    //}
 
-        GameObject[] roots = SceneManager.GetActiveScene().GetRootGameObjects();
+    //private void TryRevealObjectOnClick()
+    //{
+    //    //if (!revealObjectOnClickAfterSolved || clickRevealDone)
+    //    //    return;
 
-        if (puzzleRootToMove == null)
-        {
-            Transform parent = transform.parent;
-            if (parent != null && parent.name == "puzzle")
-            {
-                puzzleRootToMove = parent;
-            }
-            else
-            {
-                GameObject puzzle = FindGameObjectIncludingInactive("puzzle", roots);
-                puzzleRootToMove = puzzle != null ? puzzle.transform : transform;
-            }
-        }
+    //    bool clicked = false;
+    //    if (Input.touchCount > 0)
+    //    {
+    //        Touch t = Input.GetTouch(0);
+    //        if (t.phase == TouchPhase.Began)
+    //            clicked = true;
+    //    }
+    //    else if (Input.GetMouseButtonDown(0))
+    //    {
+    //        clicked = true;
+    //    }
 
-        if (puzzleMoveTarget == null && !string.IsNullOrEmpty(puzzleMoveTargetName))
-        {
-            GameObject t = GameObject.Find(puzzleMoveTargetName);
-            if (t != null)
-                puzzleMoveTarget = t.transform;
-            else
-            {
-                GameObject inactive = FindGameObjectIncludingInactive(puzzleMoveTargetName, roots);
-                if (inactive != null)
-                    puzzleMoveTarget = inactive.transform;
-            }
-        }
+    //    if (!clicked)
+    //        return;
 
-        if (puzzleAlignAnchor == null && !string.IsNullOrEmpty(puzzleAlignAnchorName))
-        {
-            if (puzzleRootToMove != null)
-                puzzleAlignAnchor = FindTransformIncludingInactive(puzzleRootToMove, puzzleAlignAnchorName);
+    //    //if (clickRevealObject == null && !string.IsNullOrEmpty(clickRevealObjectName))
+    //    //    clickRevealObject = FindGameObjectIncludingInactive(clickRevealObjectName, SceneManager.GetActiveScene().GetRootGameObjects());
 
-            if (puzzleAlignAnchor == null)
-            {
-                GameObject go = FindGameObjectIncludingInactive(puzzleAlignAnchorName, roots);
-                if (go != null)
-                    puzzleAlignAnchor = go.transform;
-            }
-        }
+    //    //if (clickRevealObject != null && !clickRevealObject.activeSelf)
+    //    //    clickRevealObject.SetActive(true);
 
-        if (background2 == null && !string.IsNullOrEmpty(background2Name))
-            background2 = FindGameObjectIncludingInactive(background2Name, roots);
+    //    clickRevealDone = true;
+    //}
 
-        if (hideBackground2OnStart && background2 != null && background2.activeSelf)
-            background2.SetActive(false);
+    //private void ResolveSequenceReferencesIfNeeded()
+    //{
+    //    if (!enableCompletionSequence)
+    //        return;
 
-        if (clickRevealObject == null && !string.IsNullOrEmpty(clickRevealObjectName))
-            clickRevealObject = FindGameObjectIncludingInactive(clickRevealObjectName, roots);
+        //GameObject[] roots = SceneManager.GetActiveScene().GetRootGameObjects();
 
-        if (cachedCameraTransform == null)
-        {
-            cachedCameraTransform = cameraTransformOverride != null ? cameraTransformOverride : (mainCamera != null ? mainCamera.transform : null);
-            if (cachedCameraTransform != null)
-                cameraBasePosition = cachedCameraTransform.position;
-        }
+        //if (puzzleRootToMove == null)
+        //{
+        //    Transform parent = transform.parent;
+        //    if (parent != null && parent.name == "puzzle")
+        //    {
+        //        puzzleRootToMove = parent;
+        //    }
+        //    else
+        //    {
+        //        GameObject puzzle = FindGameObjectIncludingInactive("puzzle", roots);
+        //        puzzleRootToMove = puzzle != null ? puzzle.transform : transform;
+        //    }
+        //}
 
-        if (cameraClampTop == null && !string.IsNullOrEmpty(cameraClampTopName))
-        {
-            GameObject go = GameObject.Find(cameraClampTopName);
-            if (go != null)
-                cameraClampTop = go.transform;
-            else
-            {
-                GameObject inactive = FindGameObjectIncludingInactive(cameraClampTopName, roots);
-                if (inactive != null)
-                    cameraClampTop = inactive.transform;
-            }
-        }
+        //if (puzzleMoveTarget == null && !string.IsNullOrEmpty(puzzleMoveTargetName))
+        //{
+        //    GameObject t = GameObject.Find(puzzleMoveTargetName);
+        //    if (t != null)
+        //        puzzleMoveTarget = t.transform;
+        //    else
+        //    {
+        //        GameObject inactive = FindGameObjectIncludingInactive(puzzleMoveTargetName, roots);
+        //        if (inactive != null)
+        //            puzzleMoveTarget = inactive.transform;
+        //    }
+        //}
 
-        if (cameraClampBottom == null && !string.IsNullOrEmpty(cameraClampBottomName))
-        {
-            GameObject go = GameObject.Find(cameraClampBottomName);
-            if (go != null)
-                cameraClampBottom = go.transform;
-            else
-            {
-                GameObject inactive = FindGameObjectIncludingInactive(cameraClampBottomName, roots);
-                if (inactive != null)
-                    cameraClampBottom = inactive.transform;
-            }
-        }
+        //if (puzzleAlignAnchor == null && !string.IsNullOrEmpty(puzzleAlignAnchorName))
+        //{
+        //    if (puzzleRootToMove != null)
+        //        puzzleAlignAnchor = FindTransformIncludingInactive(puzzleRootToMove, puzzleAlignAnchorName);
 
-        if (cameraClampTop != null && cameraClampBottom != null)
-        {
-            float yA = cameraClampTop.position.y;
-            float yB = cameraClampBottom.position.y;
-            cameraMinY = Mathf.Min(yA, yB);
-            cameraMaxY = Mathf.Max(yA, yB);
-        }
-        else if (cachedCameraTransform != null)
-        {
-            cameraMinY = cachedCameraTransform.position.y;
-            cameraMaxY = cachedCameraTransform.position.y;
-        }
+        //    if (puzzleAlignAnchor == null)
+        //    {
+        //        GameObject go = FindGameObjectIncludingInactive(puzzleAlignAnchorName, roots);
+        //        if (go != null)
+        //            puzzleAlignAnchor = go.transform;
+        //    }
+        //}
 
-        if (mainCamera != null && mainCamera.orthographic)
-            cameraWorldPerPixelY = (mainCamera.orthographicSize * 2f) / Mathf.Max(1, Screen.height);
-        else
-            cameraWorldPerPixelY = 0.01f;
-    }
+        //if (background2 == null && !string.IsNullOrEmpty(background2Name))
+        //    background2 = FindGameObjectIncludingInactive(background2Name, roots);
 
-    private static Transform FindTransformIncludingInactive(Transform root, string name)
-    {
-        if (root == null || string.IsNullOrEmpty(name))
-            return null;
+        //if (hideBackground2OnStart && background2 != null && background2.activeSelf)
+        //    background2.SetActive(false);
 
-        if (root.name == name)
-            return root;
+        //if (clickRevealObject == null && !string.IsNullOrEmpty(clickRevealObjectName))
+        //    clickRevealObject = FindGameObjectIncludingInactive(clickRevealObjectName, roots);
 
-        sceneTraversalStack.Clear();
-        sceneTraversalStack.Add(root);
+        //if (cachedCameraTransform == null)
+        //{
+        //    cachedCameraTransform = cameraTransformOverride != null ? cameraTransformOverride : (mainCamera != null ? mainCamera.transform : null);
+        //    if (cachedCameraTransform != null)
+        //        cameraBasePosition = cachedCameraTransform.position;
+        //}
 
-        while (sceneTraversalStack.Count > 0)
-        {
-            int last = sceneTraversalStack.Count - 1;
-            Transform t = sceneTraversalStack[last];
-            sceneTraversalStack.RemoveAt(last);
-            if (t == null)
-                continue;
+        //if (cameraClampTop == null && !string.IsNullOrEmpty(cameraClampTopName))
+        //{
+        //    GameObject go = GameObject.Find(cameraClampTopName);
+        //    if (go != null)
+        //        cameraClampTop = go.transform;
+        //    else
+        //    {
+        //        GameObject inactive = FindGameObjectIncludingInactive(cameraClampTopName, roots);
+        //        if (inactive != null)
+        //            cameraClampTop = inactive.transform;
+        //    }
+        //}
 
-            if (t.name == name)
-                return t;
+        //if (cameraClampBottom == null && !string.IsNullOrEmpty(cameraClampBottomName))
+        //{
+        //    GameObject go = GameObject.Find(cameraClampBottomName);
+        //    if (go != null)
+        //        cameraClampBottom = go.transform;
+        //    else
+        //    {
+        //        GameObject inactive = FindGameObjectIncludingInactive(cameraClampBottomName, roots);
+        //        if (inactive != null)
+        //            cameraClampBottom = inactive.transform;
+        //    }
+        //}
 
-            int childCount = t.childCount;
-            for (int i = 0; i < childCount; i++)
-                sceneTraversalStack.Add(t.GetChild(i));
-        }
+        //if (cameraClampTop != null && cameraClampBottom != null)
+        //{
+        //    float yA = cameraClampTop.position.y;
+        //    float yB = cameraClampBottom.position.y;
+        //    cameraMinY = Mathf.Min(yA, yB);
+        //    cameraMaxY = Mathf.Max(yA, yB);
+        //}
+        //else if (cachedCameraTransform != null)
+        //{
+        //    cameraMinY = cachedCameraTransform.position.y;
+        //    cameraMaxY = cachedCameraTransform.position.y;
+        //}
 
-        return null;
-    }
+        //if (mainCamera != null && mainCamera.orthographic)
+        //    cameraWorldPerPixelY = (mainCamera.orthographicSize * 2f) / Mathf.Max(1, Screen.height);
+        //else
+        //    cameraWorldPerPixelY = 0.01f;
+    //}
 
-    private static GameObject FindGameObjectIncludingInactive(string name, GameObject[] roots)
-    {
-        if (string.IsNullOrEmpty(name) || roots == null)
-            return null;
+    //private static Transform FindTransformIncludingInactive(Transform root, string name)
+    //{
+    //    if (root == null || string.IsNullOrEmpty(name))
+    //        return null;
 
-        sceneTraversalStack.Clear();
+    //    if (root.name == name)
+    //        return root;
 
-        for (int i = 0; i < roots.Length; i++)
-        {
-            GameObject root = roots[i];
-            if (root == null)
-                continue;
-            if (root.name == name)
-                return root;
-            sceneTraversalStack.Add(root.transform);
-        }
+    //    sceneTraversalStack.Clear();
+    //    sceneTraversalStack.Add(root);
 
-        while (sceneTraversalStack.Count > 0)
-        {
-            int last = sceneTraversalStack.Count - 1;
-            Transform t = sceneTraversalStack[last];
-            sceneTraversalStack.RemoveAt(last);
-            if (t == null)
-                continue;
-            if (t.name == name)
-                return t.gameObject;
+    //    while (sceneTraversalStack.Count > 0)
+    //    {
+    //        int last = sceneTraversalStack.Count - 1;
+    //        Transform t = sceneTraversalStack[last];
+    //        sceneTraversalStack.RemoveAt(last);
+    //        if (t == null)
+    //            continue;
 
-            int childCount = t.childCount;
-            for (int i = 0; i < childCount; i++)
-                sceneTraversalStack.Add(t.GetChild(i));
-        }
+    //        if (t.name == name)
+    //            return t;
 
-        return null;
-    }
+    //        int childCount = t.childCount;
+    //        for (int i = 0; i < childCount; i++)
+    //            sceneTraversalStack.Add(t.GetChild(i));
+    //    }
+
+    //    return null;
+    //}
+
+    //private static GameObject FindGameObjectIncludingInactive(string name, GameObject[] roots)
+    //{
+    //    if (string.IsNullOrEmpty(name) || roots == null)
+    //        return null;
+
+    //    sceneTraversalStack.Clear();
+
+    //    for (int i = 0; i < roots.Length; i++)
+    //    {
+    //        GameObject root = roots[i];
+    //        if (root == null)
+    //            continue;
+    //        if (root.name == name)
+    //            return root;
+    //        sceneTraversalStack.Add(root.transform);
+    //    }
+
+    //    while (sceneTraversalStack.Count > 0)
+    //    {
+    //        int last = sceneTraversalStack.Count - 1;
+    //        Transform t = sceneTraversalStack[last];
+    //        sceneTraversalStack.RemoveAt(last);
+    //        if (t == null)
+    //            continue;
+    //        if (t.name == name)
+    //            return t.gameObject;
+
+    //        int childCount = t.childCount;
+    //        for (int i = 0; i < childCount; i++)
+    //            sceneTraversalStack.Add(t.GetChild(i));
+    //    }
+
+    //    return null;
+    //}
 
     private int IndexOfCollider(Collider2D collider)
     {
