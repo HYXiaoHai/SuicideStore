@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 
 public class S10PuzzleController : MonoBehaviour
@@ -195,6 +196,8 @@ public class S10PuzzleController : MonoBehaviour
     {
         if (autoHookOnAllPiecesPlaced && onAllPiecesPlaced != null)
             onAllPiecesPlaced.AddListener(BeginCompletionSequence);
+
+        HideAllMessagesOnStart();
 
         ResolveSequenceReferencesIfNeeded();
 
@@ -820,19 +823,31 @@ public class S10PuzzleController : MonoBehaviour
         cachedCameraTransform.position = new Vector3(cameraBasePosition.x, pos.y, cameraBasePosition.z);
     }
 
+    private void HideAllMessagesOnStart()
+    {
+        for (int i = 0; i < starMessageGroups.Length; i++)
+        {
+            StarMessageGroup group = starMessageGroups[i];
+            if (group.rootObject != null)
+            {
+                group.rootObject.SetActive(false);
+            }
+        }
+
+        for (int i = 0; i < finalTexts.Length; i++)
+        {
+            if (finalTexts[i] != null)
+            {
+                finalTexts[i].gameObject.SetActive(false);
+            }
+        }
+    }
+
     private void StartStarsPhase()
     {
         starsPhaseActive = true;
         starsClicked = new bool[3];
         starsClickedCount = 0;
-
-        for (int i = 0; i < starMessageGroups.Length; i++)
-        {
-            if (starMessageGroups[i].rootObject != null)
-            {
-                starMessageGroups[i].rootObject.SetActive(false);
-            }
-        }
 
         ResolveStarReferences();
     }
@@ -855,20 +870,61 @@ public class S10PuzzleController : MonoBehaviour
         if (Input.GetMouseButtonDown(0))
         {
             Vector3 worldPos = ScreenToWorld(Input.mousePosition);
-            
+
             for (int i = 0; i < starClickAreas.Length; i++)
             {
                 if (starsClicked[i] || starClickAreas[i] == null)
                     continue;
 
-                Collider2D collider = starClickAreas[i].GetComponent<Collider2D>();
-                if (collider != null && collider.OverlapPoint(worldPos))
+                bool hit = CheckStarClick(i, worldPos);
+
+                if (hit)
                 {
                     ShowStarMessage(i);
                     break;
                 }
             }
         }
+    }
+
+    private bool CheckStarClick(int index, Vector3 worldPos)
+    {
+        Transform star = starClickAreas[index];
+
+        Collider2D collider = star.GetComponent<Collider2D>();
+        if (collider != null && collider.OverlapPoint(worldPos))
+        {
+            return true;
+        }
+
+        Vector2 screenPos = Input.mousePosition;
+        RaycastHit2D[] hits = Physics2D.RaycastAll(Camera.main.ScreenToWorldPoint(screenPos), Vector2.zero);
+        foreach (RaycastHit2D h in hits)
+        {
+            if (h.collider != null && (h.collider.transform == star || h.collider.transform.IsChildOf(star)))
+            {
+                return true;
+            }
+        }
+
+        if (EventSystem.current != null)
+        {
+            PointerEventData pointerEventData = new PointerEventData(EventSystem.current);
+            pointerEventData.position = Input.mousePosition;
+
+            System.Collections.Generic.List<RaycastResult> results = new System.Collections.Generic.List<RaycastResult>();
+            EventSystem.current.RaycastAll(pointerEventData, results);
+
+            foreach (RaycastResult result in results)
+            {
+                if (result.gameObject.transform == star || result.gameObject.transform.IsChildOf(star))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     private void ShowStarMessage(int index)
