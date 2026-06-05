@@ -90,17 +90,18 @@ public class MenuController : MonoBehaviour
             menuPanel.blocksRaycasts = false;
             menuPanel.gameObject.SetActive(false);
 
-            // 显示并淡入存档面板
-            archivePanel.gameObject.SetActive(true);
-            archivePanel.alpha = 0f;
-            archivePanel.interactable = false;
-            archivePanel.blocksRaycasts = false;
-            archivePanel.DOFade(1f, 0.3f).SetUpdate(true).OnComplete(() =>
-            {
-                archivePanel.interactable = true;
-                archivePanel.blocksRaycasts = true;
-                isAnimating = false;
-            });
+           
+        });
+        // 显示并淡入存档面板
+        archivePanel.gameObject.SetActive(true);
+        archivePanel.alpha = 0f;
+        archivePanel.interactable = false;
+        archivePanel.blocksRaycasts = false;
+        archivePanel.DOFade(1f, 0.3f).SetUpdate(true).OnComplete(() =>
+        {
+            archivePanel.interactable = true;
+            archivePanel.blocksRaycasts = true;
+            isAnimating = false;
         });
     }
 
@@ -116,18 +117,17 @@ public class MenuController : MonoBehaviour
             archivePanel.interactable = false;
             archivePanel.blocksRaycasts = false;
             archivePanel.gameObject.SetActive(false);
-
-            // 显示并淡入主菜单
-            menuPanel.gameObject.SetActive(true);
-            menuPanel.alpha = 0f;
-            menuPanel.interactable = false;
-            menuPanel.blocksRaycasts = false;
-            menuPanel.DOFade(1f, 0.3f).SetUpdate(true).OnComplete(() =>
-            {
-                menuPanel.interactable = true;
-                menuPanel.blocksRaycasts = true;
-                isAnimating = false;
-            });
+        });
+        // 显示并淡入主菜单
+        menuPanel.gameObject.SetActive(true);
+        menuPanel.alpha = 0f;
+        menuPanel.interactable = false;
+        menuPanel.blocksRaycasts = false;
+        menuPanel.DOFade(1f, 0.3f).SetUpdate(true).OnComplete(() =>
+        {
+            menuPanel.interactable = true;
+            menuPanel.blocksRaycasts = true;
+            isAnimating = false;
         });
     }
 

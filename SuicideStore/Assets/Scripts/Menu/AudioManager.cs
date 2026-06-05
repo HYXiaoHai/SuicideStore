@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using DG.Tweening;
 
 public class AudioManager : MonoBehaviour
 {
@@ -11,6 +12,7 @@ public class AudioManager : MonoBehaviour
     public AudioSource bgmSource;
     public float defaultFadeDuration = 1f;
     public List<SceneBGMEntry> sceneBGMList;
+    public AudioClip CurrentBGMClip => currentBGMClip;
 
     [Header("音效设置")]
     public GameObject audioSourcePrefab;
@@ -139,6 +141,43 @@ public class AudioManager : MonoBehaviour
     }
 
     // ===================== BGM 原有方法 =====================
+    // 根据场景名获取配置的 BGM（用于提前判断）
+    public AudioClip GetSceneBGM(string sceneName)
+    {
+        if (sceneBGMDict.TryGetValue(sceneName, out AudioClip clip))
+            return clip;
+        return null;
+    }
+    // 淡出当前 BGM，完成后回调（使用 DOTween）
+    public void FadeOutCurrentBGM(float fadeDuration, System.Action onComplete = null)
+    {
+        if (bgmFadeRoutine != null)
+            StopCoroutine(bgmFadeRoutine); // 如有旧协程，停止（可选）
+
+        // 停止当前可能的 DO 动画
+        bgmSource.DOKill();
+
+        // 使用 DOTween 淡出
+        bgmSource.DOFade(0f, fadeDuration)
+            .SetEase(Ease.Linear)
+            .OnComplete(() =>
+            {
+                bgmSource.Stop();
+                currentBGMClip = null;
+                onComplete?.Invoke();
+            });
+    }
+    // 可选：淡入新的 BGM（如果单独需要，也可直接使用 PlayBGM）
+    public void FadeInBGM(AudioClip newClip, float fadeDuration)
+    {
+        if (newClip == null) return;
+        bgmSource.Stop();
+        bgmSource.clip = newClip;
+        bgmSource.volume = 0f;
+        bgmSource.Play();
+        bgmSource.DOFade(GetFinalBGMVolumeForFadeIn(), fadeDuration).SetEase(Ease.Linear);
+        currentBGMClip = newClip;
+    }
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         PlayBGMForScene(scene.name, defaultFadeDuration);
