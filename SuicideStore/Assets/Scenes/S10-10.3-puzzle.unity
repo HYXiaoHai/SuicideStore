@@ -826,7 +826,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &193710621
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1066,6 +1066,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   settingCanvasGroup: {fileID: 932016351}
+  canvas: {fileID: 0}
   settingPanel: {fileID: 105960637}
   continueGameButton: {fileID: 935185631}
   musicSettingButton: {fileID: 1336924262}
@@ -4328,7 +4329,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1127802283
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4508,7 +4509,7 @@ Transform:
   m_GameObject: {fileID: 1127802282}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -2.4703739, y: -0.10648887, z: 4.282727}
+  m_LocalPosition: {x: -2.4703739, y: -31.4, z: 4.282727}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
