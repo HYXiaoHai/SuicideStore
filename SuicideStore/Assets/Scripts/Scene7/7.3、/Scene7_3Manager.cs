@@ -46,6 +46,10 @@ public class Scene7_3Manager : MonoBehaviour
     private bool isDrag = false;
     void Start()
     {
+        // 转场淡入
+        if (TransitionManage.Instance != null)
+            TransitionManage.Instance.FadeIn(0.5f, Color.black);
+
         if (comicCanvas != null)
         {
             comicCanvas.enabled = true;

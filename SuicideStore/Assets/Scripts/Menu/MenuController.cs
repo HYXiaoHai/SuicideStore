@@ -37,6 +37,11 @@ public class MenuController : MonoBehaviour
 
     void Start()
     {
+        if(TransitionManage.Instance!=null)
+        {
+            TransitionManage.Instance.FadeIn(0.5f,Color.black);
+        }
+
         // 初始化面板透明度及状态
         archivePanel.alpha = 0f;
         archivePanel.gameObject.SetActive(false);
