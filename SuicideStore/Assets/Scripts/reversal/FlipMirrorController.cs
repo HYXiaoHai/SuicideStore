@@ -17,6 +17,9 @@ public class FlipMirrorController : MonoBehaviour
     public AudioClip changeClip;
     [Header("玩家控制")]
     public ReversalPlayerController playerController;
+
+    private bool lastSettingState = false;
+    private bool lastMouseState = false;
     void Start()
     {
         mainCamera = Camera.main;
@@ -38,23 +41,41 @@ public class FlipMirrorController : MonoBehaviour
     //跟随鼠标移动
     void Update()
     {
-        //if (GameManage.Instance.isSetting) return;
-        // 普通模式下镜子跟随鼠标
-        if (canMove)
-        {
-            MirrorMove();
-        }
+        bool isSetting = GameManage.Instance.isSetting;
 
-        //切换模式
+        // 检测设置面板关闭的瞬间，根据当前鼠标状态强行更正模式
+        if (lastSettingState && !isSetting)
+        {
+            // 刚刚从设置中恢复，同步鼠标状态
+            bool mousePressed = Input.GetMouseButton(0);
+            if (mousePressed && isDefaultMode)  // 应该处于拍照模式
+            {
+                ForceToPhotoMode();
+            }
+            else if (!mousePressed && !isDefaultMode) // 应该处于默认模式
+            {
+                ForceToDefaultMode();
+            }
+        }
+        lastSettingState = isSetting;
+
+        // 设置面板打开时，所有交互暂停
+        if (isSetting) return;
+
+        if (canMove)
+            MirrorMove();
+
+        // 实时检测鼠标按下/抬起，切换模式
         if (Input.GetMouseButtonDown(0))
         {
             SwitchMode();
         }
-        if (Input.GetMouseButtonUp(0))
+        else if (Input.GetMouseButtonUp(0))
         {
             SwitchMode();
         }
     }
+
 
     public void MirrorMove()
     {
@@ -77,7 +98,31 @@ public class FlipMirrorController : MonoBehaviour
         // 拍照模式时间暂停（也可只禁用玩家输入，这里按需求暂停时间）
         Time.timeScale = isDefaultMode ? 1f : 0f;
     }
+    void ForceToDefaultMode()
+    {
+        if (!isDefaultMode)
+        {
+            isDefaultMode = true;
+            ApplyMode(true);
+            canMove = true;
+            if (playerController != null)
+                playerController.SetCanMove(true);
+            Time.timeScale = 1f;
+        }
+    }
 
+    void ForceToPhotoMode()
+    {
+        if (isDefaultMode)
+        {
+            isDefaultMode = false;
+            ApplyMode(false);
+            canMove = false;
+            if (playerController != null)
+                playerController.SetCanMove(false);
+            Time.timeScale = 0f;
+        }
+    }
     void ApplyMode(bool defaultMode)
     {
         if (defaultMode == true)

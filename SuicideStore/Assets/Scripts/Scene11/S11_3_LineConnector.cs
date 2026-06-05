@@ -10,7 +10,7 @@ public class S11_3_LineConnector : MonoBehaviour
     public bool isComplete = false;
 
     [Header("完成后显示")]
-    public GameObject silhouetteObject;
+    public CanvasGroup silhouetteObject;
     public float fadeInDuration = 0.5f;
 
     private int currentWaypointIndex = 0;
@@ -20,13 +20,6 @@ public class S11_3_LineConnector : MonoBehaviour
     {
         if (paintSystem == null)
             paintSystem = FindObjectOfType<MspPaint>();
-
-        if (silhouetteObject != null)
-        {
-            SpriteRenderer sr = silhouetteObject.GetComponent<SpriteRenderer>();
-            if (sr != null)
-                sr.color = new Color(sr.color.r, sr.color.g, sr.color.b, 0f);
-        }
 
         if (paintSystem != null)
         {
@@ -57,6 +50,7 @@ public class S11_3_LineConnector : MonoBehaviour
 
     void Update()
     {
+        if (GameManage.Instance.isSetting) return;
         if (isComplete || paintSystem == null) return;
 
         if (isWaitingForStart && !paintSystem.IsDrawing && Input.GetMouseButtonDown(0))
@@ -78,10 +72,10 @@ public class S11_3_LineConnector : MonoBehaviour
         if (Vector3.Distance(currentPos, target.position) <= hitRadius)
         {
             currentWaypointIndex++;
-            
+
             if (currentWaypointIndex < waypoints.Length)
                 ShowWaypoint(currentWaypointIndex);
-            
+
             if (currentWaypointIndex >= waypoints.Length)
             {
                 OnConnectComplete();
@@ -105,14 +99,10 @@ public class S11_3_LineConnector : MonoBehaviour
     void OnConnectComplete()
     {
         isComplete = true;
-        
+
         if (silhouetteObject != null)
         {
-            SpriteRenderer sr = silhouetteObject.GetComponent<SpriteRenderer>();
-            if (sr != null)
-                sr.DOFade(1f, fadeInDuration);
-            else
-                silhouetteObject.SetActive(true);
+            silhouetteObject.DOFade(1f, fadeInDuration);
         }
 
         S11_3_Manager manager = FindObjectOfType<S11_3_Manager>();

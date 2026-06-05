@@ -9,6 +9,7 @@ public class SettingUIManage : MonoBehaviour
 {
     public static SettingUIManage Instance;
     public CanvasGroup settingCanvasGroup;
+    public Canvas canvas;
     [Header("…Ë÷√ΩÁ√Ê")]
     public CanvasGroup settingPanel;
     public Button continueGameButton;
@@ -50,6 +51,9 @@ public class SettingUIManage : MonoBehaviour
 
     void Start()
     {
+        canvas = GetComponent<Canvas>();
+        canvas.worldCamera = Camera.main;
+
         ismusicalPanel = false;
         isComfirmPanel = false;
 
@@ -88,7 +92,7 @@ public class SettingUIManage : MonoBehaviour
     {
         if (isAnimating) return;
         isAnimating = true;
-
+        Time.timeScale = 0f;
         settingCanvasGroup.gameObject.SetActive(true);
         settingCanvasGroup.interactable = false;
         settingCanvasGroup.blocksRaycasts = false;
@@ -98,7 +102,6 @@ public class SettingUIManage : MonoBehaviour
         {
             settingCanvasGroup.interactable = true;
             settingCanvasGroup.blocksRaycasts = true;
-            Time.timeScale = 0f;
             if (GameManage.Instance != null)
                 GameManage.Instance.isSetting = true;
             isAnimating = false;

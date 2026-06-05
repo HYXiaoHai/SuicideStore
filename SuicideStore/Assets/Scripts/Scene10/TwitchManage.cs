@@ -17,15 +17,15 @@ public class TwitchManage : MonoBehaviour
     public CanvasGroup stage1Canvas;
     public TMP_Text twitchText1;
     public TMP_Text twitchText2;
+    public TMP_Text twitchText3;
     [Header("第二阶段")]
     public CanvasGroup stage2Canvas;
-    public TMP_Text twitchText3;
     public TMP_Text twitchText4;
-    public Image twitchImage3;
-    public Image twitchImage4;
+    public TMP_Text twitchText5;
+    public TMP_Text twitchText6;
     [Header("第三阶段")]
     public CanvasGroup stage3Canvas;
-    public TMP_Text twitchText5;
+    public TMP_Text twitchText7;
 
     [Header("关卡切换")]
     public string nextScene;//第2关
@@ -38,7 +38,9 @@ public class TwitchManage : MonoBehaviour
     private Tween activeTween_CG3;
     private Tween activeTween_Text2;
     private Tween activeTween_Text4;
-    private Tween activeTween_Image4;
+    private Tween activeTween_Text3;
+    private Tween activeTween_Text5;
+    private Tween activeTween_Text6;
     void Start()
     {
         if (twitchTarget != null)
@@ -69,9 +71,21 @@ public class TwitchManage : MonoBehaviour
             targetAlpha3 = 0f;
 
             // 第一阶段内的子动画：滑块值超过 1/6 时淡入 twitchText2
-            float subThreshold = threshold1 / 2f; // 0.16667
-            bool shouldShowText2 = value >= subThreshold;
-            AnimateAlpha(twitchText2, shouldShowText2 ? 1f : 0f, 0.2f, ref activeTween_Text2);
+            //float subThreshold = threshold1 / 2f; // 0.16667
+            //bool shouldShowText2 = value >= subThreshold;
+            //AnimateAlpha(twitchText2, shouldShowText2 ? 1f : 0f, 0.2f, ref activeTween_Text2);
+            float sub1 = threshold1 / 3f;      // 0.111...
+            float sub2 = threshold1 * 2f / 3f; // 0.222...
+
+            float alphaText2 = Mathf.Clamp01((value - sub1) / (sub2 - sub1));
+            float alphaText3 = Mathf.Clamp01((value - sub2) / (threshold1 - sub2));
+
+            AnimateAlpha(twitchText2, alphaText2, 0.2f, ref activeTween_Text2);
+            AnimateAlpha(twitchText3, alphaText3, 0.2f, ref activeTween_Text3);
+
+            // text1 始终保持 1
+            if (twitchText1 != null && twitchText1.color.a != 1f)
+                twitchText1.CrossFadeAlpha(1f, 0.1f, false);
         }
         else if (value <= threshold2)
         {
@@ -80,10 +94,27 @@ public class TwitchManage : MonoBehaviour
             targetAlpha3 = 0f;
 
             // 第二阶段内的子动画：滑块值超过 0.5 时淡入 twitchText4 和 twitchImage4
-            float subThreshold = threshold1 + (threshold2 - threshold1) / 2f; // 0.5
-            bool shouldShowText4 = value >= subThreshold;
-            AnimateAlpha(twitchText4, shouldShowText4 ? 1f : 0f, 0.2f, ref activeTween_Text4);
-            AnimateAlpha(twitchImage4, shouldShowText4 ? 1f : 0f, 0.2f, ref activeTween_Image4);
+            //float subThreshold = threshold1 + (threshold2 - threshold1) / 2f; // 0.5
+            //bool shouldShowText4 = value >= subThreshold;
+            //AnimateAlpha(twitchText4, shouldShowText4 ? 1f : 0f, 0.2f, ref activeTween_Text4);
+            //AnimateAlpha(twitchImage4, shouldShowText4 ? 1f : 0f, 0.2f, ref activeTween_Image4);
+            //// text1 始终保持 1
+            //if (twitchText1 != null && twitchText1.color.a != 1f)
+            //    twitchText1.CrossFadeAlpha(1f, 0.1f, false);
+            float stage2Start = threshold1;                // 0.333
+            float stage2End = threshold2;                  // 0.666
+            float sub1 = stage2Start + (stage2End - stage2Start) / 3f;   // 0.444
+            float sub2 = stage2Start + (stage2End - stage2Start) * 2f / 3f; // 0.555
+
+            float alphaText5 = Mathf.Clamp01((value - sub1) / (sub2 - sub1));
+            float alphaText6 = Mathf.Clamp01((value - sub2) / (stage2End - sub2));
+
+            // text4 始终为 1
+            if (twitchText4 != null && twitchText4.color.a != 1f)
+                twitchText4.CrossFadeAlpha(1f, 0.1f, false);
+
+            AnimateAlpha(twitchText5, alphaText5, 0.2f, ref activeTween_Text5);
+            AnimateAlpha(twitchText6, alphaText6, 0.2f, ref activeTween_Text6);
         }
         else
         {
@@ -153,8 +184,10 @@ public class TwitchManage : MonoBehaviour
         KillTween(ref activeTween_CG2);
         KillTween(ref activeTween_CG3);
         KillTween(ref activeTween_Text2);
+        KillTween(ref activeTween_Text3);
         KillTween(ref activeTween_Text4);
-        KillTween(ref activeTween_Image4);
+        KillTween(ref activeTween_Text5);
+        KillTween(ref activeTween_Text6);
     }
 
     private void KillTween(ref Tween tween)

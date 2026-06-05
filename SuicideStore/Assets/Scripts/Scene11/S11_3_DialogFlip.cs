@@ -4,92 +4,103 @@ using DG.Tweening;
 
 public class S11_3_DialogFlip : MonoBehaviour
 {
-    [Header("对话框正反面")]
+    [Header("正反面图片")]
     public Sprite frontSprite;
     public Sprite backSprite;
-    
-    [Header("引用的Image组件")]
-    public Image frontImage;
-    public Image backImage;
 
-    [Header("动画设置")]
+    [Header("Image组件")]
+    public Image targetImage;
+
+    [Header("动画参数")]
+    public float moveToCenterDuration = 0.3f;
     public float flipDuration = 0.5f;
-    public float scaleToCenterDuration = 0.3f;
     public float centerScale = 1.5f;
 
-    public bool isFlipped = false;
-    public bool isCentered = false;
     private Vector3 originalPosition;
     private Vector3 originalScale;
     private Button button;
+    private bool isAnimating = false;
+    private bool isCentered = false;       // 是否已放大到中心
+    private bool isFlipped = false;        // 是否已翻转（背面）
+    private S11_3_Manager manager;
 
     void Start()
     {
         originalPosition = transform.position;
         originalScale = transform.localScale;
 
-        if (frontImage != null && frontSprite != null)
-            frontImage.sprite = frontSprite;
-        if (backImage != null && backSprite != null)
-            backImage.sprite = backSprite;
-
-        if (frontImage != null) frontImage.enabled = true;
-        if (backImage != null) backImage.enabled = false;
+        if (targetImage != null && frontSprite != null)
+            targetImage.sprite = frontSprite;
 
         button = GetComponent<Button>();
         if (button != null)
             button.onClick.AddListener(OnButtonClicked);
+
+        manager = FindObjectOfType<S11_3_Manager>();
     }
 
-    public void OnButtonClicked()
+    private void OnButtonClicked()
     {
-        S11_3_Manager manager = FindObjectOfType<S11_3_Manager>();
-        if (manager != null && manager.IsLineComplete())
+        if (manager == null || !manager.IsLineComplete()) return;
+
+        if (!isCentered)
         {
-            manager.OnDialogClicked(this);
+            // 第一次点击：放大到屏幕中央
+            StartMoveToCenter();
+        }
+        else if (!isFlipped)
+        {
+            // 第二次点击：执行翻转
+            StartFlip();
         }
     }
 
-    public void ScaleToCenter()
+    private void StartMoveToCenter()
     {
-        if (isCentered) return;
+        if (isAnimating) return;
+        isAnimating = true;
 
-        Vector3 centerPos = Camera.main.ViewportToWorldPoint(new Vector3(0.5f, 0.5f, Camera.main.nearClipPlane + 1f));
+        Vector3 centerPos = Camera.main.ViewportToWorldPoint(new Vector3(0.5f, 0.5f, 10f));
         centerPos.z = transform.position.z;
 
         Sequence seq = DOTween.Sequence();
-        seq.Append(transform.DOMove(centerPos, scaleToCenterDuration));
-        seq.Join(transform.DOScale(originalScale * centerScale, scaleToCenterDuration));
-        seq.OnComplete(() => isCentered = true);
+        seq.Append(transform.DOMove(centerPos, moveToCenterDuration).SetEase(Ease.OutQuad));
+        seq.Join(transform.DOScale(originalScale * centerScale, moveToCenterDuration).SetEase(Ease.OutQuad));
+        seq.OnComplete(() =>
+        {
+            isCentered = true;
+            isAnimating = false;
+        });
         seq.Play();
     }
 
-    public void Flip()
+    private void StartFlip()
     {
-        if (!isCentered) return;
+        if (isAnimating) return;
+        isAnimating = true;
 
-        Sequence seq = DOTween.Sequence();
-        
-        seq.Append(transform.DORotate(new Vector3(0, 90, 0), flipDuration / 2f).OnComplete(() => {
-            if (frontImage != null) frontImage.enabled = isFlipped;
-            if (backImage != null) backImage.enabled = !isFlipped;
-        }));
-        
-        seq.Append(transform.DORotate(Vector3.zero, flipDuration / 2f));
-        seq.OnComplete(() => isFlipped = !isFlipped);
-        seq.Play();
-    }
+        // 强制将物体旋转归零（如果之前有旋转残留）
+        transform.rotation = Quaternion.identity;
 
-    public void ResetToOriginal()
-    {
-        transform.DOMove(originalPosition, scaleToCenterDuration);
-        transform.DOScale(originalScale, scaleToCenterDuration);
-        transform.DORotate(Vector3.zero, scaleToCenterDuration / 2f);
-        
-        if (frontImage != null) frontImage.enabled = true;
-        if (backImage != null) backImage.enabled = false;
-        
-        isFlipped = false;
-        isCentered = false;
+        // 第一步：旋转到 90 度
+        transform.DORotate(new Vector3(0, 90, 0), flipDuration / 2f)
+            .OnComplete(() =>
+            {
+                Debug.Log("旋转到90度，切换图片");
+                if (targetImage != null)
+                {
+                    targetImage.color = Color.white;
+                    targetImage.sprite = backSprite;
+                }
+                isFlipped = true;
+
+                // 第二步：旋转回 0 度
+                transform.DORotate(Vector3.zero, flipDuration / 2f)
+                    .OnComplete(() =>
+                    {
+                        isAnimating = false;
+                        StartCoroutine(manager.OnDialogFlipComplete());
+                    });
+            });
     }
 }

@@ -25,6 +25,7 @@ public class S11_1_Manager : MonoBehaviour
     public Sprite halfSilhouetteSprite;//半身（第二轮）
     public Sprite fullSilhouetteSprite;//全身（第三轮）
     [Header("=== 交互区域 ===")]
+    public SpriteRenderer ePromote;
     public Collider2D motherZoneCollider;   // 妈妈身上的触发器碰撞体
 
     private bool isInMotherZone = false;    // 玩家是否在交互区域内
@@ -61,6 +62,7 @@ public class S11_1_Manager : MonoBehaviour
 
     void Update()
     {
+        if (GameManage.Instance.isSetting) return;
         if (!canMove || isTransitioning) return;
 
         // 检查是否到达右侧边界
@@ -179,7 +181,8 @@ public class S11_1_Manager : MonoBehaviour
         // 恢复向右移动
         if (player != null)
             player.SetCanMoveRight(true);
-
+        // 交互后隐藏提示
+        HideEPrompt();
         // 1. 同时显示文案三（渐显，自动隐藏）
         ShowDialog(roundDialogues[2], null);
 
@@ -198,6 +201,7 @@ public class S11_1_Manager : MonoBehaviour
     // 进入交互区域
     private void OnTriggerEnter2D(Collider2D other)
     {
+        
         Debug.Log("进入区域");
         if (currentRound == 3 && !hasInteractedInRound3 && other.CompareTag("Player"))
         {
@@ -205,17 +209,20 @@ public class S11_1_Manager : MonoBehaviour
             // 禁止向右移动，但可以向左
             if (player != null)
                 player.SetCanMoveRight(false);
+            ShowEPrompt(); // 添加
             Debug.Log("进入妈妈区域，禁止向右移动");
         }
     }
 
     private void OnTriggerExit2D(Collider2D other)
     {
+
         if (currentRound == 3 && !hasInteractedInRound3 && other.CompareTag("Player"))
         {
             isInMotherZone = false;
             if (player != null)
                 player.SetCanMoveRight(true);
+            HideEPrompt(); // 添加
             Debug.Log("离开妈妈区域");
         }
     }
@@ -228,6 +235,24 @@ public class S11_1_Manager : MonoBehaviour
     }
 
     // ---------- 辅助方法 ----------
+    private void ShowEPrompt()
+    {
+        if (ePromote == null) return;
+        ePromote.DOKill();
+        ePromote.DOFade(1f, 0.2f).SetEase(Ease.OutQuad);
+        // 可选缩放动画
+        ePromote.transform.localScale = Vector3.one * 0.8f;
+        ePromote.transform.DOScale(1f, 0.2f).SetEase(Ease.OutBack);
+    }
+
+    private void HideEPrompt()
+    {
+        if (ePromote == null) return;
+        ePromote.DOKill();
+        ePromote.DOFade(0f, 0.1f);
+        ePromote.transform.DOScale(0.8f, 0.1f);
+    }
+
     void ResetPlayerPosition()
     {
         if (player != null && playerStartPosition != null)

@@ -78,6 +78,7 @@ public class ReversalPlayerController : MonoBehaviour
     }
     void Update()
     {
+        if (GameManage.Instance.isSetting) return;
         if (!canControl) return;
 
         moveInput = Input.GetAxisRaw("Horizontal");

@@ -12,6 +12,10 @@ public class MspPaint : MonoBehaviour
     [Header("回退设置")]
     public float retractDuration = 1f;
 
+    [Header("音效")]
+    public AudioClip drawClip;
+    private AudioSource currentLoopingSound; // 当前播放的音效
+
     private LineRenderer currentLine;
     private List<Vector3> positions = new List<Vector3>();
     private bool isDrawing = false;
@@ -24,6 +28,7 @@ public class MspPaint : MonoBehaviour
 
     private void Update()
     {
+        if (GameManage.Instance.isSetting) return;
         // 只在绘制中处理鼠标移动和抬起（不再自动检测按下）
         if (isDrawing && currentLine != null)
         {
@@ -54,6 +59,9 @@ public class MspPaint : MonoBehaviour
             positions.Clear();
         }
 
+        // 停止之前的循环音效（防止残留）
+        StopDrawSound();
+
         GameObject go = new GameObject("PencilLine");
         go.transform.SetParent(transform);
         currentLine = go.AddComponent<LineRenderer>();
@@ -68,6 +76,10 @@ public class MspPaint : MonoBehaviour
 
         AddPosition(startPos);
         lastMousePos = startPos;
+
+        // 播放循环绘画音效
+        if (drawClip != null && !isDrawing)
+            currentLoopingSound = AudioManager.Instance.PlayLoopingSound(drawClip, true, 1f);
         isDrawing = true;
     }
 
@@ -80,12 +92,14 @@ public class MspPaint : MonoBehaviour
         }
         currentLine.positionCount = positions.Count;
         currentLine.SetPositions(positions.ToArray());
+
     }
 
     private void EndDrawing()
     {
         if (!isDrawing) return;
         isDrawing = false;
+        StopDrawSound();
         OnDrawingFinished?.Invoke();
     }
 
@@ -104,6 +118,7 @@ public class MspPaint : MonoBehaviour
             onComplete?.Invoke();
             return;
         }
+        StopDrawSound();
 
         retractTween = DOTween.To(
             () => startCount,
@@ -129,7 +144,14 @@ public class MspPaint : MonoBehaviour
             onComplete?.Invoke();
         });
     }
-
+    private void StopDrawSound()
+    {
+        if (currentLoopingSound != null)
+        {
+            AudioManager.Instance.StopLoopingSound(currentLoopingSound);
+            currentLoopingSound = null;
+        }
+    }
     private Vector3 GetMousePosition()
     {
         Vector2 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);

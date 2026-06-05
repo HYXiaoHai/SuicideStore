@@ -5,11 +5,8 @@ public class DoorTrigger : MonoBehaviour
 {
     public bool canLoad =false;
     [Header("场景设置")]
+    public bool isScene12 = false;
     public string nextSceneName;
-    private void Start()
-    {
-        canLoad = false;
-    }
     void OnTriggerEnter2D(Collider2D other)
     {
         if (other.CompareTag("Player")&& canLoad)
@@ -20,14 +17,14 @@ public class DoorTrigger : MonoBehaviour
 
     void EnterDoor()
     {
-        if (!string.IsNullOrEmpty(nextSceneName))
+        if (!string.IsNullOrEmpty(nextSceneName)&& !isScene12)
         {
             //SceneManager.LoadScene(nextSceneName);
             CompleteLevel();
         }
         else
         {
-            Debug.Log("DoorTrigger: 未设置下一场景名称！");
+            SceneManager.LoadScene(nextSceneName);
         }
     }
     public void CompleteLevel()

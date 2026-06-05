@@ -44,6 +44,7 @@ public class PlayerController : MonoBehaviour
     //private bool isFalling = false;
 
     [Header("平台穿透 (S键)")]
+    public bool canPenetrate = true;
     public KeyCode penetrateKey = KeyCode.S;        // 触发穿透的按键
     public float penetrateDuration = 0.3f;          // 碰撞体禁用时长（秒）
     public float penetrateCooldown = 0.5f;          // 穿透冷却时间
@@ -104,40 +105,13 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
-        // 地面检测
-        //isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
-        //canJump = isGrounded;
+        if (GameManage.Instance.isSetting) return;
 
         // 检查是否掉落到底部  旧
         if (transform.position.y < groundY)
         {
             Respawn();
         }
-
-        //// 水平移动
-        //float moveX = Input.GetAxis("Horizontal");
-        //rb.velocity = new Vector2(moveX * moveSpeed, rb.velocity.y);
-
-        //// 垂直移动（跳跃）
-        //if (Input.GetButtonDown("Jump") && canJump)
-        //{
-        //    rb.AddForce(new Vector2(0, jumpForce), ForceMode2D.Impulse);
-        //    canJump = false;
-        //}
-
-        //// 自由落体（S键）
-        //if (Input.GetKeyDown(fallDownKey) && !isFalling)
-        //{
-        //    StartFalling();
-        //}
-
-        //// 处理自由落体
-        //if (isFalling)
-        //{
-        //    HandleFalling();
-        //}
-
-        //以下都是新的
         if (!canControl) return;
 
         //水平按键输入
@@ -188,7 +162,7 @@ public class PlayerController : MonoBehaviour
 
 
         //平台穿透 S键
-        if (Input.GetKeyDown(penetrateKey) && !isPenetrating && isGrounded && Time.time - lastPenetrateTime >= penetrateCooldown)
+        if (canPenetrate&&Input.GetKeyDown(penetrateKey) && !isPenetrating && isGrounded && Time.time - lastPenetrateTime >= penetrateCooldown)
         {
             StartPenetrate();
         }
