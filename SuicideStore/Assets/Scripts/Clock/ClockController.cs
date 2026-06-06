@@ -40,6 +40,11 @@ public class ClockController : MonoBehaviour
     public float tickStep = 30f;   // 每30度触发一次音效
     void Start()
     {
+        if(TransitionManage.Instance!=null)
+        {
+            TransitionManage.Instance.FadeIn(1f,Color.white);
+        }
+
         rectTransform = GetComponent<RectTransform>();
         canvas = GetComponentInParent<Canvas>();
         currentAngle = startAngle;

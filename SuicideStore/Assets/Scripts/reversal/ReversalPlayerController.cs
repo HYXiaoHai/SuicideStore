@@ -51,7 +51,7 @@ public class ReversalPlayerController : MonoBehaviour
     private float coyoteTimer = 0f;
     private float jumpBufferTimer = 0f;
     private bool isJumping = false;
-    private bool isGrounded = false;
+    private bool isGrounded = true;
 
     void Start()
     {
@@ -64,6 +64,7 @@ public class ReversalPlayerController : MonoBehaviour
             Debug.LogWarning("��ָ�� groundCheck (��ҽŵ׵Ŀ�����)");
 
         rb.gravityScale = gravityScale;
+        wasGrounded = isGrounded;
     }
 
     public void SetCanMove(bool canMove)

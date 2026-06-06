@@ -235,7 +235,13 @@ public class Scene7_3Manager : MonoBehaviour
 
         if (!string.IsNullOrEmpty(nextSceneName))
         {
-            SceneManager.LoadScene(nextSceneName);
+                // 并行执行转场淡出和 BGM 淡出
+                TransitionManage.Instance.FadeOut(1f, Color.black, () =>
+                {
+                    // 转场完成后加载新场景
+                    SceneManager.LoadScene(nextSceneName);
+
+                });
         }
     }
 }

@@ -24,6 +24,10 @@ public class MemorySceneManager : MonoBehaviour
 
     void Start()
     {
+        // 并行执行转场淡出和 BGM 淡出
+        if(TransitionManage.Instance!=null)
+        TransitionManage.Instance.FadeIn(0.5f, Color.white);
+
         InitializeScene();
         lastSliderIndex = slides.Length-1;
     }
@@ -124,7 +128,15 @@ public class MemorySceneManager : MonoBehaviour
         {
             string nextScene = GameManage.Instance.GetFirstSceneOfLevel(nextLevel);
             if (!string.IsNullOrEmpty(nextScene))
-                UnityEngine.SceneManagement.SceneManager.LoadScene(nextScene);
+            {
+                // 并行执行转场淡出和 BGM 淡出
+                TransitionManage.Instance.FadeOut(0.5f, Color.white, () =>
+                {
+                    // 转场完成后加载新场景
+                    SceneManager.LoadScene(nextScene);
+                });
+                AudioManager.Instance.FadeOutCurrentBGM(1f, null);
+            }
         }
         else
         {

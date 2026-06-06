@@ -1,14 +1,17 @@
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 using TMPro;
+using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class S3_Dialogue : MonoBehaviour
 {
+    public bool shouldUseFade = true;
+    public bool shouldUseAudioFade = false;
     [Header("=== 场景里拖进来 ===")]
     public TextMeshProUGUI dialogueText;   // 对话文字
     public GameObject continueTip;         // 继续提示（可选）
-
+    
     [Header("=== 打字速度 ===")]
     public float typeSpeed = 0.12f;
     [Header("交付日记本音效")]
@@ -28,6 +31,10 @@ public class S3_Dialogue : MonoBehaviour
     void Start()
     {
         // 游戏开始自动播放第一句对话
+        if(TransitionManage.Instance!=null)
+        {
+            TransitionManage.Instance.FadeIn(0.5f,Color.black);
+        }
         StartType();
     }
 
@@ -110,7 +117,23 @@ public class S3_Dialogue : MonoBehaviour
         {
             string nextScene = GameManage.Instance.GetFirstSceneOfLevel(nextLevel);
             if (!string.IsNullOrEmpty(nextScene))
-                UnityEngine.SceneManagement.SceneManager.LoadScene(nextScene);
+            {
+                if (shouldUseFade)
+                {
+                    // 并行执行转场淡出和 BGM 淡出
+                    TransitionManage.Instance.FadeOut(0.5f, Color.white, () =>
+                    {
+                        // 转场完成后加载新场景
+                        SceneManager.LoadScene(nextScene);
+                    });
+                    if(shouldUseAudioFade)
+                    AudioManager.Instance.FadeOutCurrentBGM(0.5f, null);
+                }
+                else
+                {
+                    SceneManager.LoadScene(nextScene);
+                }
+            }
         }
         else
         {

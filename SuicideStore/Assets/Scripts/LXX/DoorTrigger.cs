@@ -7,6 +7,10 @@ public class DoorTrigger : MonoBehaviour
     [Header("场景设置")]
     public bool isScene12 = false;
     public string nextSceneName;
+    public bool shouldUseFade =false;
+    public bool shouldUseAudioFade =false;
+    public float fadeDuration =0.5f;
+    public Color fadeColor =Color.white;
     void OnTriggerEnter2D(Collider2D other)
     {
         if (other.CompareTag("Player")&& canLoad)
@@ -24,7 +28,21 @@ public class DoorTrigger : MonoBehaviour
         }
         else
         {
-            SceneManager.LoadScene(nextSceneName);
+            if (shouldUseFade)
+            {
+                // 并行执行转场淡出和 BGM 淡出
+                TransitionManage.Instance.FadeOut(fadeDuration, fadeColor, () =>
+                {
+                    // 转场完成后加载新场景
+                    SceneManager.LoadScene(nextSceneName);
+                });
+                if (shouldUseAudioFade)
+                    AudioManager.Instance.FadeOutCurrentBGM(fadeDuration, null);
+            }
+            else
+            {
+                SceneManager.LoadScene(nextSceneName);
+            }
         }
     }
     public void CompleteLevel()
@@ -37,7 +55,21 @@ public class DoorTrigger : MonoBehaviour
         {
             string nextScene = GameManage.Instance.GetFirstSceneOfLevel(nextLevel);
             if (!string.IsNullOrEmpty(nextScene))
-                UnityEngine.SceneManagement.SceneManager.LoadScene(nextScene);
+                if (shouldUseFade)
+                {
+                    // 并行执行转场淡出和 BGM 淡出
+                    TransitionManage.Instance.FadeOut(fadeDuration, fadeColor, () =>
+                    {
+                        // 转场完成后加载新场景
+                        SceneManager.LoadScene(nextScene);
+                    });
+                    if(shouldUseAudioFade)
+                    AudioManager.Instance.FadeOutCurrentBGM(fadeDuration, null);
+                }
+                else
+                {
+                    SceneManager.LoadScene(nextScene);
+                }
         }
         else
         {

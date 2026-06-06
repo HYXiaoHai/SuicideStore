@@ -10,6 +10,8 @@ public class VideoIntroController : MonoBehaviour
     public ElephantController player;
     void Start()
     {
+        if (TransitionManage.Instance != null)
+            TransitionManage.Instance.FadeIn(0.5f, Color.black);
         if (videoPlayer != null)
             videoPlayer.loopPointReached += OnVideoFinished;
     }

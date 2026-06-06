@@ -1,5 +1,6 @@
 using DG.Tweening;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class TransitionManage : MonoBehaviour
@@ -10,10 +11,11 @@ public class TransitionManage : MonoBehaviour
     [Header("Panel")]
     public CanvasGroup transitionCanvasGroup;
     public Image transitionImage;
-
+    public float transitionDuration = 1f;
     private bool isTransitioning = false;
     private Tween activeTween;
-
+    private Coroutine autoFadeCoroutine;
+    private bool isLoadingWithAutoFade = false;
     private void Awake()
     {
         if (Instance == null)
@@ -34,11 +36,19 @@ public class TransitionManage : MonoBehaviour
             transitionCanvasGroup.interactable = false;
             transitionCanvasGroup.blocksRaycasts = false;
         }
+
     }
     private void Start()
     {
-        canvas = GetComponent<Canvas>();
-        canvas.worldCamera = Camera.main;
+        BindCamera();
+    }
+    // 绑定相机：确保 Canvas 的 worldCamera 为当前主相机
+    public void BindCamera()
+    {
+        if (canvas == null)
+            canvas = GetComponent<Canvas>();
+        if (canvas != null && Camera.main != null)
+            canvas.worldCamera = Camera.main;
     }
     //淡出（进入黑屏/白屏等），完成后可选回调
     public void FadeOut(float duration, Color color, System.Action onComplete = null)
@@ -49,6 +59,7 @@ public class TransitionManage : MonoBehaviour
             return;
         }
         isTransitioning = true;
+        BindCamera();
 
         if (transitionImage != null)
             transitionImage.color = color;
@@ -81,6 +92,7 @@ public class TransitionManage : MonoBehaviour
             return;
         }
         isTransitioning = true;
+        BindCamera();
 
         if (transitionImage != null)
             transitionImage.color = color;
@@ -101,7 +113,41 @@ public class TransitionManage : MonoBehaviour
                 onComplete?.Invoke();
             });
     }
+    //自动跳转
+    public void LoadSceneWithAutoFade(string sceneName, float fadeOutDuration, float fadeInDuration, Color color)
+    {
+        if (isLoadingWithAutoFade)
+        {
+            Debug.LogWarning("已有自动淡入淡出加载流程进行中，请勿重复调用");
+            return;
+        }
 
+        isLoadingWithAutoFade = true;
+        BindCamera();
+
+        // 先淡出
+        FadeOut(fadeOutDuration, color, () =>
+        {
+            // 注册场景加载完成事件（仅一次）
+            SceneManager.sceneLoaded += OnSceneLoadedForAutoFade;
+
+            // 加载场景
+            SceneManager.LoadScene(sceneName);
+        });
+    }
+
+    private void OnSceneLoadedForAutoFade(Scene scene, LoadSceneMode mode)
+    {
+        // 移除事件，避免影响后续场景切换
+        SceneManager.sceneLoaded -= OnSceneLoadedForAutoFade;
+        BindCamera();
+
+        // 开始淡入
+        FadeIn(transitionDuration, transitionImage != null ? transitionImage.color : Color.black, () =>
+        {
+            isLoadingWithAutoFade = false;
+        });
+    }
     //立即重置转场状态（完全透明且不可交互），用于场景加载前的强制重置
     public void ResetImmediate()
     {
