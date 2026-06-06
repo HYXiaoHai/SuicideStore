@@ -1,8 +1,9 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class LevelCompleteTrigger : MonoBehaviour
 {
-    // 在当前关卡结束时调用此方法（例如剧情结束、点击某按钮、到达出口等）
+    public bool shouldUseFade;
     public void CompleteLevel()
     {
         // 通知 GameManage 当前关卡通关
@@ -13,7 +14,22 @@ public class LevelCompleteTrigger : MonoBehaviour
         {
             string nextScene = GameManage.Instance.GetFirstSceneOfLevel(nextLevel);
             if (!string.IsNullOrEmpty(nextScene))
-                UnityEngine.SceneManagement.SceneManager.LoadScene(nextScene);
+            {
+                if (shouldUseFade)
+                {
+                    // 并行执行转场淡出和 BGM 淡出
+                    TransitionManage.Instance.FadeOut(1f, Color.black, () =>
+                    {
+                        // 转场完成后加载新场景
+                        SceneManager.LoadScene(nextScene);
+                    });
+                    AudioManager.Instance.FadeOutCurrentBGM(1f, null);
+                }
+                else
+                {
+                    SceneManager.LoadScene(nextScene);
+                }
+            }
         }
         else
         {

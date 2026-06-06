@@ -12,6 +12,7 @@ public class Portal : MonoBehaviour
     public int nextLevel;
 
     [Header("下一关的传送")]
+    public bool shouldUseFadeOutBGM = false;
     public string nextScence;//下一个场景的传送
 
     public bool isScenecsPortal = false;//是否是场景传送门
@@ -47,7 +48,22 @@ public class Portal : MonoBehaviour
         {
             string nextScene = GameManage.Instance.GetFirstSceneOfLevel(nextLevel);
             if (!string.IsNullOrEmpty(nextScene))
-                UnityEngine.SceneManagement.SceneManager.LoadScene(nextScene);
+            {
+                if (shouldUseFadeOutBGM)
+                {
+                    // 并行执行转场淡出和 BGM 淡出
+                    TransitionManage.Instance.FadeOut(1f, Color.black, () =>
+                    {
+                        // 转场完成后加载新场景
+                        SceneManager.LoadScene(nextScene);
+                    });
+                    AudioManager.Instance.FadeOutCurrentBGM(1f, null);
+                }
+                else
+                {
+                    SceneManager.LoadScene(nextScene);
+                }
+            }
         }
         else
         {
