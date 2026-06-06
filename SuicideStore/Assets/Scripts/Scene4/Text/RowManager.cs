@@ -50,7 +50,7 @@ public class RowManage : MonoBehaviour
     public int nextLevelIndex = 2;//第2关
     public float changeDelay = 1f;//完成后多久切换镜头（延迟）
     private bool hasTriggeredSwitch = false; //防止重复触发
-
+    public bool shouldUseFade = false;
     // 状态机
     private enum GameState { OnWords, OnLine }
     private GameState currentState;
@@ -343,7 +343,7 @@ public class RowManage : MonoBehaviour
                 }
                 else if (nextLevelIndex == 5)
                 {
-                    CompleteLevel();
+                    CompleteLevel(Color.white);
                 }
                 else
                 {
@@ -353,10 +353,10 @@ public class RowManage : MonoBehaviour
         }
         else if(Scene5Manage.Instance != null)
         {
-            CompleteLevel();
+            CompleteLevel(Color.black);
         }
     }
-    public void CompleteLevel()
+    public void CompleteLevel(Color color)
     {
         // 通知 GameManage 当前关卡通关
         GameManage.Instance.CompleteCurrentLevel();
@@ -366,7 +366,22 @@ public class RowManage : MonoBehaviour
         {
             string nextScene = GameManage.Instance.GetFirstSceneOfLevel(nextLevel);
             if (!string.IsNullOrEmpty(nextScene))
-                UnityEngine.SceneManagement.SceneManager.LoadScene(nextScene);
+            {
+                if (shouldUseFade)
+                {
+                    // 并行执行转场淡出和 BGM 淡出
+                    TransitionManage.Instance.FadeOut(1f, color, () =>
+                    {
+                        // 转场完成后加载新场景
+                        SceneManager.LoadScene(nextScene);
+                    });
+                    //AudioManager.Instance.FadeOutCurrentBGM(1f, null);
+                }
+                else
+                {
+                    SceneManager.LoadScene(nextScene);
+                }
+            }
         }
         else
         {

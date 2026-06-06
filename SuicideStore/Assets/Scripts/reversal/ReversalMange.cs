@@ -64,6 +64,10 @@ public class ReversalMange : MonoBehaviour
     }
     void Start()
     {
+        if(TransitionManage.Instance!=null)
+        {
+            TransitionManage.Instance.FadeIn(1f,Color.black);
+        }
         currentLevel = 1;
         InitLevel(currentLevel);
     }
@@ -233,8 +237,4 @@ public class ReversalMange : MonoBehaviour
         nextCinemachine = null;
     }
 
-    void Update()
-    {
-        
-    }
 }

@@ -71,7 +71,7 @@ public class PlayerController : MonoBehaviour
     private float coyoteTimer = 0f;
     private float jumpBufferTimer = 0f;
     private bool isJumping = false;
-    private bool isGrounded = false;                //缓存地面状态
+    public bool isGrounded = true;                //缓存地面状态
 
     // 穿透状态
     private bool isPenetrating = false;
@@ -80,6 +80,11 @@ public class PlayerController : MonoBehaviour
 
     void Start()
     {
+        if(TransitionManage.Instance!=null)
+        {
+            TransitionManage.Instance.FadeIn(1f,Color.white);
+        }
+
         rb = Player.GetComponent<Rigidbody2D>();
         spriteRenderer = Player.GetComponent<SpriteRenderer>();//++
         playerCollider = Player.GetComponent<Collider2D>();//++

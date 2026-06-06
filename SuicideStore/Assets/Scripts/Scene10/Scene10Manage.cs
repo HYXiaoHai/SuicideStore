@@ -31,7 +31,6 @@ public class Scene10Manage : MonoBehaviour
     public SpriteRenderer l2Bubble2;//ÆøÅÝ2
     public SpriteRenderer l2Bubble3;//ÆøÅÝ3
     public SpriteRenderer[] level2Renderers;
-    public TMP_Text levl2Text;
     public Sprite image1;//ÇÐ»»Í¼Æ¬1
     public Sprite image2;//ÇÐ»»Í¼Æ¬1
     public Sprite image3;//ÇÐ»»Í¼Æ¬2
@@ -66,14 +65,13 @@ public class Scene10Manage : MonoBehaviour
     //¿ªÆôµÚ¶þ¹Ø
     public void StartLevel2()
     {
-        //rightLevel2Father.SetActive(true);
+        rightLevel2Father.SetActive(true);
         //foreach (var item in level2Renderers)
         //{
         //    item.DOFade(1f, 1f);
         //}
         //levelBg.sprite = level2Bg_Sprit;
         //levelBg.DOFade(1f, 1f);
-        levl2Text.DOFade(1f, 1f);
     }
     //
     public void OnDrawComplet(int _completeNum)
@@ -104,7 +102,6 @@ public class Scene10Manage : MonoBehaviour
     public void Level2Complete()
     {
         //LeleRb.bodyType = RigidbodyType2D.Dynamic;
-        levl2Text.DOFade(0f, 1f);
         transitionCanvas.DOFade(1f, 2f).SetEase(Ease.InQuart).OnComplete(() => {
             //LeleRb.gameObject.SetActive(false);
             leftLevel2Father.SetActive(false);

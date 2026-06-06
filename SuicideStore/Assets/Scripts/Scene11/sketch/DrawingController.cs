@@ -94,10 +94,12 @@ public class DrawingController : MonoBehaviour
                 AudioManager.Instance.StopLoopingSound(currentLoopingSound);
                 currentLoopingSound = null;
             }
-            if (hasDrawn)
-                CheckProgress();
+            //if (hasDrawn)
+            //    CheckProgress();
             hasDrawn = false; // 重置绘制标记，以便下一轮
         }
+        if (hasDrawn)
+            CheckProgress();
         _toolManager.DoUpdate();
     }
 

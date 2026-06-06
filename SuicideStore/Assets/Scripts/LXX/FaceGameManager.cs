@@ -1,9 +1,9 @@
+using DG.Tweening;
+using System.Collections;
+using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
-using TMPro;
-using System.Collections;
-using DG.Tweening;
 public class FaceGameManager : MonoBehaviour
 {
     [Header("UI引用")]
@@ -36,6 +36,7 @@ public class FaceGameManager : MonoBehaviour
 
     [Header("下一场景")]
     public string nextSceneName;
+    public bool shouldUseFade=false;
     [Header("音效")]
     public AudioClip tackPictureAudioClip;
 
@@ -153,8 +154,20 @@ public class FaceGameManager : MonoBehaviour
     {
        
         yield return new WaitForSeconds(harvestDelay);
-
-        SceneManager.LoadScene(nextSceneName);
+        if (shouldUseFade)
+        {
+            // 并行执行转场淡出和 BGM 淡出
+            TransitionManage.Instance.FadeOut(1f,Color.white, () =>
+            {
+                // 转场完成后加载新场景
+                SceneManager.LoadScene(nextSceneName);
+            });
+            AudioManager.Instance.FadeOutCurrentBGM(1f, null);
+        }
+        else
+        {
+            SceneManager.LoadScene(nextSceneName);
+        }
 
         Debug.Log("UI已关闭");
     }
