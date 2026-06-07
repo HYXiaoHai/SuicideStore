@@ -51,6 +51,11 @@ public class Scene9Maneg : MonoBehaviour
 
     private void Start()
     {
+        if(TransitionManage.Instance!=null)
+        {
+            TransitionManage.Instance.FadeIn(1f,Color.white);
+        }
+
         // 初始化第一关
         clickCount = 0;
         currentLevel = 1;
@@ -77,6 +82,8 @@ public class Scene9Maneg : MonoBehaviour
 
     private void Update()
     {
+        if (GameManage.Instance != null && GameManage.Instance.isSetting) return;
+
         // 第一关：鼠标点击显示脚印
         if (Input.GetMouseButtonDown(0) && currentLevel == 1 && !isFootCompleted)
         {
@@ -206,7 +213,12 @@ public class Scene9Maneg : MonoBehaviour
     }
     public void Onlevel3Button()
     {
-        SceneManager.LoadScene(fileSceneName);
+        // 并行执行转场淡出和 BGM 淡出
+        TransitionManage.Instance.FadeOut(0.3f, Color.black, () =>
+        {
+            // 转场完成后加载新场景
+            SceneManager.LoadScene(fileSceneName);
+        });
     }
 
     // ---------- 工具方法 ----------

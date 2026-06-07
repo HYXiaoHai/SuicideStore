@@ -23,6 +23,7 @@ public class PathPuzzle : MonoBehaviour
     [Header("拖拽手感")]
     public float hoverScale = 1.2f;
     public float scaleDuration = 0.1f;
+    private bool isDragging = false;
     [Header("悬浮晃动")]
     public float hoverShakeAngle = 3f;      // 晃动幅度（角度）
     public float hoverShakeDuration = 0.2f; // 晃动持续时间
@@ -54,6 +55,7 @@ public class PathPuzzle : MonoBehaviour
     void OnMouseEnter()
     {
         // 只有在游戏已开始、视图打开、没有正在移动/拖拽时才触发晃动
+        if (GameManage.Instance.isSetting) return;
         if (!PathPuzzleManage.Instance.isGameStarted) return;
         if (!Scene9Maneg.Instance.isPuzzleViewOpen) return;
         if (isMoving) return;
@@ -64,6 +66,7 @@ public class PathPuzzle : MonoBehaviour
     void OnMouseExit()
     {
         // 鼠标离开时，立即停止并归零旋转，避免残留
+        if (GameManage.Instance.isSetting) return;
         if (currentShakeTween != null && currentShakeTween.IsActive())
         {
             currentShakeTween.Kill();
@@ -73,6 +76,7 @@ public class PathPuzzle : MonoBehaviour
 
     void OnMouseDown()
     {
+        if (GameManage.Instance.isSetting) return;
         if (!PathPuzzleManage.Instance.isGameStarted || isMoving) return;
         if (!Scene9Maneg.Instance.isPuzzleViewOpen) return;
         if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject()) return;
@@ -93,10 +97,12 @@ public class PathPuzzle : MonoBehaviour
 
         originalPosition = transform.position;   // 仅在拖拽开始时记录，后续无效归位不再使用
         offset = transform.position - GetMouseWorldPos();
+        isDragging = true;
     }
 
     void OnMouseDrag()
     {
+        if (GameManage.Instance.isSetting) return;
         if (isMoving) return;
         if (!PathPuzzleManage.Instance.isGameStarted) return;
         if (!Scene9Maneg.Instance.isPuzzleViewOpen) return;
@@ -107,6 +113,16 @@ public class PathPuzzle : MonoBehaviour
 
     void OnMouseUp()
     {
+        if (GameManage.Instance.isSetting)
+        {
+            // 如果暂停期间抬起鼠标，我们不做任何处理，但需要重置拖拽标志，否则恢复后会卡住
+            if (isDragging)
+            {
+                ForceRelease();
+            }
+            return;
+        }
+
         spriteRenderer.sortingOrder = 2;
         scaleTween?.Kill();
         scaleTween = transform.DOScale(originalScale, scaleDuration).SetEase(Ease.OutQuad);
@@ -143,6 +159,18 @@ public class PathPuzzle : MonoBehaviour
 
         // 3. 完全无效区域：吸附到当前正确插槽中心
         PathPuzzleManage.Instance.SnapPieceToSlot(this);
+
+        isDragging = false;
+    }
+    private void ForceRelease()
+    {
+        // 停止拖拽动画
+        scaleTween?.Kill();
+        spriteRenderer.sortingOrder = 2;
+        transform.localScale = originalScale;
+        // 归位到正确插槽
+        PathPuzzleManage.Instance.SnapPieceToSlot(this);
+        isDragging = false;
     }
     //晃动效果
     private void ShakeOnce()

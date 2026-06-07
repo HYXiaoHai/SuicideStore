@@ -48,6 +48,9 @@ public class S11_1_Manager : MonoBehaviour
 
     void Start()
     {
+        if (TransitionManage.Instance != null)
+            TransitionManage.Instance.FadeIn(0.5f,Color.black);
+
         // 初始化：从第一轮开始
         currentRound = 1;
         canMove = true;

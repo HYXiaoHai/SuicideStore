@@ -43,6 +43,9 @@ public class TwitchManage : MonoBehaviour
     private Tween activeTween_Text6;
     void Start()
     {
+        if (TransitionManage.Instance != null)
+            TransitionManage.Instance.FadeIn(0.5f,Color.white);
+
         if (twitchTarget != null)
             twitchMaterial = twitchTarget.material;
 
@@ -50,11 +53,20 @@ public class TwitchManage : MonoBehaviour
         {
             twitchSlider.onValueChanged.AddListener(OnSliderChanged);
             twitchSlider.value = 0f;
+            twitchSlider.interactable = !GameManage.Instance.isSetting;
         }
         UpdateDisplay(0f);
     }
+    void Update()
+    {
+        if (twitchSlider != null && twitchSlider.interactable == GameManage.Instance.isSetting)
+        {
+            twitchSlider.interactable = !GameManage.Instance.isSetting;
+        }
+    }
     void OnSliderChanged(float value)
     {
+        if (GameManage.Instance.isSetting) return;
         UpdateDisplay(value);
     }
     private void UpdateDisplay(float value)
@@ -162,9 +174,7 @@ public class TwitchManage : MonoBehaviour
         activeTween = cg.DOFade(targetAlpha, duration).SetEase(Ease.Linear);
     }
 
-    /// <summary>
     /// 通用的 Graphic（Text/Image）透明度动画，自动中断旧动画
-    /// </summary>
     private void AnimateAlpha(Graphic graphic, float targetAlpha, float duration, ref Tween activeTween)
     {
         if (graphic == null) return;
@@ -175,9 +185,7 @@ public class TwitchManage : MonoBehaviour
         activeTween = graphic.DOFade(targetAlpha, duration).SetEase(Ease.Linear);
     }
 
-    /// <summary>
     /// 清理所有正在播放的动画
-    /// </summary>
     private void KillAllTweens()
     {
         KillTween(ref activeTween_CG1);
@@ -205,8 +213,12 @@ public class TwitchManage : MonoBehaviour
 
         Debug.Log("成长完成，切换至下一关卡");
         yield return new WaitForSeconds(changeDelay);
-
-        SceneManager.LoadScene(nextScene);
+        // 并行执行转场淡出和 BGM 淡出
+        TransitionManage.Instance.FadeOut(1f, Color.black, () =>
+        {
+            // 转场完成后加载新场景
+            SceneManager.LoadScene(nextScene);
+        });
     }
     private void OnDestroy()
     {

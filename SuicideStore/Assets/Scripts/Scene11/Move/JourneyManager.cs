@@ -9,12 +9,14 @@ public class JourneyManager : MonoBehaviour
     public bool isFinal;
     void Start()
     {
-        
+        if (TransitionManage.Instance != null)
+            TransitionManage.Instance.FadeIn(0.5f, Color.black);
     }
 
     // Update is called once per frame
     void Update()
     {
+        if (GameManage.Instance.isSetting) return;
         if(Input.GetMouseButtonDown(0))
         {
             if (isFinal)
@@ -25,7 +27,12 @@ public class JourneyManager : MonoBehaviour
     }
     public void NextScene()
     {
-        SceneManager.LoadScene(nextSceneName);
+        // 并行执行转场淡出和 BGM 淡出
+        TransitionManage.Instance.FadeOut(1f, Color.white, () =>
+        {
+            // 转场完成后加载新场景
+            SceneManager.LoadScene(nextSceneName);
+        });
     }
     public void CompleteLevel()
     {
