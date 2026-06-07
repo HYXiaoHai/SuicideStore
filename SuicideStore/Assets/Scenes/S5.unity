@@ -2469,6 +2469,7 @@ MonoBehaviour:
   isInsideBag: 0
   isOutsideSlot: 0
   initialInside: 0
+  isProcessed: 0
 --- !u!58 &242835482
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -4072,6 +4073,7 @@ MonoBehaviour:
   isInsideBag: 0
   isOutsideSlot: 0
   initialInside: 0
+  isProcessed: 0
 --- !u!114 &375486193
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5417,6 +5419,7 @@ MonoBehaviour:
   isInsideBag: 0
   isOutsideSlot: 0
   initialInside: 0
+  isProcessed: 0
 --- !u!114 &459053807
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6193,6 +6196,7 @@ MonoBehaviour:
   isInsideBag: 0
   isOutsideSlot: 0
   initialInside: 0
+  isProcessed: 0
 --- !u!61 &515392490
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -13892,6 +13896,7 @@ MonoBehaviour:
   isInsideBag: 0
   isOutsideSlot: 0
   initialInside: 0
+  isProcessed: 0
 --- !u!60 &1420376746
 PolygonCollider2D:
   m_ObjectHideFlags: 0
@@ -15965,6 +15970,7 @@ MonoBehaviour:
   isInsideBag: 0
   isOutsideSlot: 0
   initialInside: 0
+  isProcessed: 0
 --- !u!114 &1561704983
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -16797,6 +16803,7 @@ MonoBehaviour:
   isInsideBag: 0
   isOutsideSlot: 0
   initialInside: 0
+  isProcessed: 0
 --- !u!114 &1695419887
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -17063,6 +17070,7 @@ MonoBehaviour:
   isInsideBag: 0
   isOutsideSlot: 0
   initialInside: 0
+  isProcessed: 0
 --- !u!60 &1699375836
 PolygonCollider2D:
   m_ObjectHideFlags: 0
@@ -18749,6 +18757,7 @@ MonoBehaviour:
   isInsideBag: 0
   isOutsideSlot: 0
   initialInside: 0
+  isProcessed: 0
 --- !u!114 &1771387633
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -19437,6 +19446,7 @@ MonoBehaviour:
   isInsideBag: 0
   isOutsideSlot: 0
   initialInside: 0
+  isProcessed: 0
 --- !u!60 &1834559456
 PolygonCollider2D:
   m_ObjectHideFlags: 0
@@ -21031,6 +21041,13 @@ MonoBehaviour:
   item1: {fileID: 1420376742}
   item2: {fileID: 515392483}
   item3: {fileID: 2118296416}
+  itemUIs:
+  - {fileID: 969579117}
+  - {fileID: 714121866}
+  - {fileID: 1100362951}
+  showUIDelay: 0.5
+  hideDelay: 0.8
+  fadeDuration: 0.4
   bagArea: {fileID: 979650628}
   externalSlots:
   - {fileID: 2083973430}
@@ -23062,6 +23079,7 @@ MonoBehaviour:
   isInsideBag: 0
   isOutsideSlot: 0
   initialInside: 0
+  isProcessed: 0
 --- !u!114 &2095122906
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -23388,6 +23406,7 @@ MonoBehaviour:
   isInsideBag: 0
   isOutsideSlot: 0
   initialInside: 0
+  isProcessed: 0
 --- !u!60 &2118296426
 PolygonCollider2D:
   m_ObjectHideFlags: 0

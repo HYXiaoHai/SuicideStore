@@ -1,30 +1,41 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using DG.Tweening;
+
 public class BagPackingManager : MonoBehaviour
 {
     public static BagPackingManager Instance;
 
-    [Header("ÓÎÏ·¿ªÊ¼Ê±Õ¹ÏÖµÄÎïÆ·")]
-    public float startDuration;//¿ªÊ¼ÓÎÏ·µÄ¶¯»­Ê±³¤
-    public Image bagText1;//¶Ô»°¿ò1
-    public Image bagText2;//¶Ô»°¿ò2
-    public SpriteRenderer item1;//ÎïÆ·1
-    public SpriteRenderer item2;//ÎïÆ·2
-    public SpriteRenderer item3;//ÎïÆ·3
+    [Header("æ¸¸æˆå¼€å§‹æ·¡å…¥")]
+    public float startDuration;
+    public Image bagText1;
+    public Image bagText2;
+    public SpriteRenderer item1;
+    public SpriteRenderer item2;
+    public SpriteRenderer item3;
 
-    [Header("ÇøÓòÉèÖÃ")]
+    [Header("ç‰©å“å¯¹åº”UIå›¾ç‰‡(é¡ºåº:item1/item2/item3)")]
+    public Image[] itemUIs;
+
+    [Header("æ—¶é—´é…ç½®")]
+    public float showUIDelay = 0.5f;
+    public float hideDelay = 0.8f;
+    public float fadeDuration = 0.4f;
+
+    [Header("ä¹¦åŒ…&å¤–éƒ¨æ§½ä½")]
     public Collider2D bagArea;
-    public List<Collider2D> externalSlots;  // Íâ²¿Õ¹Ê¾ÇøÓò´¥·¢Æ÷ÁĞ±í£¨6¸ö£©
+    public List<Collider2D> externalSlots;
 
-    [Header("ÎïÆ·ÁĞ±í")]
+    [Header("å…¨éƒ¨ç‰©å“åˆ—è¡¨")]
     public List<DraggableItem> allItems;
 
     private int itemsFromInsideToOutside = 0;
     private int itemsFromOutsideToInside = 0;
     public bool gameCompleted = false;
-    public bool isGameStarted = false;   // ÓÎÏ·ÊÇ·ñÒÑ¿ªÊ¼£¨¿ÉÍÏ×§£©
+    public bool isGameStarted = false;
+
     void Awake()
     {
         Instance = this;
@@ -34,14 +45,13 @@ public class BagPackingManager : MonoBehaviour
     {
         bagText1.transform.localScale = Vector3.zero;
         bagText2.transform.localScale = Vector3.zero;
-        // ³õÊ¼»¯Ã¿¸öÎïÆ·µÄ×´Ì¬ºÍ³õÊ¼Î»ÖÃ
+
+        // åˆå§‹åŒ–æ‰€æœ‰ç‰©å“çŠ¶æ€
         foreach (var item in allItems)
         {
-            // ÅĞ¶Ï³õÊ¼Î»ÖÃ¹éÊô
             if (IsInBagArea(item.transform.position))
             {
                 item.initialInside = true;
-                // Êé°üÄÚÎïÆ·µÄ³õÊ¼Î»ÖÃ¾ÍÊÇµ±Ç°Î»ÖÃ£¬²»ĞèÒª¶îÍâÉèÖÃ
                 item.SetOriginalPosition(item.transform.position);
             }
             else
@@ -50,19 +60,34 @@ public class BagPackingManager : MonoBehaviour
                 if (slot != null)
                 {
                     item.initialInside = false;
-                    // È·±£Íâ²¿ÎïÆ·¾«È·Îü¸½µ½Õ¹Ê¾ÇøÓòÖĞĞÄ£¨Èç¹û³õÊ¼Î»ÖÃÆ«²î£©
                     Vector3 targetPos = slot.transform.position;
                     item.transform.position = targetPos;
                     item.SetOriginalPosition(targetPos);
                 }
                 else
                 {
-                    Debug.LogWarning($"ÎïÆ· {item.name} Ã»ÓĞ·ÅÔÚÈÎºÎÕ¹Ê¾ÇøÓòÄÚ£¬Çëµ÷Õû³õÊ¼Î»ÖÃ");
+                    Debug.LogWarning($"ç‰©å“ {item.name} æœªæ‰¾åˆ°å¤–éƒ¨æ§½ä½");
                 }
             }
             UpdateItemStatus(item);
         }
-        Debug.Log("ÊÕÊ°Êé°üÓÎÏ·¿ªÊ¼");
+
+        // åˆå§‹åŒ–æ‰€æœ‰UIï¼šéšè—+é€æ˜
+        if (itemUIs != null)
+        {
+            foreach (var ui in itemUIs)
+            {
+                if (ui != null)
+                {
+                    ui.gameObject.SetActive(false);
+                    Color c = ui.color;
+                    c.a = 0f;
+                    ui.color = c;
+                }
+            }
+        }
+
+        Debug.Log("æ‰“åŒ…åœºæ™¯åˆå§‹åŒ–å®Œæˆ");
     }
 
     public void StartGame()
@@ -74,12 +99,13 @@ public class BagPackingManager : MonoBehaviour
         seq.OnComplete(() =>
         {
             isGameStarted = true;
-            Debug.Log("ÓÎÏ·ÒÑ¿ªÊ¼£¬¿ÉÒÔÍÏ×§ÎïÆ·");
+            Debug.Log("æ¸¸æˆå¼€å§‹ï¼Œå¯æ‹–æ‹½ç‰©å“");
         });
     }
+
     public void CheckItemPlacement(DraggableItem item)
     {
-        if (gameCompleted) return;
+        if (gameCompleted || item == null || item.isProcessed) return;
 
         bool wasInside = item.isInsideBag;
         bool wasOutsideSlot = item.isOutsideSlot;
@@ -89,40 +115,95 @@ public class BagPackingManager : MonoBehaviour
         if (wasInside == item.isInsideBag && wasOutsideSlot == item.isOutsideSlot)
             return;
 
-        // ´¦Àí¼ÆÊı±ä»¯
+        // è®¡æ•°é€»è¾‘
         if (item.initialInside)
         {
-            // ÄÚ²¿ÎïÆ·£ºÒÆ³öÊé°üµ½Íâ²¿²ÛÎ»ÔòÔö¼Ó£¬´ÓÍâ²¿ÒÆ»ØÊé°üÔò¼õÉÙ
             if (!wasInside && item.isInsideBag)
                 itemsFromInsideToOutside--;
             else if (wasInside && !item.isInsideBag && item.isOutsideSlot)
                 itemsFromInsideToOutside++;
         }
-        else // Ô­±¾ÔÚÊé°üÍâµÄÎïÆ·
+        else
         {
-            // Íâ²¿ÎïÆ·£ºÒÆÈëÊé°üÄÚÔö¼Ó£¬ÒÆ³öÊé°ü£¨µ½ÈÎºÎÍâ²¿ÇøÓò£©¼õÉÙ
             if (!wasInside && item.isInsideBag)
-            {
                 itemsFromOutsideToInside++;
-            }
             else if (wasInside && !item.isInsideBag)
                 itemsFromOutsideToInside--;
         }
 
         itemsFromInsideToOutside = Mathf.Max(0, itemsFromInsideToOutside);
         itemsFromOutsideToInside = Mathf.Max(0, itemsFromOutsideToInside);
-        if((itemsFromOutsideToInside>0&& itemsFromInsideToOutside<3))
+
+        // æç¤ºæ–‡æœ¬åŠ¨ç”»
+        if ((itemsFromOutsideToInside > 0 && itemsFromInsideToOutside < 3))
         {
             bagText1.transform.DOScale(1f, startDuration).SetEase(Ease.OutExpo);
         }
-        if(itemsFromInsideToOutside>=3)
+        if (itemsFromInsideToOutside >= 3)
         {
             bagText1.transform.DOScale(0f, startDuration).SetEase(Ease.OutExpo);
         }
-        Debug.Log($"ÄÚ²¿¡úÍâ²¿£º{itemsFromInsideToOutside}/3£¬Íâ²¿¡úÄÚ²¿£º{itemsFromOutsideToInside}/3");
 
+        Debug.Log($"å†…éƒ¨â†’å¤–éƒ¨ï¼š{itemsFromInsideToOutside}/3 | å¤–éƒ¨â†’å†…éƒ¨ï¼š{itemsFromOutsideToInside}/3");
+
+        // æ ¸å¿ƒé€»è¾‘ï¼šåŒ…å†…ç‰©å“æ‹–å‡ºä¹¦åŒ… â†’ æ‰§è¡ŒUI+æ¶ˆå¤±æµç¨‹
+        if (item.initialInside && !IsInBagArea(item.transform.position) && !item.isProcessed)
+        {
+            StartCoroutine(ItemOutBagProcess(item));
+        }
+
+        // é€šå…³åˆ¤å®š
         if (itemsFromInsideToOutside >= 3 && itemsFromOutsideToInside >= 3)
+        {
             OnGameComplete();
+        }
+    }
+
+    /// <summary>
+    /// ç‰©å“æ‹–å‡ºä¹¦åŒ…æµç¨‹ï¼šå»¶è¿Ÿå¼¹UI â†’ å†å»¶è¿Ÿ ç‰©å“+UI ä¸€èµ·æ¶ˆå¤±
+    /// </summary>
+    private IEnumerator ItemOutBagProcess(DraggableItem item)
+    {
+        item.isProcessed = true;
+        Image targetUI = null;
+
+        // åŒ¹é…å¯¹åº”UI
+        if (item.gameObject == item1.gameObject && itemUIs.Length > 0)
+            targetUI = itemUIs[0];
+        else if (item.gameObject == item2.gameObject && itemUIs.Length > 1)
+            targetUI = itemUIs[1];
+        else if (item.gameObject == item3.gameObject && itemUIs.Length > 2)
+            targetUI = itemUIs[2];
+
+        // 1. æ‹–å‡ºåç­‰å¾…ååº”æ—¶é—´
+        yield return new WaitForSeconds(showUIDelay);
+
+        // 2. æ˜¾ç¤ºå¹¶æ·¡å…¥UI
+        if (targetUI != null)
+        {
+            targetUI.gameObject.SetActive(true);
+            targetUI.DOFade(1f, fadeDuration);
+        }
+
+        // 3. UIæ˜¾ç¤ºåç­‰å¾…æ¶ˆå¤±å»¶è¿Ÿ
+        yield return new WaitForSeconds(hideDelay);
+
+        // 4. ç‰©å“ + UI åŒæ­¥æ·¡å‡º
+        Sequence seq = DOTween.Sequence();
+        SpriteRenderer sr = item.GetComponent<SpriteRenderer>();
+        if (sr != null)
+            seq.Append(sr.DOFade(0f, fadeDuration));
+
+        if (targetUI != null)
+            seq.Join(targetUI.DOFade(0f, fadeDuration));
+
+        seq.OnComplete(() =>
+        {
+            allItems.Remove(item);
+            Destroy(item.gameObject);
+            if (targetUI != null)
+                Destroy(targetUI.gameObject);
+        });
     }
 
     private void UpdateItemStatus(DraggableItem item)
@@ -145,6 +226,7 @@ public class BagPackingManager : MonoBehaviour
         }
         return null;
     }
+
     private void OnGameComplete()
     {
         gameCompleted = true;
@@ -155,7 +237,7 @@ public class BagPackingManager : MonoBehaviour
         seq.OnComplete(() =>
         {
             PopBubbleManage.Instance.StartGame();
-            Debug.Log("ÊÕÊ°Êé°üÍê³É£¡¿ªÆôÏÂÒ»¹Ø");
+            Debug.Log("æ‰“åŒ…å®Œæˆï¼Œè¿›å…¥ä¸‹ä¸€ç¯èŠ‚");
         });
     }
 }

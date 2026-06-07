@@ -3,14 +3,6 @@ using UnityEngine;
 
 public class DraggableItem : MonoBehaviour
 {
-    [Header("绑定对应UI图片")]
-    public UnityEngine.UI.Image itemUI;
-
-    [Header("时间配置")]
-    public float showUIDelay = 0.5f;    // 拖出书包后，延迟多久弹出UI
-    public float hideDelay = 0.8f;       // UI显示后，延迟多久一起消失
-    public float fadeDuration = 0.4f;    // 淡出动画时长
-
     [Header("拖拽缩放")]
     public float hoverScale = 1.2f;
     public float scaleDuration = 0.1f;
@@ -33,8 +25,7 @@ public class DraggableItem : MonoBehaviour
     public bool isInsideBag;
     public bool isOutsideSlot;
     public bool initialInside;
-
-    private bool hasProcessed = false; // 标记该物品是否已经执行过弹出+消失逻辑
+    public bool isProcessed = false; // 标记是否已执行消失逻辑
 
     void Start()
     {
@@ -44,15 +35,6 @@ public class DraggableItem : MonoBehaviour
         originalPosition = transform.position;
         originalScale = transform.localScale;
         SetZOffset();
-
-        // 初始化UI：隐藏+透明
-        if (itemUI != null)
-        {
-            itemUI.gameObject.SetActive(false);
-            Color c = itemUI.color;
-            c.a = 0f;
-            itemUI.color = c;
-        }
     }
 
     private void SetZOffset()
@@ -64,7 +46,7 @@ public class DraggableItem : MonoBehaviour
 
     void OnMouseDown()
     {
-        if (isMoving || hasProcessed) return;
+        if (isMoving || isProcessed) return;
         if (BagPackingManager.Instance == null ||
             !BagPackingManager.Instance.isGameStarted ||
             BagPackingManager.Instance.gameCompleted)
@@ -80,7 +62,7 @@ public class DraggableItem : MonoBehaviour
 
     void OnMouseDrag()
     {
-        if (isMoving || hasProcessed) return;
+        if (isMoving || isProcessed) return;
         if (BagPackingManager.Instance == null ||
             !BagPackingManager.Instance.isGameStarted ||
             BagPackingManager.Instance.gameCompleted)
@@ -92,7 +74,7 @@ public class DraggableItem : MonoBehaviour
 
     void OnMouseUp()
     {
-        if (isMoving || hasProcessed) return;
+        if (isMoving || isProcessed) return;
 
         scaleTween?.Kill();
         scaleTween = transform.DOScale(originalScale, scaleDuration).SetEase(Ease.OutQuad);
@@ -128,48 +110,8 @@ public class DraggableItem : MonoBehaviour
             {
                 SetZOffset();
                 isMoving = false;
-
-                // 核心判断：仅【初始在包里】的物品 + 现在不在包里 + 未执行过逻辑
-                if (initialInside && !BagPackingManager.Instance.IsInBagArea(transform.position) && !hasProcessed)
-                {
-                    OutBagProcess();
-                }
-
+                // 移动结束后，通知管理器检查是否需要触发消失逻辑
                 BagPackingManager.Instance.CheckItemPlacement(this);
-            });
-    }
-
-    /// <summary>
-    /// 物品拖出书包后的流程：延迟弹UI → 再延迟一起消失
-    /// </summary>
-    private void OutBagProcess()
-    {
-        hasProcessed = true;
-
-        DOTween.Sequence()
-            // 1. 拖出后等待反应时间
-            .AppendInterval(showUIDelay)
-            // 2. 弹出UI并淡入
-            .AppendCallback(() =>
-            {
-                if (itemUI != null)
-                {
-                    itemUI.gameObject.SetActive(true);
-                    itemUI.DOFade(1f, fadeDuration);
-                }
-            })
-            // 3. UI显示后再等待反应时间
-            .AppendInterval(hideDelay)
-            // 4. 物品+UI 同步淡出
-            .Append(transform.DOFade(0f, fadeDuration))
-            .Join(itemUI?.DOFade(0f, fadeDuration))
-            // 5. 动画结束销毁
-            .OnComplete(() =>
-            {
-                BagPackingManager.Instance.allItems.Remove(this);
-                Destroy(gameObject);
-                if (itemUI != null)
-                    Destroy(itemUI.gameObject);
             });
     }
 
