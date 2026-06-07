@@ -1,8 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using TMPro;
-using DG.Tweening;   // 需要引入 TextMeshPro
+using TMPro;   // 需要引入 TextMeshPro
 
 public class JumpGameManager : MonoBehaviour
 {
@@ -15,7 +14,6 @@ public class JumpGameManager : MonoBehaviour
 
     [Header("速度设置（四个圈）")]
     public float[] speeds = new float[4] { 1.5f, 2f, 2.5f, 3f };
-    SpriteRenderer sprite1;
 
     [Header("玩家")]
     public GameObject player;
@@ -110,7 +108,6 @@ public class JumpGameManager : MonoBehaviour
         {
             // 正式圈通过，计数+1，更新UI
             successCount++;
-
             if (countdownText != null) countdownText.text = successCount.ToString();
 
             Destroy(currentCircle.gameObject);

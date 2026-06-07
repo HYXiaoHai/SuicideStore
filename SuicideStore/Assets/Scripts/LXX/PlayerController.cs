@@ -6,8 +6,6 @@ public class PlayerController : MonoBehaviour
     //[Header("移动参数")]
     //public float moveSpeed = 5f;
     //public float jumpForce = 8f;
-    [Header("开局渐入")]
-    public Color fadeColor = Color.white;
 
     public GameObject Player;
     [Header("角色移动")]
@@ -84,7 +82,7 @@ public class PlayerController : MonoBehaviour
     {
         if(TransitionManage.Instance!=null)
         {
-            TransitionManage.Instance.FadeIn(1f, fadeColor);
+            TransitionManage.Instance.FadeIn(1f,Color.white);
         }
 
         rb = Player.GetComponent<Rigidbody2D>();
