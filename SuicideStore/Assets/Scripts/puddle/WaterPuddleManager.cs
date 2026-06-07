@@ -42,6 +42,11 @@ public class SimpleWaterPuddleManager : MonoBehaviour
 
     void Start()
     {
+        if(TransitionManage.Instance!=null)
+        {
+            TransitionManage.Instance.FadeIn(1f, Color.white);
+        }
+
         // 预加载所有 BGM Clip，避免切换时卡顿
         if (BGM1Clip != null) BGM1Clip.LoadAudioData();
         if (BGM2Clip != null) BGM2Clip.LoadAudioData();
@@ -88,9 +93,6 @@ public class SimpleWaterPuddleManager : MonoBehaviour
         {
             SetPuddleActive(i, false);
         }
-
-        //开局转场效果（白色渐入）
-        canvasGroup.DOFade(0f, 1f).OnComplete(() => { canvasGroup.gameObject.SetActive(false); });
     }
 
     /// <summary>

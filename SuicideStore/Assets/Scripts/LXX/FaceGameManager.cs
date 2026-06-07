@@ -47,6 +47,10 @@ public class FaceGameManager : MonoBehaviour
 
     void Start()
     {
+        if (TransitionManage.Instance != null)
+        {
+            TransitionManage.Instance.FadeIn(0.5f,Color.white);
+        }
         if (identifyBar == null) Debug.LogError("FaceGameManager: identifyBar 未赋值！");
         if (faceTarget == null) Debug.LogError("FaceGameManager: faceTarget 未赋值！");
         if (progressFill == null) Debug.LogError("FaceGameManager: progressFill 未赋值！");
@@ -157,12 +161,12 @@ public class FaceGameManager : MonoBehaviour
         if (shouldUseFade)
         {
             // 并行执行转场淡出和 BGM 淡出
-            TransitionManage.Instance.FadeOut(1f,Color.white, () =>
+            TransitionManage.Instance.FadeOut(0.5f,Color.white, () =>
             {
                 // 转场完成后加载新场景
                 SceneManager.LoadScene(nextSceneName);
             });
-            AudioManager.Instance.FadeOutCurrentBGM(1f, null);
+            AudioManager.Instance.FadeOutCurrentBGM(0.5f, null);
         }
         else
         {

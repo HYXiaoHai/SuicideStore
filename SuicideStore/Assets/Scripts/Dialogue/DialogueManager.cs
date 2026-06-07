@@ -95,6 +95,11 @@ public class DialogueManager : MonoBehaviour
 
     void Start()
     {
+        if(TransitionManage.Instance!=null)
+        {
+            TransitionManage.Instance.FadeIn(0.5f,Color.black);
+        }
+
         // 初始检查
         if (dialogueText == null)
         {
@@ -303,7 +308,13 @@ public class DialogueManager : MonoBehaviour
         {
             if (TryResolveSceneBuildIndex(nextSceneName, out int index))
             {
-                SceneManager.LoadScene(index, LoadSceneMode.Single);
+                if (TransitionManage.Instance != null)
+                {
+                    TransitionManage.Instance.FadeOut(0.5f, Color.black, () => {
+                        SceneManager.LoadScene(index);
+                    });
+                }
+                //SceneManager.LoadScene(index, LoadSceneMode.Single);
                 return;
             }
 

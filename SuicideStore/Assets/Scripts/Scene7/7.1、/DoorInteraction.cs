@@ -75,7 +75,12 @@ public class DoorInteraction : MonoBehaviour
     {
         if (!string.IsNullOrEmpty(nextSceneName))
         {
-            SceneManager.LoadScene(nextSceneName);
+            // 并行执行转场淡出和 BGM 淡出
+            TransitionManage.Instance.FadeOut(0.5f, Color.white, () =>
+            {
+                // 转场完成后加载新场景
+                SceneManager.LoadScene(nextSceneName);
+            });
         }
         else
         {

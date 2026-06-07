@@ -105,28 +105,28 @@ public class GameManage : MonoBehaviour
     private void InitSceneMapping()
     {
         // level 1
-        levelFirstScene[1] = "S1-1.1-text";
+        levelFirstScene[1] = "S1-1.1-text";//blak
         // level 2
-        levelFirstScene[2] = "S2-2.1-clock";
+        levelFirstScene[2] = "S2-2.1-clock";//white
         // level 3
-        levelFirstScene[3] = "S3";
+        levelFirstScene[3] = "S3";//black
         // level 4
-        levelFirstScene[4] = "S4";
+        levelFirstScene[4] = "S4";//white
         // level 5
-        levelFirstScene[5] = "S5";
+        levelFirstScene[5] = "S5";//white
         // level 6
-        levelFirstScene[6] = "S6_reversal";
+        levelFirstScene[6] = "S6_reversal";//blak
         // level 7
         //levelFirstScene[7] = "S7-7.1-puzzle";
-        levelFirstScene[7] = "S8-8.1-story";
+        levelFirstScene[7] = "S8-8.1-story";//blak
         // level 8
-        levelFirstScene[8] = "S7-7.2-walk";
+        levelFirstScene[8] = "S7-7.2-walk";//blak
         // level 9
-        levelFirstScene[9] = "S9-9.1-exchange";
+        levelFirstScene[9] = "S9-9.1-exchange";//white
         // level 10
-        levelFirstScene[10] = "S10-10.1-dialogue";
+        levelFirstScene[10] = "S10-10.1-dialogue";//white
         // level 11
-        levelFirstScene[11] = "S11-11.1-move";
+        levelFirstScene[11] = "S11-11.1-move";//blak
         // level 12
         levelFirstScene[12] = "S12";
     }
@@ -158,7 +158,7 @@ public class GameManage : MonoBehaviour
         if (PlayerPrefs.HasKey("UnlockedLevel"))
             unlockedLevel = PlayerPrefs.GetInt("UnlockedLevel");
         else
-            unlockedLevel = 1; 
+            unlockedLevel = 1;
 
         Debug.Log($"加载存档，已解锁关卡：{unlockedLevel}");
     }
@@ -174,7 +174,16 @@ public class GameManage : MonoBehaviour
         if (!string.IsNullOrEmpty(firstScene))
         {
             currentState = GameState.Game;
-            SceneManager.LoadScene(firstScene);
+            TransitionManage.Instance.FadeOut(1f, Color.black,null);
+            if (AudioManager.Instance.CurrentBGMClip != null)
+            {
+                AudioManager.Instance.FadeOutCurrentBGM(1f, ()=>
+                    {
+                    SceneManager.LoadScene(firstScene);
+                });
+
+            }
+            //SceneManager.LoadScene(firstScene);
         }
     }
 
@@ -202,19 +211,37 @@ public class GameManage : MonoBehaviour
             return;
         }
 
+        Color fadeColor = Color.white;
+        if(level == 1||level==3|| level == 6|| level == 7|| level == 8) fadeColor = Color.black;
+
         currentLevel = level;
         string targetScene = GetFirstSceneOfLevel(level);
         if (!string.IsNullOrEmpty(targetScene))
         {
             currentState = GameState.Game;
-            SceneManager.LoadScene(targetScene);
+            TransitionManage.Instance.FadeOut(1f, fadeColor);
+            if (AudioManager.Instance.CurrentBGMClip != null)
+            {
+                AudioManager.Instance.FadeOutCurrentBGM(1f, () =>
+                {
+                    SceneManager.LoadScene(targetScene);
+                });
+
+            }
         }
     }
     public void BackMenu()
     {
         currentState = GameState.Menu;
-        Time.timeScale = 1f;      // 恢复时间
-        SceneManager.LoadScene("Menu");
+        Time.timeScale = 1f;      //恢复时间
+        //并行执行转场淡出和 BGM 淡出
+        TransitionManage.Instance.FadeOut(1f, Color.black, () =>
+        {
+            // 转场完成后加载新场景
+            SceneManager.LoadScene("Menu");
+        });
+        if(AudioManager.Instance.CurrentBGMClip!=null)
+        AudioManager.Instance.FadeOutCurrentBGM(1f, null);
     }
     public void QuitGame()
     {
@@ -225,42 +252,3 @@ public class GameManage : MonoBehaviour
 #endif
     }
 }
-
-
-
-
-
-
-
-public class ActionDemo : MonoBehaviour
-{
-    public float time;
-    Action act = null;
-    public float timer;
-
-    void Start()
-    {
-        act = TestFunc1;
-        act += TestFunc2;
-        timer = 0f;
-    }
-    private void Update()
-    {
-        timer += Time.deltaTime;
-        if(timer>=time)
-        {
-            act?.Invoke();
-            timer -= time;
-        }
-    }
-
-    void TestFunc1()
-    {
-        Debug.Log("Func1");
-    }
-    void TestFunc2()
-    {
-        Debug.Log("Func2");
-    }
-}
-

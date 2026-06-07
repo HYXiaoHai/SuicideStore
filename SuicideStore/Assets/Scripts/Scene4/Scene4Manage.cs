@@ -31,6 +31,10 @@ public class Scene4Manage : MonoBehaviour
     }
     private void Start()
     {
+        if(TransitionManage.Instance!=null)
+        {
+            TransitionManage.Instance.FadeIn(1f,Color.white);
+        }
         currentLevel = 1;
 
         if (levelCameras == null || levelCameras.Length < 5)

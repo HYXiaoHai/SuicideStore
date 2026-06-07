@@ -190,7 +190,7 @@ public class AudioManager : MonoBehaviour
         else
         {
             StopBGM();
-            Debug.LogWarning($"≥°æ∞ {sceneName} √ª”–≈‰÷√ BGM£¨“—Õ£÷π“Ù¿÷");
+            //Debug.LogWarning($"≥°æ∞ {sceneName} √ª”–≈‰÷√ BGM£¨“—Õ£÷π“Ù¿÷");
         }
     }
 

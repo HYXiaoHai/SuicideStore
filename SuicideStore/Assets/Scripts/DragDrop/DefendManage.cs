@@ -1,7 +1,8 @@
-using UnityEngine;
-using UnityEngine.UI;
 using DG.Tweening;
 using System.Collections;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class DefendManage : MonoBehaviour
 {
@@ -323,7 +324,13 @@ public class DefendManage : MonoBehaviour
 
         if (!string.IsNullOrEmpty(nextSceneName))
         {
-            UnityEngine.SceneManagement.SceneManager.LoadScene(nextSceneName);
+                // 并行执行转场淡出和 BGM 淡出
+                TransitionManage.Instance.FadeOut(0.5f, Color.white, () =>
+                {
+                    // 转场完成后加载新场景
+                    SceneManager.LoadScene(nextSceneName);
+                });
+                AudioManager.Instance.FadeOutCurrentBGM(0.5f, null);
         }
         else
         {

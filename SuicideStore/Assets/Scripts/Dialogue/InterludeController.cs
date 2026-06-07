@@ -26,6 +26,9 @@ public class InterludeController : MonoBehaviour
 
     [Header("通用")]
     public bool isTheLestScene = false;//+++++++++++++++++++++++++++++++++++
+    public bool useAudioFadeOut;
+    public float fadeOutDuration;
+    public Color fadeOutColor;
     [SerializeField] private string nextSceneName;
     [SerializeField] private TMP_FontAsset fontOverride;
     [SerializeField] private bool prewarmFontCharacters = true;
@@ -69,6 +72,12 @@ public class InterludeController : MonoBehaviour
 
     void Start()
     {
+
+        if (TransitionManage.Instance != null)
+        {
+            TransitionManage.Instance.FadeIn(0.5f, Color.black);
+        }
+
         continueButtonAssignedInInspector = continueButton != null;
 
         if (endHint != null) endHint.SetActive(false);
@@ -575,7 +584,6 @@ public class InterludeController : MonoBehaviour
 
     public void LoadNextScene()
     {
-
         if (isTheLestScene == false)
         {
             if (sceneLoadTriggered) return;
@@ -591,7 +599,14 @@ public class InterludeController : MonoBehaviour
                 {
                     sceneLoadTriggered = true;
                     Debug.Log($"InterludeController: loading next buildIndex={next} ({Path.GetFileNameWithoutExtension(SceneUtility.GetScenePathByBuildIndex(next))})");
-                    SceneManager.LoadScene(next, LoadSceneMode.Single);
+                    TransitionManage.Instance.FadeOut(fadeOutDuration, fadeOutColor, () =>
+                    {
+                        // 转场完成后加载新场景
+                        SceneManager.LoadScene(next, LoadSceneMode.Single);
+                    });
+                    if (useAudioFadeOut)
+                        AudioManager.Instance.FadeOutCurrentBGM(fadeOutDuration, null);
+                    //SceneManager.LoadScene(next, LoadSceneMode.Single);
                 }
                 else
                 {
@@ -608,7 +623,14 @@ public class InterludeController : MonoBehaviour
                 }
                 sceneLoadTriggered = true;
                 Debug.Log($"InterludeController: loading buildIndex={index} ({Path.GetFileNameWithoutExtension(SceneUtility.GetScenePathByBuildIndex(index))})");
-                SceneManager.LoadScene(index, LoadSceneMode.Single);
+                // 并行执行转场淡出和 BGM 淡出
+                TransitionManage.Instance.FadeOut(fadeOutDuration, fadeOutColor, () =>
+                {
+                    // 转场完成后加载新场景
+                    SceneManager.LoadScene(index, LoadSceneMode.Single);
+                });
+                if (useAudioFadeOut)
+                    AudioManager.Instance.FadeOutCurrentBGM(fadeOutDuration, null);
             }
             else
             {
@@ -630,7 +652,17 @@ public class InterludeController : MonoBehaviour
         {
             string nextScene = GameManage.Instance.GetFirstSceneOfLevel(nextLevel);
             if (!string.IsNullOrEmpty(nextScene))
-                UnityEngine.SceneManagement.SceneManager.LoadScene(nextScene);
+            {
+                    // 并行执行转场淡出和 BGM 淡出
+                    TransitionManage.Instance.FadeOut(fadeOutDuration, fadeOutColor, () =>
+                    {
+                        Debug.Log("加载");
+                        // 转场完成后加载新场景
+                        SceneManager.LoadScene(nextScene);
+                    });
+                if(useAudioFadeOut)
+                    AudioManager.Instance.FadeOutCurrentBGM(fadeOutDuration, null);
+            }
         }
         else
         {

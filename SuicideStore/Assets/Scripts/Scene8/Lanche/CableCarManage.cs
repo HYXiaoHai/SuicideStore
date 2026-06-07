@@ -34,6 +34,8 @@ public class CableCarManage : MonoBehaviour
     }
     void Start()
     {
+        if (TransitionManage.Instance != null)
+            TransitionManage.Instance.FadeIn(0.5f,Color.black);
         // 设置第一关背景和相机位置
         mycamera.backgroundColor = level1BGColor;
         cameraFollow.transform.position = level1CameraPosition.position;
