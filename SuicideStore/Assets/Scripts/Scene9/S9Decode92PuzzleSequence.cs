@@ -269,6 +269,9 @@ public sealed class S9Decode92PuzzleSequence : MonoBehaviour
 
     private void Start()
     {
+        if (TransitionManage.Instance != null)
+            TransitionManage.Instance.FadeIn(0.3f,Color.black);
+
         BuildSceneTransformCache();
         revealC = GameObject.Find("C");
         revealC1 = GameObject.Find("C1");
@@ -3106,7 +3109,15 @@ public sealed class S9Decode92PuzzleSequence : MonoBehaviour
         {
             string nextScene = GameManage.Instance.GetFirstSceneOfLevel(nextLevel);
             if (!string.IsNullOrEmpty(nextScene))
-                UnityEngine.SceneManagement.SceneManager.LoadScene(nextScene);
+            {
+                // 并行执行转场淡出和 BGM 淡出
+                TransitionManage.Instance.FadeOut(1f, Color.white, () =>
+                {
+                    // 转场完成后加载新场景
+                    SceneManager.LoadScene(nextScene);
+                });
+                AudioManager.Instance.FadeOutCurrentBGM(1f, null);
+            }
         }
         else
         {

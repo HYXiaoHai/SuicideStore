@@ -39,6 +39,7 @@ public class S10PuzzleController : MonoBehaviour
     [SerializeField] private bool autoUnparentPiecesFromEachOther = true;
     [SerializeField] private bool freezeOtherPiecesWhileDragging = true;
     [SerializeField] private bool reparentPiecesToControllerOnStart = true;
+    private bool lastSettingState = false;
 
     [Header("音效")]
     public AudioClip adsorptionClip;//吸附音效
@@ -147,6 +148,9 @@ public class S10PuzzleController : MonoBehaviour
 
     private void Start()
     {
+        if (TransitionManage.Instance != null)
+            TransitionManage.Instance.FadeIn(0.5f, Color.black);
+
         HideAllMessagesOnStart();
 
         int count = bindings != null ? bindings.Length : 0;
@@ -260,6 +264,16 @@ public class S10PuzzleController : MonoBehaviour
 
     private void Update()
     {
+        // 检测设置面板状态变化，打开时强制结束拖拽
+        if (lastSettingState != GameManage.Instance.isSetting)
+        {
+            if (GameManage.Instance.isSetting && draggingIndex != -1)
+            {
+                ForceEndDrag();
+            }
+            lastSettingState = GameManage.Instance.isSetting;
+        }
+
         if (mainCamera == null)
             return;
 
@@ -294,6 +308,7 @@ public class S10PuzzleController : MonoBehaviour
 
     private void LateUpdate()
     {
+        if (GameManage.Instance.isSetting) return;
         if (!freezeOtherPiecesWhileDragging || !othersFrozen || draggingIndex < 0)
             return;
 
@@ -310,7 +325,34 @@ public class S10PuzzleController : MonoBehaviour
             t.rotation = frozenRotations[i];
         }
     }
+    //新增 ForceEndDrag 方法，用于强制结束拖拽并复位拼图
+    private void ForceEndDrag()
+    {
+        if (draggingIndex == -1) return;
 
+        int idx = draggingIndex;
+        draggingIndex = -1;
+        othersFrozen = false;
+
+        //恢复所有拼图的刚体状态
+        for (int i = 0; i < pieceTransforms.Length; i++)
+        {
+            if (pieceRigidbodies[i] != null)
+                pieceRigidbodies[i].isKinematic = originalKinematicStates[i];
+        }
+
+        Transform piece = idx >= 0 && idx < pieceTransforms.Length ? pieceTransforms[idx] : null;
+        if (piece == null) return;
+
+        //恢复排序层级
+        SpriteRenderer psr = pieceSpriteRenderers[idx];
+        if (psr != null)
+            psr.sortingOrder = draggingOriginalSortingOrder;
+
+        //复位拼图到起始位置（不触发吸附）
+        piece.position = startPositions[idx];
+        piece.rotation = startRotations[idx];
+    }
     private void TryBeginDrag(Vector3 pointerWorld)
     {
         int hitCount = Physics2D.OverlapPointNonAlloc(pointerWorld, overlapBuffer, pieceLayerMask);
@@ -744,7 +786,13 @@ public class S10PuzzleController : MonoBehaviour
 
     public void LoadNextScene()
     {
-        SceneManager.LoadScene(nextSceneName);
+        // 并行执行转场淡出和 BGM 淡出
+        TransitionManage.Instance.FadeOut(0.5f, Color.black, () =>
+        {
+            // 转场完成后加载新场景
+            SceneManager.LoadScene(nextSceneName);
+
+        });
     }
 
     private int IndexOfCollider(Collider2D collider)

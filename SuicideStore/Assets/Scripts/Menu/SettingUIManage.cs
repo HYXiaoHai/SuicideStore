@@ -93,6 +93,8 @@ public class SettingUIManage : MonoBehaviour
         if (isAnimating) return;
         isAnimating = true;
         Time.timeScale = 0f;
+        if (GameManage.Instance != null)
+            GameManage.Instance.isSetting = true;
         settingCanvasGroup.gameObject.SetActive(true);
         settingCanvasGroup.interactable = false;
         settingCanvasGroup.blocksRaycasts = false;
@@ -102,8 +104,6 @@ public class SettingUIManage : MonoBehaviour
         {
             settingCanvasGroup.interactable = true;
             settingCanvasGroup.blocksRaycasts = true;
-            if (GameManage.Instance != null)
-                GameManage.Instance.isSetting = true;
             isAnimating = false;
         });
     }

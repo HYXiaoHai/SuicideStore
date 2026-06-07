@@ -17,6 +17,7 @@ public class ElephantFall : MonoBehaviour
 
     [Header("=== 场景设置 ===")]
     public string nextSceneName = "S10-10.6-door";
+    public bool shouldUseFade = true;
     public float fallDelay = 1.5f;
 
     [Header("=== 调试设置 ===")]
@@ -27,6 +28,9 @@ public class ElephantFall : MonoBehaviour
 
     void Start()
     {
+        if (TransitionManage.Instance != null)
+            TransitionManage.Instance.FadeIn(0.5f, Color.white);
+
         mainCamera = Camera.main;
 
         if (elephantRb != null)
@@ -92,15 +96,47 @@ public class ElephantFall : MonoBehaviour
     {
         if (!string.IsNullOrEmpty(nextSceneName))
         {
-            SceneManager.LoadScene(nextSceneName);
+            //SceneManager.LoadScene(nextSceneName);
+            CompleteLevel();
         }
         else if (showDebugLog)
         {
             Debug.LogWarning("nextSceneName 未设置");
         }
     }
-
-    void OnCollisionEnter2D(Collision2D collision)
+    public void CompleteLevel()
+    {
+        // 通知 GameManage 当前关卡通关
+        GameManage.Instance.CompleteCurrentLevel();
+        // 可选：自动进入下一关第一场景（如果希望无缝衔接）
+        int nextLevel = GameManage.Instance.currentLevel + 1;
+        if (nextLevel <= 12)
+        {
+            string nextScene = GameManage.Instance.GetFirstSceneOfLevel(nextLevel);
+            if (!string.IsNullOrEmpty(nextScene))
+            {
+                if (shouldUseFade)
+                {
+                    // 并行执行转场淡出和 BGM 淡出
+                    TransitionManage.Instance.FadeOut(0.5f, Color.black, () =>
+                    {
+                        // 转场完成后加载新场景
+                        SceneManager.LoadScene(nextScene);
+                    });
+                    AudioManager.Instance.FadeOutCurrentBGM(1f, null);
+                }
+                else
+                {
+                    SceneManager.LoadScene(nextScene);
+                }
+            }
+        }
+        else
+        {
+            Debug.Log("恭喜通关全部12大关！");
+        }
+    }
+void OnCollisionEnter2D(Collision2D collision)
     {
         if (showDebugLog)
         {
