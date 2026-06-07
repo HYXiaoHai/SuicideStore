@@ -1,34 +1,42 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using TMPro;   // ÐèÒªÒýÈë TextMeshPro
+using TMPro;   // ï¿½ï¿½Òªï¿½ï¿½ï¿½ï¿½ TextMeshPro
+using DG.Tweening;
 
 public class JumpGameManager : MonoBehaviour
 {
     public static JumpGameManager Instance;
 
-    [Header("È¦ÅäÖÃ")]
+    [Header("È¦ï¿½ï¿½ï¿½ï¿½")]
     public List<GameObject> circlePrefabs = new List<GameObject>();
     public Transform startPoint;
     public Transform endPoint;
+    
+    public UnityEngine.UI.Image sprite1;
+    public UnityEngine.UI.Image sprite2;
+    public UnityEngine.UI.Image sprite3;
 
-    [Header("ËÙ¶ÈÉèÖÃ£¨ËÄ¸öÈ¦£©")]
+    [Header("ï¿½Ù¶ï¿½ï¿½ï¿½ï¿½Ã£ï¿½ï¿½Ä¸ï¿½È¦ï¿½ï¿½")]
     public float[] speeds = new float[4] { 1.5f, 2f, 2.5f, 3f };
 
-    [Header("Íæ¼Ò")]
+    [Header("æ¸¸æˆç»“æŸUI")]
+    public UnityEngine.UI.Image finishUI; // é€šå…³å¼¹çª—/å›¾ç‰‡
+
+    [Header("ï¿½ï¿½ï¿½")]
     public GameObject player;
     public PlayerJumpController playerJump;
 
     [Header("UI")]
-    public TextMeshProUGUI countdownText;   // µ¹¼ÆÊ±ÏÔÊ¾µÄÎÄ±¾£¨3,2,1,GO£©
+    public TextMeshProUGUI countdownText;   // ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½Ê¾ï¿½ï¿½ï¿½Ä±ï¿½ï¿½ï¿½3,2,1,GOï¿½ï¿½
 
     private JumpCircle currentCircle;
-    private int currentIndex = 0;           // µ±Ç°ÕýÔÚ½øÐÐµÄÈ¦Ë÷Òý£¨0½ÌÑ§£¬1,2,3ÕýÊ½£©
-    private bool isGameActive = false;      // µ¹¼ÆÊ±½áÊøºóÎªtrue£¬±íÊ¾ÕýÊ½ÓÎÏ·½øÐÐÖÐ
+    private int currentIndex = 0;           // ï¿½ï¿½Ç°ï¿½ï¿½ï¿½Ú½ï¿½ï¿½Ðµï¿½È¦ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½0ï¿½ï¿½Ñ§ï¿½ï¿½1,2,3ï¿½ï¿½Ê½ï¿½ï¿½
+    private bool isGameActive = false;      // ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Îªtrueï¿½ï¿½ï¿½ï¿½Ê¾ï¿½ï¿½Ê½ï¿½ï¿½Ï·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     private bool isWaitingForJump = false;
-    private int successCount = 0;           // ³É¹¦Ìø¹ýµÄÕýÊ½È¦¸öÊý£¨0~3£©
+    private int successCount = 0;           // ï¿½É¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê½È¦ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½0~3ï¿½ï¿½
     public bool gameCompleted =false;
-    [Header("ÒôÐ§")]
+    [Header("ï¿½ï¿½Ð§")]
     public AudioClip jumpClip;
     void Awake()
     {
@@ -38,21 +46,21 @@ public class JumpGameManager : MonoBehaviour
     void Start()
     {
         playerJump.SetCanJump(false);
-        // ³õÊ¼Òþ²Ø»òÇå¿ÕUI
+        // ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½Ø»ï¿½ï¿½ï¿½ï¿½UI
         if (countdownText != null) countdownText.text = " ";
         if (countdownText != null) countdownText.gameObject.SetActive(false);
     }
 
-    // Íâ²¿µ÷ÓÃ£º¿ªÆôÌøÈ¦ÓÎÏ·£¨ÓÉ·çóÝÏà»úÇÐ»»ºó´¥·¢£©
+    // ï¿½â²¿ï¿½ï¿½ï¿½Ã£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¦ï¿½ï¿½Ï·ï¿½ï¿½ï¿½É·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð»ï¿½ï¿½ó´¥·ï¿½ï¿½ï¿½
     public void StartJumpGame()
     {
         gameCompleted = false;
         playerJump.SetCanJump(true);
-        // ¿ªÊ¼½ÌÑ§È¦£¨Ë÷Òý0£©
+        // ï¿½ï¿½Ê¼ï¿½ï¿½Ñ§È¦ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½0ï¿½ï¿½
         StartCircle(0);
     }
 
-    // ¿ªÊ¼Ö¸¶¨Ë÷ÒýµÄÈ¦
+    // ï¿½ï¿½Ê¼Ö¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¦
     public void StartCircle(int index)
     {
         if (index >= speeds.Length)
@@ -75,10 +83,10 @@ public class JumpGameManager : MonoBehaviour
         while (currentCircle != null && currentCircle.transform.position.x < endPoint.position.x)
             yield return null;
         if (currentCircle != null && isWaitingForJump)
-            OnJumpFailed("È¦ÒÑ³¬³ö·¶Î§");
+            OnJumpFailed("È¦ï¿½Ñ³ï¿½ï¿½ï¿½ï¿½ï¿½Î§");
     }
 
-    // ÓÉÍæ¼Ò¶¯»­ÊÂ¼þµ÷ÓÃ£¨ÂäµØË²¼ä£©
+    // ï¿½ï¿½ï¿½ï¿½Ò¶ï¿½ï¿½ï¿½ï¿½Â¼ï¿½ï¿½ï¿½ï¿½Ã£ï¿½ï¿½ï¿½ï¿½Ë²ï¿½ä£©
     public void OnPlayerJumpLand()
     {
         if (!isWaitingForJump) return;
@@ -89,40 +97,56 @@ public class JumpGameManager : MonoBehaviour
         if (isInCenter)
             OnJumpSuccess();
         else
-            OnJumpFailed("²»ÔÚÖÐÐÄÇøÓò");
+            OnJumpFailed("ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½");
     }
 
-    private void OnJumpSuccess()
+   private void OnJumpSuccess()
+{
+    isWaitingForJump = false;
+    currentCircle.StopMoving();
+    AudioManager.Instance.Play2DSound(jumpClip, 0.8f);
+
+    if (currentIndex == 0)
     {
-        isWaitingForJump = false;
-        currentCircle.StopMoving();
-        AudioManager.Instance.Play2DSound(jumpClip,0.8f);
-        if (currentIndex == 0)
-        {
-            // ½ÌÑ§È¦Í¨¹ý£¬¿ªÆôµ¹¼ÆÊ±£¬²»Ö±½Ó½øÈëÏÂÒ»¸öÈ¦
-            Debug.Log("½ÌÑ§Íê³É£¬×¼±¸µ¹¼ÆÊ±...");
-            Destroy(currentCircle.gameObject);
-            StartCoroutine(StartCountdown());
-        }
-        else
-        {
-            // ÕýÊ½È¦Í¨¹ý£¬¼ÆÊý+1£¬¸üÐÂUI
-            successCount++;
-            if (countdownText != null) countdownText.text = successCount.ToString();
-
-            Destroy(currentCircle.gameObject);
-
-            if (currentIndex + 1 < speeds.Length)
-                StartCircle(currentIndex + 1);
-            else
-                OnAllCirclesPassed();
-        }
+        // æ•™å­¦åœˆé€šè¿‡ï¼Œå¼€å¯å€’è®¡æ—¶ï¼Œä¸ç›´æŽ¥è¿›å…¥ä¸‹ä¸€ä¸ªåœˆ
+        Debug.Log("æ•™å­¦å®Œæˆï¼Œå‡†å¤‡å€’è®¡æ—¶...");
+        Destroy(currentCircle.gameObject);
+        StartCoroutine(StartCountdown());
     }
+    else
+    {
+        // æ­£å¼åœˆé€šè¿‡ï¼Œè®¡æ•°+1ï¼Œæ›´æ–°UI
+        successCount++;
 
-    // µ¹¼ÆÊ±Ð­³Ì
+        if (successCount == 1)
+        {
+            sprite1.DOFade(1f, 1f);
+        }
+        else if (successCount == 2)
+        {
+            sprite2.DOFade(1f, 1f);
+        }
+        else if (successCount == 3)
+        {
+            sprite3.DOFade(1f, 1f);
+        }
+
+        if (countdownText != null)
+            countdownText.text = successCount.ToString();
+
+        Destroy(currentCircle.gameObject);
+
+        if (currentIndex + 1 < speeds.Length)
+            StartCircle(currentIndex + 1);
+        else
+            OnAllCirclesPassed();
+    }
+}
+
+    // ï¿½ï¿½ï¿½ï¿½Ê±Ð­ï¿½ï¿½
     private IEnumerator StartCountdown()
     {
-        // µ¹¼ÆÊ±ÆÚ¼ä½ûÖ¹Íæ¼ÒÌøÔ¾£¨Ò²¿ÉÒÔÈÃÍæ¼Ò²»ÄÜÌøÔ¾£¬µ«½ÌÑ§È¦ºóÍæ¼ÒÌøÔ¾ÒÑÆôÓÃ£¬ÎÒÃÇÔÝÊ±½ûÓÃÌøÔ¾ÊäÈë¸ÐÖª£¬µ«ÎªÁË°²È«£¬¿ÉÒÔÔÙ¹Ø±ÕÒ»´ÎÌøÔ¾È¨ÏÞ£©
+        // ï¿½ï¿½ï¿½ï¿½Ê±ï¿½Ú¼ï¿½ï¿½Ö¹ï¿½ï¿½ï¿½ï¿½ï¿½Ô¾ï¿½ï¿½Ò²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò²ï¿½ï¿½ï¿½ï¿½ï¿½Ô¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ñ§È¦ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô¾ï¿½ï¿½ï¿½ï¿½ï¿½Ã£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô¾ï¿½ï¿½ï¿½ï¿½ï¿½Öªï¿½ï¿½ï¿½ï¿½Îªï¿½Ë°ï¿½È«ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ù¹Ø±ï¿½Ò»ï¿½ï¿½ï¿½ï¿½Ô¾È¨ï¿½Þ£ï¿½
         playerJump.SetCanJump(false);
         if (countdownText != null)
         {
@@ -138,17 +162,17 @@ public class JumpGameManager : MonoBehaviour
         }
         else
         {
-            yield return new WaitForSeconds(3f); // Èç¹ûÃ»ÓÐUI£¬µÈ´ý3Ãë
+            yield return new WaitForSeconds(3f); // ï¿½ï¿½ï¿½Ã»ï¿½ï¿½UIï¿½ï¿½ï¿½È´ï¿½3ï¿½ï¿½
         }
 
-        // µ¹¼ÆÊ±½áÊø£¬ÕýÊ½¼¤»îÓÎÏ·
+        // ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï·
         isGameActive = true;
-        // ÖØÖÃ¼ÆÊýÆ÷£¨ÒòÎªÕýÊ½ÓÎÏ·¿ªÊ¼£¬Ö®Ç°½ÌÑ§È¦²»¼ÆÈë£©
+        // ï¿½ï¿½ï¿½Ã¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Îªï¿½ï¿½Ê½ï¿½ï¿½Ï·ï¿½ï¿½Ê¼ï¿½ï¿½Ö®Ç°ï¿½ï¿½Ñ§È¦ï¿½ï¿½ï¿½ï¿½ï¿½ë£©
         successCount = 0;
         if (countdownText != null) countdownText.text = "0";
-        // »Ö¸´Íæ¼ÒÌøÔ¾ÄÜÁ¦
+        // ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô¾ï¿½ï¿½ï¿½ï¿½
         playerJump.SetCanJump(true);
-        // ¿ªÊ¼ÕýÊ½ÓÎÏ·µÚÒ»¸öÈ¦£¨Ë÷Òý1£¬¼´µÚ¶þ¸öÈ¦£©
+        // ï¿½ï¿½Ê¼ï¿½ï¿½Ê½ï¿½ï¿½Ï·ï¿½ï¿½Ò»ï¿½ï¿½È¦ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½1ï¿½ï¿½ï¿½ï¿½ï¿½Ú¶ï¿½ï¿½ï¿½È¦ï¿½ï¿½
         StartCircle(1);
     }
 
@@ -156,8 +180,8 @@ public class JumpGameManager : MonoBehaviour
     {
         if (!isGameActive && currentIndex == 0)
         {
-            // ½ÌÑ§È¦Ê§°Ü£ºÖØÐÂÀ´½ÌÑ§È¦£¨²»Çå³ýUI£¬²»ÆôÓÃÕýÊ½ÓÎÏ·£©
-            Debug.Log("½ÌÑ§È¦Ê§°Ü£¬ÖØÐÂ¿ªÊ¼½ÌÑ§È¦");
+            // ï¿½ï¿½Ñ§È¦Ê§ï¿½Ü£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ñ§È¦ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½UIï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê½ï¿½ï¿½Ï·ï¿½ï¿½
+            Debug.Log("ï¿½ï¿½Ñ§È¦Ê§ï¿½Ü£ï¿½ï¿½ï¿½ï¿½Â¿ï¿½Ê¼ï¿½ï¿½Ñ§È¦");
             if (currentCircle != null) Destroy(currentCircle.gameObject);
             StartCircle(0);
             return;
@@ -165,22 +189,29 @@ public class JumpGameManager : MonoBehaviour
 
         if (isGameActive)
         {
-            Debug.Log($"Ê§°ÜÔ­Òò£º{reason}¡£»Øµ½µÚ2¸öÈ¦£¬·ÖÊý¹éÁã");
-            // ÇåÀíµ±Ç°È¦
+            Debug.Log($"Ê§ï¿½ï¿½Ô­ï¿½ï¿½{reason}ï¿½ï¿½ï¿½Øµï¿½ï¿½ï¿½2ï¿½ï¿½È¦ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½");
+            // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç°È¦
             if (currentCircle != null) Destroy(currentCircle.gameObject);
-            // ÖØÖÃ¼ÆÊýUI
+            // ï¿½ï¿½ï¿½Ã¼ï¿½ï¿½ï¿½UI
             successCount = 0;
             if (countdownText != null) countdownText.text = "0";
-            // ÖØÖÃµ½µÚ2¸öÈ¦£¨Ë÷Òý1£©£¬²»ÖØÐÂµ¹¼ÆÊ±
+            // ï¿½ï¿½ï¿½Ãµï¿½ï¿½ï¿½2ï¿½ï¿½È¦ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½1ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Âµï¿½ï¿½ï¿½Ê±
             StartCircle(1);
         }
     }
 
-    private void OnAllCirclesPassed()
+private void OnAllCirclesPassed()
+{
+    Debug.Log("å…¨éƒ¨åœ†åœˆé€šè¿‡");
+    playerJump.SetCanJump(false);
+    gameCompleted = true;
+
+    // ç›´æŽ¥æ˜¾ç¤ºUI
+    if (finishUI != null)
     {
-        Debug.Log("Ê¤Àû£¡ËùÓÐÈ¦Í¨¹ý");
-        playerJump.SetCanJump(false);
-        gameCompleted = true;
-        BagPackingManager.Instance.StartGame();
+        finishUI.gameObject.SetActive(true);
     }
-}
+
+    // ç«‹åˆ»æ‰§è¡Œä¸‹ä¸€ä¸ªæµç¨‹
+    BagPackingManager.Instance.StartGame();
+}}

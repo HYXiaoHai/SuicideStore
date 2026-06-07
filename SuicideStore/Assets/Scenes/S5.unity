@@ -1583,11 +1583,15 @@ MonoBehaviour:
   - {fileID: 4554625455627270618, guid: 8c2fd999ab62fb243a16109bfbb84b23, type: 3}
   startPoint: {fileID: 1035635778}
   endPoint: {fileID: 1847266339}
+  sprite1: {fileID: 1359305384}
+  sprite2: {fileID: 516028035}
+  sprite3: {fileID: 379740496}
   speeds:
   - 4
   - 7
   - 5
   - 6
+  finishUI: {fileID: 462251962}
   player: {fileID: 1468610729}
   playerJump: {fileID: 1468610734}
   countdownText: {fileID: 627904573}
@@ -2337,7 +2341,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 6
-  m_Sprite: {fileID: 21300000, guid: a04893a871edcda408aaf2ff1c8b0042, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 423d2641c6a4e2c41a5bae2107538519, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -2411,7 +2415,7 @@ PolygonCollider2D:
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 4.34, y: 4.51}
+    oldSize: {x: 2.77, y: 2.29}
     newSize: {x: 2.62, y: 2.65}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
@@ -4303,7 +4307,7 @@ GameObject:
   - component: {fileID: 379740497}
   - component: {fileID: 379740496}
   m_Layer: 5
-  m_Name: Image (2)
+  m_Name: "\u8DF33"
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5754,7 +5758,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -12.6407, y: -7.1885}
+  m_AnchoredPosition: {x: -12.6407, y: -7.3526}
   m_SizeDelta: {x: 6.1195, y: 1.9691}
   m_Pivot: {x: 0.5000002, y: 0.5}
 --- !u!114 &462251962
@@ -6247,7 +6251,7 @@ GameObject:
   - component: {fileID: 516028036}
   - component: {fileID: 516028035}
   m_Layer: 5
-  m_Name: Image (1)
+  m_Name: "\u8DF32"
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -13302,7 +13306,7 @@ GameObject:
   - component: {fileID: 1359305385}
   - component: {fileID: 1359305384}
   m_Layer: 5
-  m_Name: Image
+  m_Name: "\u8DF31"
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
