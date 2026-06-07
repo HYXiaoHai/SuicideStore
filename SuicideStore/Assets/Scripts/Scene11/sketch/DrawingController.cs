@@ -17,7 +17,7 @@ public class DrawingController : MonoBehaviour
 
     [Header("音效")]
     public AudioClip drawingLoopClip;      // 长音效（循环播放）
-    private AudioSource currentLoopingSound;
+    public AudioSource currentLoopingSound;
     private bool isActuallyDrawing; // 标记本次绘制周期是否有真正绘制
     [Header("材质引用")]
     public Material pencilMaterial;
@@ -154,7 +154,15 @@ public class DrawingController : MonoBehaviour
             if (hasTriggeredClear) hasTriggeredClear = false;
         }
     }
-
+    private void OnEnable()
+    {
+        // 停止循环音效
+        if (currentLoopingSound != null)
+        {
+            AudioManager.Instance.StopLoopingSound(currentLoopingSound);
+            currentLoopingSound = null;
+        }
+    }
     private void OnDestroy()
     {
         // 显式释放 RT 资源

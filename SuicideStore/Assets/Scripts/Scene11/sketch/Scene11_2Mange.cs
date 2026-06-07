@@ -26,6 +26,9 @@ public class Scene11_2Mange : MonoBehaviour
 
     void Start()
     {
+        if (TransitionManage.Instance != null)
+            TransitionManage.Instance.FadeIn(0.5f,Color.black);
+
         // 初始化所有画板（隐藏、禁用）
         InitAllPanels();
 
@@ -88,13 +91,24 @@ public class Scene11_2Mange : MonoBehaviour
         {
             if (Input.GetMouseButtonUp(0) && IsMouseOverCurrentSprite())
             {
-                SceneManager.LoadScene(nextSceneName);
+                // 并行执行转场淡出和 BGM 淡出
+                TransitionManage.Instance.FadeOut(0.5f, Color.black, () =>
+                {
+                    // 转场完成后加载新场景
+                    SceneManager.LoadScene(nextSceneName);
+                });
             }
         }
     }
 
     private void OnDrawingComplete()
     {
+        // 停止循环音效
+        if (currentDrawingCtrl.currentLoopingSound != null)
+        {
+            AudioManager.Instance.StopLoopingSound(currentDrawingCtrl.currentLoopingSound);
+            currentDrawingCtrl.currentLoopingSound = null;
+        }
         currentDrawingCtrl.enabled = false;
         currentState = RoundState.WaitForClick;
         Debug.Log($"第{currentRound + 1}轮绘画完成，等待点击照片");
