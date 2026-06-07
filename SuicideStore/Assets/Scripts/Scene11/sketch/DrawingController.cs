@@ -17,7 +17,7 @@ public class DrawingController : MonoBehaviour
 
     [Header("音效")]
     public AudioClip drawingLoopClip;      // 长音效（循环播放）
-    private AudioSource currentLoopingSound;
+    public AudioSource currentLoopingSound;
     private bool isActuallyDrawing; // 标记本次绘制周期是否有真正绘制
     [Header("材质引用")]
     public Material pencilMaterial;

@@ -24,6 +24,7 @@ public abstract class BaseInteractable : MonoBehaviour
     //}
     private void Update()
     {
+        if (GameManage.Instance.isSetting) return;
         if (isPlayerInRange&&Input.GetKeyDown(KeyCode.E))
         {
             Debug.Log($"µã»÷ {gameObject.name}");

@@ -879,7 +879,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &238381550
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1237,7 +1237,7 @@ RectTransform:
   m_Father: {fileID: 1843459260}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 35, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -1468,7 +1468,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &542466524
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1485,6 +1485,7 @@ MonoBehaviour:
   currentLevel: 0
   isSetting: 0
   menuSceneName: Menu
+  unlockedLevel: 1
 --- !u!4 &542466525
 Transform:
   m_ObjectHideFlags: 0
@@ -1533,7 +1534,7 @@ RectTransform:
   m_Father: {fileID: 1262824712}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 35, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -2526,7 +2527,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1013743980
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4168,7 +4169,7 @@ RectTransform:
   m_Father: {fileID: 1483774988}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 35, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -5619,6 +5620,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   clockCanvasGroup: {fileID: 2127748386}
   nextSceneName: S12
+  shouldUseFade: 1
   minuteHand: {fileID: 1631747843}
   hourHand: {fileID: 137291460}
   startAngle: 0

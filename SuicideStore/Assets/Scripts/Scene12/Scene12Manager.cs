@@ -21,6 +21,9 @@ public class Scene12Manager : MonoBehaviour
 
     void Start()
     {
+        if (TransitionManage.Instance != null)
+            TransitionManage.Instance.FadeIn(1f, Color.black);
+
         if (firstImage != null)
         {
             firstImage.gameObject.SetActive(true);
@@ -104,6 +107,37 @@ public class Scene12Manager : MonoBehaviour
             {
                 Debug.LogWarning("nextSceneName 未设置，场景不会切换");
             }
+        }
+    }
+    public void CompleteLevel()
+    {
+        // 通知 GameManage 当前关卡通关
+        GameManage.Instance.CompleteCurrentLevel();
+        // 可选：自动进入下一关第一场景（如果希望无缝衔接）
+        int nextLevel = GameManage.Instance.currentLevel + 1;
+        if (nextLevel <= 12)
+        {
+            string nextScene = GameManage.Instance.GetFirstSceneOfLevel(nextLevel);
+            if (!string.IsNullOrEmpty(nextScene))
+            {
+
+                // 并行执行转场淡出和 BGM 淡出
+                TransitionManage.Instance.FadeOut(1f, Color.black, () =>
+                {
+                    // 转场完成后加载新场景
+                    SceneManager.LoadScene(nextScene);
+                });
+                //AudioManager.Instance.FadeOutCurrentBGM(1f, null);
+            }
+        }
+        else
+        {
+            TransitionManage.Instance.FadeOut(1f, Color.black, () =>
+            {
+                // 转场完成后加载新场景
+                SceneManager.LoadScene("End");
+            });
+
         }
     }
 }

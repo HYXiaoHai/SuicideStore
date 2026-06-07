@@ -21,7 +21,7 @@ public class GameManage : MonoBehaviour
     public bool isSetting = false;
     public string menuSceneName;//
     //存档数据
-    private int unlockedLevel = 1;//已解锁的最高关卡，初始为1
+    public int unlockedLevel = 1;//已解锁的最高关卡，初始为1
     [Header("暂停 返回主界面相关")]
 
     // 场景映射表：关卡号 -> 该关的第一个场景名
@@ -128,7 +128,7 @@ public class GameManage : MonoBehaviour
         // level 11
         levelFirstScene[11] = "S11-11.1-move";//blak
         // level 12
-        levelFirstScene[12] = "S12";
+        levelFirstScene[12] = "S12";//black
     }
 
     // 根据关卡号获取第一个场景名
@@ -212,7 +212,7 @@ public class GameManage : MonoBehaviour
         }
 
         Color fadeColor = Color.white;
-        if(level == 1||level==3|| level == 6|| level == 7|| level == 8) fadeColor = Color.black;
+        if(level == 1||level==3|| level == 6|| level == 7|| level == 8||level == 11||level == 12) fadeColor = Color.black;
 
         currentLevel = level;
         string targetScene = GetFirstSceneOfLevel(level);

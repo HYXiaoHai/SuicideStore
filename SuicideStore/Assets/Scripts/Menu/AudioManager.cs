@@ -190,7 +190,7 @@ public class AudioManager : MonoBehaviour
         else
         {
             StopBGM();
-            //Debug.LogWarning($"≥°æ∞ {sceneName} √ª”–≈‰÷√ BGM£¨“—Õ£÷π“Ù¿÷");
+            Debug.LogWarning($"≥°æ∞ {sceneName} √ª”–≈‰÷√ BGM£¨“—Õ£÷π“Ù¿÷");
         }
     }
 
@@ -198,7 +198,6 @@ public class AudioManager : MonoBehaviour
     {
         if (newClip == null) return;
         if (fadeDuration < 0) fadeDuration = defaultFadeDuration;
-
         if (currentBGMClip == newClip && bgmSource.isPlaying) return;
 
         if (bgmFadeRoutine != null)
@@ -265,7 +264,6 @@ public class AudioManager : MonoBehaviour
         bgmSource.Play();
         newSource.Stop();
         Destroy(newSource);
-
         currentBGMClip = newClip;
         bgmFadeRoutine = null;
     }

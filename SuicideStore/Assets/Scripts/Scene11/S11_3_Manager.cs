@@ -16,6 +16,9 @@ public class S11_3_Manager : MonoBehaviour
 
     void Start()
     {
+        if (TransitionManage.Instance != null)
+            TransitionManage.Instance.FadeIn(0.5f, Color.black);
+
         if (lineConnector == null)
             lineConnector = GetComponent<S11_3_LineConnector>();
 
@@ -51,7 +54,14 @@ public class S11_3_Manager : MonoBehaviour
         yield return new WaitForSeconds(duration);
         // 翻转完成后跳转场景
         if (!string.IsNullOrEmpty(nextSceneName))
-            SceneManager.LoadScene(nextSceneName);
+        {
+            TransitionManage.Instance.FadeOut(0.5f, Color.black, () =>
+            {
+                // 转场完成后加载新场景
+                SceneManager.LoadScene(nextSceneName);
+
+            });
+        }
         else
             Debug.LogWarning("nextSceneName 未设置！");
     }

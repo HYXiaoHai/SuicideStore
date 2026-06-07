@@ -166,14 +166,16 @@ public class BagPackingManager : MonoBehaviour
     {
         item.isProcessed = true;
         Image targetUI = null;
+        if (item.id != -1)
+            targetUI = itemUIs[item.id];
 
         // 匹配对应UI
-        if (item.gameObject == item1.gameObject && itemUIs.Length > 0)
-            targetUI = itemUIs[0];
-        else if (item.gameObject == item2.gameObject && itemUIs.Length > 1)
-            targetUI = itemUIs[1];
-        else if (item.gameObject == item3.gameObject && itemUIs.Length > 2)
-            targetUI = itemUIs[2];
+        //if (item.gameObject == item1.gameObject && itemUIs.Length > 0)
+        //    targetUI = itemUIs[0];
+        //else if (item.gameObject == item2.gameObject && itemUIs.Length > 1)
+        //    targetUI = itemUIs[1];
+        //else if (item.gameObject == item3.gameObject && itemUIs.Length > 2)
+        //    targetUI = itemUIs[2];
 
         // 1. 拖出后等待反应时间
         yield return new WaitForSeconds(showUIDelay);

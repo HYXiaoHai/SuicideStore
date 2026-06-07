@@ -123,7 +123,7 @@ public class ElephantFall : MonoBehaviour
                         // 转场完成后加载新场景
                         SceneManager.LoadScene(nextScene);
                     });
-                    AudioManager.Instance.FadeOutCurrentBGM(1f, null);
+                    AudioManager.Instance.FadeOutCurrentBGM(0.5f, null);
                 }
                 else
                 {

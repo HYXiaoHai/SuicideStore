@@ -3,6 +3,8 @@ using UnityEngine;
 
 public class DraggableItem : MonoBehaviour
 {
+    [Header("用于显示UI的Index")]
+    public int id;//-1标识外部物品
     [Header("拖拽缩放")]
     public float hoverScale = 1.2f;
     public float scaleDuration = 0.1f;
@@ -15,6 +17,7 @@ public class DraggableItem : MonoBehaviour
     private Collider2D itemCollider;
 
     private Vector3 originalPosition;
+    private Vector3 startPosition;
     private bool wasInsideBagAtDragStart;
     private bool isMoving = false;
     private Vector3 originalScale;
@@ -27,16 +30,36 @@ public class DraggableItem : MonoBehaviour
     public bool initialInside;
     public bool isProcessed = false; // 标记是否已执行消失逻辑
 
+    //拖拽标记和暂停状态
+    private bool isDragging = false;
+    private bool lastSettingState = false;
+
     void Start()
     {
         mainCamera = Camera.main;
         itemCollider = GetComponent<Collider2D>();
 
-        originalPosition = transform.position;
+        startPosition = transform.position;
+        originalPosition = startPosition;
         originalScale = transform.localScale;
         SetZOffset();
     }
-
+    void Update()
+    {
+        bool isSetting = GameManage.Instance.isSetting;
+        if (isSetting != lastSettingState)
+        {
+            if (isSetting && isDragging)
+            {
+                ForceReset();
+            }
+            else if (!isSetting && isDragging)
+            {
+                ForceReset();   // 防止状态残留
+            }
+            lastSettingState = isSetting;
+        }
+    }
     private void SetZOffset()
     {
         Vector3 pos = transform.position;
@@ -46,6 +69,7 @@ public class DraggableItem : MonoBehaviour
 
     void OnMouseDown()
     {
+        if (GameManage.Instance.isSetting) return;
         if (isMoving || isProcessed) return;
         if (BagPackingManager.Instance == null ||
             !BagPackingManager.Instance.isGameStarted ||
@@ -62,6 +86,7 @@ public class DraggableItem : MonoBehaviour
 
     void OnMouseDrag()
     {
+        if (GameManage.Instance.isSetting) return;
         if (isMoving || isProcessed) return;
         if (BagPackingManager.Instance == null ||
             !BagPackingManager.Instance.isGameStarted ||
@@ -127,5 +152,15 @@ public class DraggableItem : MonoBehaviour
         pos.z = zOffset;
         originalPosition = pos;
         transform.position = pos;
+    }
+    private void ForceReset()
+    {
+        if (isMoving) return;
+        isDragging = false;
+        transform.DOKill();               // 停止所有动画
+        transform.position = originalPosition; // 归位到拖拽前的位置
+        SetZOffset();
+        transform.localScale = originalScale;
+        scaleTween?.Kill();
     }
 }

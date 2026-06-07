@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;   // ��Ҫ���� TextMeshPro
 using DG.Tweening;
+using UnityEngine.UI;
 
 public class JumpGameManager : MonoBehaviour
 {
@@ -12,16 +13,16 @@ public class JumpGameManager : MonoBehaviour
     public List<GameObject> circlePrefabs = new List<GameObject>();
     public Transform startPoint;
     public Transform endPoint;
-    
-    public UnityEngine.UI.Image sprite1;
-    public UnityEngine.UI.Image sprite2;
-    public UnityEngine.UI.Image sprite3;
+
+    public Image sprite1;
+    public Image sprite2;
+    public Image sprite3;
 
     [Header("�ٶ����ã��ĸ�Ȧ��")]
     public float[] speeds = new float[4] { 1.5f, 2f, 2.5f, 3f };
 
     [Header("游戏结束UI")]
-    public UnityEngine.UI.Image finishUI; // 通关弹窗/图片
+    public Image finishUI; // 通关弹窗/图片
 
     [Header("���")]
     public GameObject player;
@@ -35,7 +36,8 @@ public class JumpGameManager : MonoBehaviour
     private bool isGameActive = false;      // ����ʱ������Ϊtrue����ʾ��ʽ��Ϸ������
     private bool isWaitingForJump = false;
     private int successCount = 0;           // �ɹ���������ʽȦ������0~3��
-    public bool gameCompleted =false;
+    private int maxsuccessCount = 0;           // �ɹ���������ʽȦ������0~3��
+    public bool gameCompleted = false;
     [Header("��Ч")]
     public AudioClip jumpClip;
     void Awake()
@@ -100,53 +102,53 @@ public class JumpGameManager : MonoBehaviour
             OnJumpFailed("������������");
     }
 
-   private void OnJumpSuccess()
-{
-    isWaitingForJump = false;
-    currentCircle.StopMoving();
-    AudioManager.Instance.Play2DSound(jumpClip, 0.8f);
-
-    if (currentIndex == 0)
+    private void OnJumpSuccess()
     {
-        // 教学圈通过，开启倒计时，不直接进入下一个圈
-        Debug.Log("教学完成，准备倒计时...");
-        Destroy(currentCircle.gameObject);
-        StartCoroutine(StartCountdown());
-    }
-    else
-    {
-        // 正式圈通过，计数+1，更新UI
-        successCount++;
+        isWaitingForJump = false;
+        currentCircle.StopMoving();
+        AudioManager.Instance.Play2DSound(jumpClip, 0.8f);
 
-        if (successCount == 1)
+        if (currentIndex == 0)
         {
-            sprite1.DOFade(1f, 1f);
+            // 教学圈通过，开启倒计时，不直接进入下一个圈
+            Debug.Log("教学完成，准备倒计时...");
+            Destroy(currentCircle.gameObject);
+            StartCoroutine(StartCountdown());
         }
-        else if (successCount == 2)
-        {
-            sprite2.DOFade(1f, 1f);
-        }
-        else if (successCount == 3)
-        {
-            sprite3.DOFade(1f, 1f);
-        }
-
-        if (countdownText != null)
-            countdownText.text = successCount.ToString();
-
-        Destroy(currentCircle.gameObject);
-
-        if (currentIndex + 1 < speeds.Length)
-            StartCircle(currentIndex + 1);
         else
-            OnAllCirclesPassed();
-    }
-}
+        {
+            // 正式圈通过，计数+1，更新UI
+            successCount++;
+            maxsuccessCount = Mathf.Max(successCount, maxsuccessCount);
+            if (maxsuccessCount == 1)
+            {
+                sprite1.DOFade(1f, 1f);
+            }
+            else if (maxsuccessCount == 2)
+            {
+                sprite1.DOFade(0f, 0.5f);
+                sprite2.DOFade(1f, 0.5f);
+            }
+            else if (maxsuccessCount == 3)
+            {
+                sprite2.DOFade(0f, 0.5f);
+                sprite3.DOFade(1f, 0.5f);
+            }
 
-    // ����ʱЭ��
+            if (countdownText != null)
+                countdownText.text = successCount.ToString();
+
+            Destroy(currentCircle.gameObject);
+
+            if (currentIndex + 1 < speeds.Length)
+                StartCircle(currentIndex + 1);
+            else
+                OnAllCirclesPassed();
+        }
+    }
+
     private IEnumerator StartCountdown()
     {
-        // ����ʱ�ڼ��ֹ�����Ծ��Ҳ��������Ҳ�����Ծ������ѧȦ�������Ծ�����ã�������ʱ������Ծ�����֪����Ϊ�˰�ȫ�������ٹر�һ����ԾȨ�ޣ�
         playerJump.SetCanJump(false);
         if (countdownText != null)
         {
@@ -169,6 +171,9 @@ public class JumpGameManager : MonoBehaviour
         isGameActive = true;
         // ���ü���������Ϊ��ʽ��Ϸ��ʼ��֮ǰ��ѧȦ�����룩
         successCount = 0;
+        sprite1.color = new Color(1f, 1f, 1f, 0f);
+        sprite2.color = new Color(1f, 1f, 1f, 0f);
+        sprite3.color = new Color(1f, 1f, 1f, 0f);
         if (countdownText != null) countdownText.text = "0";
         // �ָ������Ծ����
         playerJump.SetCanJump(true);
@@ -189,7 +194,6 @@ public class JumpGameManager : MonoBehaviour
 
         if (isGameActive)
         {
-            Debug.Log($"ʧ��ԭ��{reason}���ص���2��Ȧ����������");
             // ������ǰȦ
             if (currentCircle != null) Destroy(currentCircle.gameObject);
             // ���ü���UI
@@ -200,18 +204,20 @@ public class JumpGameManager : MonoBehaviour
         }
     }
 
-private void OnAllCirclesPassed()
-{
-    Debug.Log("全部圆圈通过");
-    playerJump.SetCanJump(false);
-    gameCompleted = true;
-
-    // 直接显示UI
-    if (finishUI != null)
+    private void OnAllCirclesPassed()
     {
-        finishUI.gameObject.SetActive(true);
-    }
+        Debug.Log("全部圆圈通过");
+        playerJump.SetCanJump(false);
+        gameCompleted = true;
 
-    // 立刻执行下一个流程
-    BagPackingManager.Instance.StartGame();
-}}
+        // 直接显示UI
+        if (finishUI != null)
+        {
+            finishUI.gameObject.SetActive(true);
+            finishUI.DOFade(1f,0.5f);
+        }
+
+        // 立刻执行下一个流程
+        BagPackingManager.Instance.StartGame();
+    }
+}

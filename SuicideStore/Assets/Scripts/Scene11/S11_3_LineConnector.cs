@@ -18,6 +18,8 @@ public class S11_3_LineConnector : MonoBehaviour
 
     void Start()
     {
+
+
         if (paintSystem == null)
             paintSystem = FindObjectOfType<MspPaint>();
 

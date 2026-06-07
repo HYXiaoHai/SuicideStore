@@ -65,6 +65,7 @@ public class ClockController : MonoBehaviour
 
     void Update()
     {
+        if (GameManage.Instance.isSetting) return;
         if (isComplete || targetMaterial == null) return;
 
         HandleInput();
