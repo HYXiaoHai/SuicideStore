@@ -1,48 +1,60 @@
 using DG.Tweening;
 using UnityEngine;
-using UnityEngine.EventSystems;
 
 public class DraggableItem : MonoBehaviour
 {
+    [Header("ç»‘å®šå¯¹åº”UIå›¾ç‰‡")]
+    public UnityEngine.UI.Image itemUI;
+
+    [Header("æ—¶é—´é…ç½®")]
+    public float showUIDelay = 0.5f;    // æ‹–å‡ºä¹¦åŒ…åï¼Œå»¶è¿Ÿå¤šä¹…å¼¹å‡ºUI
+    public float hideDelay = 0.8f;       // UIæ˜¾ç¤ºåï¼Œå»¶è¿Ÿå¤šä¹…ä¸€èµ·æ¶ˆå¤±
+    public float fadeDuration = 0.4f;    // æ·¡å‡ºåŠ¨ç”»æ—¶é•¿
+
+    [Header("æ‹–æ‹½ç¼©æ”¾")]
+    public float hoverScale = 1.2f;
+    public float scaleDuration = 0.1f;
+
+    [Header("éŸ³æ•ˆ")]
+    public AudioClip dragClip;
+
     private Vector3 offset;
     private Camera mainCamera;
-    private Rigidbody2D rb;
     private Collider2D itemCollider;
 
     private Vector3 originalPosition;
     private bool wasInsideBagAtDragStart;
     private bool isMoving = false;
-    private Vector3 originalScale;          // ¼ÇÂ¼Ô­Ê¼Ëõ·Å
-    private Tween scaleTween;               // Ëõ·Å¶¯»­ÒıÓÃ
+    private Vector3 originalScale;
+    private Tween scaleTween;
+    private readonly float zOffset = -0.04f;
 
-    [Header("ÍÏ×§ÊÖ¸Ğ")]
-    public float hoverScale = 1.2f;         // µã»÷Ê±·Å´ó±¶Êı
-    public float scaleDuration = 0.1f;      // Ëõ·Å¶¯»­Ê±³¤
-
-    [Header("ÒôĞ§")]
-    public AudioClip dragClip;
-
-    private readonly float zOffset = -0.04f;   // ¹Ì¶¨ Z Æ«ÒÆ
-
+    // çŠ¶æ€æ ‡è®°
     public bool isInsideBag;
     public bool isOutsideSlot;
     public bool initialInside;
 
+    private bool hasProcessed = false; // æ ‡è®°è¯¥ç‰©å“æ˜¯å¦å·²ç»æ‰§è¡Œè¿‡å¼¹å‡º+æ¶ˆå¤±é€»è¾‘
+
     void Start()
     {
         mainCamera = Camera.main;
-        rb = GetComponent<Rigidbody2D>();
         itemCollider = GetComponent<Collider2D>();
+
         originalPosition = transform.position;
         originalScale = transform.localScale;
         SetZOffset();
-        // ¿ÉÑ¡£º×Ô¶¯µ÷ÕûÅö×²Ìå´óĞ¡£¬Ê¹ÆäÂÔ´óÓÚÊÓ¾õ·¶Î§£¨½¨ÒéÊÖ¶¯µ÷Õû£¬ÕâÀï½ö×÷ÌáÊ¾£©
-        if (itemCollider != null && itemCollider is BoxCollider2D box)
+
+        // åˆå§‹åŒ–UIï¼šéšè—+é€æ˜
+        if (itemUI != null)
         {
-            // Èç¹ûÄãÏ£Íû×Ô¶¯À©´óÅö×²Ìå£¬¿ÉÒÔÈ¡Ïû×¢ÊÍ£¬µ«Ò»°ã½¨ÒéÔÚ±à¼­Æ÷ÖĞÊÖ¶¯µ÷Õû
-            // box.size = Vector2.one * 0.8f;
+            itemUI.gameObject.SetActive(false);
+            Color c = itemUI.color;
+            c.a = 0f;
+            itemUI.color = c;
         }
     }
+
     private void SetZOffset()
     {
         Vector3 pos = transform.position;
@@ -52,17 +64,12 @@ public class DraggableItem : MonoBehaviour
 
     void OnMouseDown()
     {
-        if (isMoving)
-        {
-            Debug.Log("ÎïÆ·¶¯»­ÖĞ£¬½ûÖ¹ÍÏ×§");
+        if (isMoving || hasProcessed) return;
+        if (BagPackingManager.Instance == null ||
+            !BagPackingManager.Instance.isGameStarted ||
+            BagPackingManager.Instance.gameCompleted)
             return;
-        }
-        if (BagPackingManager.Instance == null || !BagPackingManager.Instance.isGameStarted||BagPackingManager.Instance.gameCompleted)
-        {
-            return;
-        }
 
-        // ²¥·Å·Å´ó¶¯»­
         scaleTween?.Kill();
         scaleTween = transform.DOScale(originalScale * hoverScale, scaleDuration).SetEase(Ease.OutBack);
 
@@ -73,21 +80,22 @@ public class DraggableItem : MonoBehaviour
 
     void OnMouseDrag()
     {
-        if (isMoving) return;
-        if (BagPackingManager.Instance == null || !BagPackingManager.Instance.isGameStarted || BagPackingManager.Instance.gameCompleted)
-        {
+        if (isMoving || hasProcessed) return;
+        if (BagPackingManager.Instance == null ||
+            !BagPackingManager.Instance.isGameStarted ||
+            BagPackingManager.Instance.gameCompleted)
             return;
-        }
+
         transform.position = GetMouseWorldPos() + offset;
-        SetZOffset();   // ÍÏ×§Ê±±£³Ö Z
+        SetZOffset();
     }
 
     void OnMouseUp()
     {
+        if (isMoving || hasProcessed) return;
+
         scaleTween?.Kill();
         scaleTween = transform.DOScale(originalScale, scaleDuration).SetEase(Ease.OutQuad);
-
-        if (isMoving) return;
 
         bool inBag = BagPackingManager.Instance.IsInBagArea(transform.position);
         Collider2D targetSlot = BagPackingManager.Instance.GetSlotContainingPosition(transform.position);
@@ -95,19 +103,18 @@ public class DraggableItem : MonoBehaviour
         if (targetSlot != null)
         {
             Vector3 targetPos = targetSlot.transform.position;
-            targetPos.z = zOffset;   // Ä¿±êÎ»ÖÃÒ²ĞŞÕı Z
+            targetPos.z = zOffset;
             MoveToTarget(targetPos);
             AudioManager.Instance.Play2DSound(dragClip, 0.8f);
         }
         else if (inBag)
         {
-            AudioManager.Instance.Play2DSound(dragClip,0.8f);
-            SetZOffset();   // Êé°üÄÚÒ²È·±£ Z
+            AudioManager.Instance.Play2DSound(dragClip, 0.8f);
+            SetZOffset();
             BagPackingManager.Instance.CheckItemPlacement(this);
         }
         else
         {
-            // ÎŞĞ§ÇøÓò£º»Øµ½ÍÏ×§Ç°Î»ÖÃ£¨Ô­Î»ÖÃÒÑ¾­°üº¬ÕıÈ· Z£©
             MoveToTarget(originalPosition);
         }
     }
@@ -119,9 +126,50 @@ public class DraggableItem : MonoBehaviour
             .SetEase(Ease.OutQuad)
             .OnComplete(() =>
             {
-                SetZOffset();   // ÒÆ¶¯Íê³ÉºóÔÙ´ÎÈ·±£ Z
+                SetZOffset();
                 isMoving = false;
+
+                // æ ¸å¿ƒåˆ¤æ–­ï¼šä»…ã€åˆå§‹åœ¨åŒ…é‡Œã€‘çš„ç‰©å“ + ç°åœ¨ä¸åœ¨åŒ…é‡Œ + æœªæ‰§è¡Œè¿‡é€»è¾‘
+                if (initialInside && !BagPackingManager.Instance.IsInBagArea(transform.position) && !hasProcessed)
+                {
+                    OutBagProcess();
+                }
+
                 BagPackingManager.Instance.CheckItemPlacement(this);
+            });
+    }
+
+    /// <summary>
+    /// ç‰©å“æ‹–å‡ºä¹¦åŒ…åçš„æµç¨‹ï¼šå»¶è¿Ÿå¼¹UI â†’ å†å»¶è¿Ÿä¸€èµ·æ¶ˆå¤±
+    /// </summary>
+    private void OutBagProcess()
+    {
+        hasProcessed = true;
+
+        DOTween.Sequence()
+            // 1. æ‹–å‡ºåç­‰å¾…ååº”æ—¶é—´
+            .AppendInterval(showUIDelay)
+            // 2. å¼¹å‡ºUIå¹¶æ·¡å…¥
+            .AppendCallback(() =>
+            {
+                if (itemUI != null)
+                {
+                    itemUI.gameObject.SetActive(true);
+                    itemUI.DOFade(1f, fadeDuration);
+                }
+            })
+            // 3. UIæ˜¾ç¤ºåå†ç­‰å¾…ååº”æ—¶é—´
+            .AppendInterval(hideDelay)
+            // 4. ç‰©å“+UI åŒæ­¥æ·¡å‡º
+            .Append(transform.DOFade(0f, fadeDuration))
+            .Join(itemUI?.DOFade(0f, fadeDuration))
+            // 5. åŠ¨ç”»ç»“æŸé”€æ¯
+            .OnComplete(() =>
+            {
+                BagPackingManager.Instance.allItems.Remove(this);
+                Destroy(gameObject);
+                if (itemUI != null)
+                    Destroy(itemUI.gameObject);
             });
     }
 
