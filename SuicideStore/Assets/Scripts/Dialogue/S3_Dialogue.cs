@@ -7,7 +7,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using UnityEngine.Video;
 
-public class S3_Dialogue : MonoBehaviour
+public class S6_Dialogue : MonoBehaviour
 {
     public bool shouldUseFade = true;
     public bool shouldUseAudioFade = false;
@@ -15,47 +15,66 @@ public class S3_Dialogue : MonoBehaviour
     [Header("日记本交互")]
     public Button noteButton;
     public RawImage noteAni;
+    public bool canDialogue = false;
 
     [Header("=== 场景里拖进来 ===")]
-    public TextMeshProUGUI dialogueText;   // 对话文字
-    public GameObject continueTip;         // 继续提示（可选）
-    
+    public CanvasGroup dialogueCanvas;
+    public TextMeshProUGUI dialogueText;
+    public GameObject continueTip;
+    public Image leleImage1;
+    public Image leleImage2;
+
     [Header("=== 打字速度 ===")]
     public float typeSpeed = 0.12f;
     [Header("交付日记本音效")]
-    public AudioClip audioClip;
-    // ======================
-    // 你的 S3 对话内容 直接写这里
-    // ======================
+
     private List<string> lines = new List<string>()
     {
-        "小象：故事到这里就结束了，我的东西在哪里？",
-        "列车员（我）：这是一本专属于你的日记本，你可以用它看到爸爸妈妈在想什么..."
+        "列车员（我）：乐乐，现在你要选择离开，去往顿丘吗？",
+        "象乐乐：我……我要去！",
+        "列车员（我）：可是你看起来很爱你的爸爸妈妈啊？",
+        "象乐乐：我…"
     };
 
     private int index = 0;
     private bool isTyping = false;
+    private VideoPlayer videoPlayer;     // 缓存 VideoPlayer 组件
 
     void Start()
     {
-        // 游戏开始自动播放第一句对话
-        if(TransitionManage.Instance!=null)
+        if (TransitionManage.Instance != null)
+            TransitionManage.Instance.FadeIn(0.5f, Color.black);
+
+        noteButton.onClick.AddListener(PlayVideo);
+        // 初始状态：不能对话，等待视频播放完
+        canDialogue = false;
+        dialogueText.gameObject.SetActive(false);
+        dialogueCanvas.alpha = 0f;
+        if (continueTip != null) continueTip.SetActive(false);
+
+        // 获取 RawImage 上的 VideoPlayer 组件
+        if (noteAni != null)
+            videoPlayer = noteAni.GetComponent<VideoPlayer>();
+        if (videoPlayer != null)
         {
-            TransitionManage.Instance.FadeIn(0.5f,Color.black);
+            videoPlayer.loopPointReached += OnVideoFinished;
+            videoPlayer.prepareCompleted += OnVideoPrepared;
+
+            videoPlayer.Stop();
+            videoPlayer.time = 0;
+            videoPlayer.Prepare();
         }
-        //StartType();
-        noteButton.onClick.AddListener(playVedio);
     }
 
     void Update()
     {
         if (GameManage.Instance.isSetting) return;
-        // 点击鼠标左键继续
+        if (!canDialogue) return;  // 未开启对话时禁止点击
+
         if (Input.GetMouseButtonDown(0))
         {
             if (isTyping)
             {
-                // 正在打字时点击：直接显示完整句子
                 StopAllCoroutines();
                 dialogueText.text = lines[index];
                 isTyping = false;
@@ -63,20 +82,44 @@ public class S3_Dialogue : MonoBehaviour
             }
             else
             {
-                // 打完一句，点击进入下一句
                 NextLine();
             }
         }
     }
 
-    void playVedio()
+    void PlayVideo()
     {
-        noteButton.GetComponent<Image>().DOFade(0f, 1f).OnComplete(() => {
+        // 开始播放视频：按钮渐隐，RawImage 渐显，播放视频
+        noteButton.GetComponent<Image>().DOFade(0f, 1f).OnComplete(() =>
+        {
             noteButton.interactable = false;
         });
-        noteAni.DOFade(1f, 1f).OnComplete(() => {
-            noteAni.GetComponent<VideoPlayer>().Play();
+        noteAni.DOFade(1f, 1f).OnComplete(() =>
+        {
+            if (videoPlayer != null)
+                videoPlayer.Play();
+            else
+                Debug.LogError("RawImage 上没有 VideoPlayer 组件！");
         });
+    }
+
+    void OnVideoPrepared(VideoPlayer vp)
+    {
+        Debug.Log("视频已准备就绪");
+    }
+
+    void OnVideoFinished(VideoPlayer vp)
+    {
+        Debug.Log("视频播放完毕");
+        // 渐隐 RawImage
+        noteAni.DOFade(0f, 1f).OnComplete(() =>
+        {
+            // 开启对话
+            canDialogue = true;
+            dialogueText.gameObject.SetActive(true);
+            StartType();  // 开始第一句对话
+        });
+        dialogueCanvas.DOFade(1f, 1f);
     }
 
     void StartType()
@@ -104,11 +147,14 @@ public class S3_Dialogue : MonoBehaviour
         index++;
         if (index >= lines.Count)
         {
-            // 所有对话打完，只显示结束提示，不跳转
             EndDialogue();
             return;
         }
-
+        if(index==2)
+        {
+            leleImage1.DOFade(0f, 0.5f).SetEase(Ease.InQuart);
+            leleImage2.DOFade(1f, 0.5f).SetEase(Ease.OutQuart);
+        }
         StartType();
     }
 
@@ -120,18 +166,14 @@ public class S3_Dialogue : MonoBehaviour
 
     void EndDialogue()
     {
-        // 对话结束：隐藏继续提示，或者你可以在这里加自己的收尾逻辑
-        AudioManager.Instance.Play2DSound(audioClip,0.8f);
         ShowContinue(false);
         Debug.Log("S3 对话已全部结束！");
         CompleteLevel();
-        // 这里什么都不写，对话结束就停在原地，不影响场景
     }
+
     public void CompleteLevel()
     {
-        // 通知 GameManage 当前关卡通关
         GameManage.Instance.CompleteCurrentLevel();
-        // 可选：自动进入下一关第一场景（如果希望无缝衔接）
         int nextLevel = GameManage.Instance.currentLevel + 1;
         if (nextLevel <= 12)
         {
@@ -140,14 +182,12 @@ public class S3_Dialogue : MonoBehaviour
             {
                 if (shouldUseFade)
                 {
-                    // 并行执行转场淡出和 BGM 淡出
-                    TransitionManage.Instance.FadeOut(0.5f, Color.white, () =>
+                    TransitionManage.Instance.FadeOut(1f, Color.black, () =>
                     {
-                        // 转场完成后加载新场景
                         SceneManager.LoadScene(nextScene);
                     });
-                    if(shouldUseAudioFade)
-                    AudioManager.Instance.FadeOutCurrentBGM(0.5f, null);
+                    if (shouldUseAudioFade)
+                        AudioManager.Instance.FadeOutCurrentBGM(1f, null);
                 }
                 else
                 {

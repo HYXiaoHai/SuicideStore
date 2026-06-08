@@ -3776,7 +3776,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1727569166}
-  - component: {fileID: 1727569165}
+  - component: {fileID: 1727569167}
   m_Layer: 0
   m_Name: S3_Dialogue
   m_TagString: Untagged
@@ -3784,24 +3784,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1727569165
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1727569164}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: eb5a43e0fa028da438b3167e436bee82, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  shouldUseFade: 1
-  shouldUseAudioFade: 0
-  dialogueText: {fileID: 1806061688}
-  continueTip: {fileID: 0}
-  typeSpeed: 0.12
-  audioClip: {fileID: 8300000, guid: 5e4a3bf8205e9744a88fbd6ecad608e3, type: 3}
 --- !u!4 &1727569166
 Transform:
   m_ObjectHideFlags: 0
@@ -3817,6 +3799,24 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1727569167
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1727569164}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b3137e1542906bb4d9992967cf411808, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  shouldUseFade: 1
+  shouldUseAudioFade: 0
+  dialogueText: {fileID: 1806061688}
+  continueTip: {fileID: 0}
+  typeSpeed: 0.12
+  audioClip: {fileID: 8300000, guid: 5e4a3bf8205e9744a88fbd6ecad608e3, type: 3}
 --- !u!1 &1778708947
 GameObject:
   m_ObjectHideFlags: 0

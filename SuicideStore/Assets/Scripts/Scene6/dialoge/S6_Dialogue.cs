@@ -4,7 +4,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class S6_Dialogue : MonoBehaviour
+public class S3_Dialogue : MonoBehaviour
 {
     public bool shouldUseFade = true;
     public bool shouldUseAudioFade = false;
