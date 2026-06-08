@@ -1,36 +1,28 @@
-using DG.Tweening;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.UI;
-using UnityEngine.Video;
 
-public class S3_Dialogue : MonoBehaviour
+public class S6_Dialogue : MonoBehaviour
 {
     public bool shouldUseFade = true;
     public bool shouldUseAudioFade = false;
+    [Header("=== ³¡¾°ÀïÍÏ½øÀ´ ===")]
+    public TextMeshProUGUI dialogueText;   // ¶Ô»°ÎÄ×Ö
+    public GameObject continueTip;         // ¼ÌĞøÌáÊ¾£¨¿ÉÑ¡£©
 
-    [Header("æ—¥è®°æœ¬äº¤äº’")]
-    public Button noteButton;
-    public RawImage noteAni;
-
-    [Header("=== åœºæ™¯é‡Œæ‹–è¿›æ¥ ===")]
-    public TextMeshProUGUI dialogueText;   // å¯¹è¯æ–‡å­—
-    public GameObject continueTip;         // ç»§ç»­æç¤ºï¼ˆå¯é€‰ï¼‰
-    
-    [Header("=== æ‰“å­—é€Ÿåº¦ ===")]
+    [Header("=== ´ò×ÖËÙ¶È ===")]
     public float typeSpeed = 0.12f;
-    [Header("äº¤ä»˜æ—¥è®°æœ¬éŸ³æ•ˆ")]
+    [Header("½»¸¶ÈÕ¼Ç±¾ÒôĞ§")]
     public AudioClip audioClip;
     // ======================
-    // ä½ çš„ S3 å¯¹è¯å†…å®¹ ç›´æ¥å†™è¿™é‡Œ
+    // ÄãµÄ S3 ¶Ô»°ÄÚÈİ Ö±½ÓĞ´ÕâÀï
     // ======================
     private List<string> lines = new List<string>()
     {
-        "å°è±¡ï¼šæ•…äº‹åˆ°è¿™é‡Œå°±ç»“æŸäº†ï¼Œæˆ‘çš„ä¸œè¥¿åœ¨å“ªé‡Œï¼Ÿ",
-        "åˆ—è½¦å‘˜ï¼ˆæˆ‘ï¼‰ï¼šè¿™æ˜¯ä¸€æœ¬ä¸“å±äºä½ çš„æ—¥è®°æœ¬ï¼Œä½ å¯ä»¥ç”¨å®ƒçœ‹åˆ°çˆ¸çˆ¸å¦ˆå¦ˆåœ¨æƒ³ä»€ä¹ˆ..."
+        "Ğ¡Ïó£º¹ÊÊÂµ½ÕâÀï¾Í½áÊøÁË£¬ÎÒµÄ¶«Î÷ÔÚÄÄÀï£¿",
+        "ÁĞ³µÔ±£¨ÎÒ£©£ºÕâÊÇÒ»±¾×¨ÊôÓÚÄãµÄÈÕ¼Ç±¾£¬Äã¿ÉÒÔÓÃËü¿´µ½°Ö°ÖÂèÂèÔÚÏëÊ²Ã´..."
     };
 
     private int index = 0;
@@ -38,24 +30,23 @@ public class S3_Dialogue : MonoBehaviour
 
     void Start()
     {
-        // æ¸¸æˆå¼€å§‹è‡ªåŠ¨æ’­æ”¾ç¬¬ä¸€å¥å¯¹è¯
-        if(TransitionManage.Instance!=null)
+        // ÓÎÏ·¿ªÊ¼×Ô¶¯²¥·ÅµÚÒ»¾ä¶Ô»°
+        if (TransitionManage.Instance != null)
         {
-            TransitionManage.Instance.FadeIn(0.5f,Color.black);
+            TransitionManage.Instance.FadeIn(0.5f, Color.black);
         }
-        //StartType();
-        noteButton.onClick.AddListener(playVedio);
+        StartType();
     }
 
     void Update()
     {
         if (GameManage.Instance.isSetting) return;
-        // ç‚¹å‡»é¼ æ ‡å·¦é”®ç»§ç»­
+        // µã»÷Êó±ê×ó¼ü¼ÌĞø
         if (Input.GetMouseButtonDown(0))
         {
             if (isTyping)
             {
-                // æ­£åœ¨æ‰“å­—æ—¶ç‚¹å‡»ï¼šç›´æ¥æ˜¾ç¤ºå®Œæ•´å¥å­
+                // ÕıÔÚ´ò×ÖÊ±µã»÷£ºÖ±½ÓÏÔÊ¾ÍêÕû¾ä×Ó
                 StopAllCoroutines();
                 dialogueText.text = lines[index];
                 isTyping = false;
@@ -63,20 +54,10 @@ public class S3_Dialogue : MonoBehaviour
             }
             else
             {
-                // æ‰“å®Œä¸€å¥ï¼Œç‚¹å‡»è¿›å…¥ä¸‹ä¸€å¥
+                // ´òÍêÒ»¾ä£¬µã»÷½øÈëÏÂÒ»¾ä
                 NextLine();
             }
         }
-    }
-
-    void playVedio()
-    {
-        noteButton.GetComponent<Image>().DOFade(0f, 1f).OnComplete(() => {
-            noteButton.interactable = false;
-        });
-        noteAni.DOFade(1f, 1f).OnComplete(() => {
-            noteAni.GetComponent<VideoPlayer>().Play();
-        });
     }
 
     void StartType()
@@ -104,7 +85,7 @@ public class S3_Dialogue : MonoBehaviour
         index++;
         if (index >= lines.Count)
         {
-            // æ‰€æœ‰å¯¹è¯æ‰“å®Œï¼Œåªæ˜¾ç¤ºç»“æŸæç¤ºï¼Œä¸è·³è½¬
+            // ËùÓĞ¶Ô»°´òÍê£¬Ö»ÏÔÊ¾½áÊøÌáÊ¾£¬²»Ìø×ª
             EndDialogue();
             return;
         }
@@ -120,18 +101,18 @@ public class S3_Dialogue : MonoBehaviour
 
     void EndDialogue()
     {
-        // å¯¹è¯ç»“æŸï¼šéšè—ç»§ç»­æç¤ºï¼Œæˆ–è€…ä½ å¯ä»¥åœ¨è¿™é‡ŒåŠ è‡ªå·±çš„æ”¶å°¾é€»è¾‘
-        AudioManager.Instance.Play2DSound(audioClip,0.8f);
+        // ¶Ô»°½áÊø£ºÒş²Ø¼ÌĞøÌáÊ¾£¬»òÕßÄã¿ÉÒÔÔÚÕâÀï¼Ó×Ô¼ºµÄÊÕÎ²Âß¼­
+        AudioManager.Instance.Play2DSound(audioClip, 0.8f);
         ShowContinue(false);
-        Debug.Log("S3 å¯¹è¯å·²å…¨éƒ¨ç»“æŸï¼");
+        Debug.Log("S3 ¶Ô»°ÒÑÈ«²¿½áÊø£¡");
         CompleteLevel();
-        // è¿™é‡Œä»€ä¹ˆéƒ½ä¸å†™ï¼Œå¯¹è¯ç»“æŸå°±åœåœ¨åŸåœ°ï¼Œä¸å½±å“åœºæ™¯
+        // ÕâÀïÊ²Ã´¶¼²»Ğ´£¬¶Ô»°½áÊø¾ÍÍ£ÔÚÔ­µØ£¬²»Ó°Ïì³¡¾°
     }
     public void CompleteLevel()
     {
-        // é€šçŸ¥ GameManage å½“å‰å…³å¡é€šå…³
+        // Í¨Öª GameManage µ±Ç°¹Ø¿¨Í¨¹Ø
         GameManage.Instance.CompleteCurrentLevel();
-        // å¯é€‰ï¼šè‡ªåŠ¨è¿›å…¥ä¸‹ä¸€å…³ç¬¬ä¸€åœºæ™¯ï¼ˆå¦‚æœå¸Œæœ›æ— ç¼è¡”æ¥ï¼‰
+        // ¿ÉÑ¡£º×Ô¶¯½øÈëÏÂÒ»¹ØµÚÒ»³¡¾°£¨Èç¹ûÏ£ÍûÎŞ·ìÏÎ½Ó£©
         int nextLevel = GameManage.Instance.currentLevel + 1;
         if (nextLevel <= 12)
         {
@@ -140,14 +121,14 @@ public class S3_Dialogue : MonoBehaviour
             {
                 if (shouldUseFade)
                 {
-                    // å¹¶è¡Œæ‰§è¡Œè½¬åœºæ·¡å‡ºå’Œ BGM æ·¡å‡º
+                    // ²¢ĞĞÖ´ĞĞ×ª³¡µ­³öºÍ BGM µ­³ö
                     TransitionManage.Instance.FadeOut(0.5f, Color.white, () =>
                     {
-                        // è½¬åœºå®ŒæˆååŠ è½½æ–°åœºæ™¯
+                        // ×ª³¡Íê³Éºó¼ÓÔØĞÂ³¡¾°
                         SceneManager.LoadScene(nextScene);
                     });
-                    if(shouldUseAudioFade)
-                    AudioManager.Instance.FadeOutCurrentBGM(0.5f, null);
+                    if (shouldUseAudioFade)
+                        AudioManager.Instance.FadeOutCurrentBGM(0.5f, null);
                 }
                 else
                 {
@@ -157,7 +138,7 @@ public class S3_Dialogue : MonoBehaviour
         }
         else
         {
-            Debug.Log("æ­å–œé€šå…³å…¨éƒ¨12å¤§å…³ï¼");
+            Debug.Log("¹§Ï²Í¨¹ØÈ«²¿12´ó¹Ø£¡");
         }
     }
 }
