@@ -6,6 +6,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine.UI;
+using DG.Tweening;
 
 public class InterludeController : MonoBehaviour
 {
@@ -53,6 +54,11 @@ public class InterludeController : MonoBehaviour
     [SerializeField] private float typingSpeed = 0.1f;
     [SerializeField] private GameObject endHint;
     [SerializeField] private bool requireButtonToAdvanceWhenAvailable = true;
+    [Header("S1.4乐乐图片")]
+    public bool useLeleImage = false;
+    public Image leleImage1;
+    public Image leleImage2;
+    public Image leleImage3;
 
     [Header("音效")]
     public AudioClip dialogAudioClip;
@@ -344,6 +350,9 @@ public class InterludeController : MonoBehaviour
     private void DisplayNextLine()
     {
         if (currentIndex < 0) currentIndex = 0;
+        
+        if(useLeleImage)
+        ShowLeLeImage(currentIndex);
 
         int count = GetDialogueCount();
         if (currentIndex < count)
@@ -370,6 +379,32 @@ public class InterludeController : MonoBehaviour
             }
 
             if (!string.IsNullOrWhiteSpace(nextSceneName)) LoadNextScene();
+        }
+    }
+
+    public void ShowLeLeImage(int index)
+    {
+        if(index==0)
+        {
+            leleImage1.DOFade(1f,0.5f);
+            leleImage2.DOFade(0f,0.5f);
+            leleImage3.DOFade(0f,0.5f);
+        }
+        else if(index == 2)
+        {
+            leleImage1.DOKill();
+            leleImage2.DOKill();
+
+            leleImage1.DOFade(0f, 0.5f).SetEase(Ease.InQuart);
+            leleImage2.DOFade(1f, 0.5f).SetEase(Ease.OutQuart);
+        }
+        else if(index == 4)
+        {
+            leleImage2.DOKill();
+            leleImage3.DOKill();
+
+            leleImage2.DOFade(0f, 0.5f).SetEase(Ease.InQuart);
+            leleImage3.DOFade(1f, 0.5f).SetEase(Ease.OutQuart);
         }
     }
 

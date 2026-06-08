@@ -55,7 +55,6 @@ public class TransitionManage : MonoBehaviour
     {
         if (isTransitioning)
         {
-            Debug.LogWarning("转场动画正在进行中，请等待完成后再调用");
             return;
         }
         isTransitioning = true;
