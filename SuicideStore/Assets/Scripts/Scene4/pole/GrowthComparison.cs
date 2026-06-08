@@ -58,9 +58,16 @@ public class GrowthComparison : MonoBehaviour
         
         UpdateDisplay(0f);
     }
-
+    void Update()
+    {
+        if (growthSlider != null && growthSlider.interactable == GameManage.Instance.isSetting)
+        {
+            growthSlider.interactable = !GameManage.Instance.isSetting;
+        }
+    }
     void OnSliderChanged(float value)
     {
+        if (GameManage.Instance.isSetting) return;
         UpdateDisplay(value);
     }
     void UpdateDisplay(float value)
@@ -140,28 +147,4 @@ public class GrowthComparison : MonoBehaviour
         //开始新的透明度动画
         activeTween = cg.DOFade(targetAlpha, 0.2f).SetEase(Ease.Linear);
     }
-
-    //旧脚本
-    //void UpdateDisplay(float value)
-    //{
-    //    if (childImage != null)
-    //    {
-    //        childImage.alpha = 1f - value;
-    //        //float scale = Mathf.Lerp(minScale, maxScale, value);
-    //        //childImage.transform.localScale = childInitialScale * scale;
-    //    }
-
-    //    if (adultImage != null)
-    //    {
-    //        adultImage.alpha = value;
-    //        //float scale = Mathf.Lerp(minScale, maxScale, value);
-    //        //adultImage.transform.localScale = adultInitialScale * scale;
-    //    }
-
-    //    if (heightText != null)
-    //    {
-    //        float height = Mathf.Lerp(minHeight, maxHeight, value);
-    //        heightText.text = $"{height:F0}cm";
-    //    }
-    //}
 }

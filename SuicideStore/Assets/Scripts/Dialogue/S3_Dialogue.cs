@@ -40,6 +40,7 @@ public class S3_Dialogue : MonoBehaviour
 
     void Update()
     {
+        if (GameManage.Instance.isSetting) return;
         // 点击鼠标左键继续
         if (Input.GetMouseButtonDown(0))
         {

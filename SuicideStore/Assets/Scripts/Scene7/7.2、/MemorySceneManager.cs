@@ -31,7 +31,22 @@ public class MemorySceneManager : MonoBehaviour
         InitializeScene();
         lastSliderIndex = slides.Length-1;
     }
-
+    void Update()
+    {
+        // 根据设置面板状态，动态禁用/启用所有滑块的交互
+        bool isSetting = GameManage.Instance.isSetting;
+        foreach (var slide in slides)
+        {
+            if (slide != null)
+            {
+                // 禁用脚本即可阻止拖拽事件
+                slide.GetComponent<Slider>().interactable = !isSetting;
+                // 当设置面板打开时，强制复位滑块（避免残留位置）
+                if (isSetting)
+                    slide.ResetSlide();
+            }
+        }
+    }
     void InitializeScene()
     {
         for (int i = 0; i < memoryImages.Length; i++)

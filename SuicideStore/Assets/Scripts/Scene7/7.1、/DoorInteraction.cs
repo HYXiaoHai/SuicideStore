@@ -62,6 +62,7 @@ public class DoorInteraction : MonoBehaviour
 
     void Update()
     {
+        if (GameManage.Instance.isSetting) return;
         if (isPlayerNear)
         {
             if (canInteractable&&Input.GetKeyDown(interactKey))

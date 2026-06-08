@@ -113,6 +113,7 @@ public class Puzzle : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
     // ÍÏ×§Âß¼­
     public void OnBeginDrag(PointerEventData eventData)
     {
+
         isDragging = true;
         StopFloating();
         rb.velocity = Vector2.zero;
@@ -142,6 +143,8 @@ public class Puzzle : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
 
     public void OnDrag(PointerEventData eventData)
     {
+        if (GameManage.Instance.isSetting) return;
+
         isDragging = true;
         RectTransform parentRect = rectTransform.parent as RectTransform;
         if (parentRect == null) return;

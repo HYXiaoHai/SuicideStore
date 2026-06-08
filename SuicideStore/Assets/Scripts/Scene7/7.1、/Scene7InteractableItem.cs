@@ -38,6 +38,7 @@ public class Scene7InteractableItem : MonoBehaviour
 
     void Update()
     {
+        if(GameManage.Instance.isSetting)return;
         // 只有在玩家范围内才检测输入
         if (canInteractable&&isPlayerInRange && Input.GetKeyDown(interactKey))
         {

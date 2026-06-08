@@ -97,6 +97,7 @@ public class Scene7_3Manager : MonoBehaviour
 
     void Update()
     {
+        if (GameManage.Instance.isSetting) return;
         if (currentPanel == 1 && canClick && comicCanvas != null && comicCanvas.enabled)
         {
             if (Input.GetMouseButtonDown(0))
@@ -252,6 +253,8 @@ public class CableCarDrag : MonoBehaviour, IDragHandler, IEndDragHandler
 
     public void OnDrag(PointerEventData eventData)
     {
+        if (GameManage.Instance.isSetting) return;
+
         if (manager != null)
         {
             manager.OnCableCarDrag(eventData.delta);
@@ -260,6 +263,7 @@ public class CableCarDrag : MonoBehaviour, IDragHandler, IEndDragHandler
 
     public void OnEndDrag(PointerEventData eventData)
     {
+
         if (manager != null)
         {
             manager.OnCableCarDragEnd();

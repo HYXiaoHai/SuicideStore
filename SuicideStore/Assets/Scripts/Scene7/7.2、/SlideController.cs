@@ -32,7 +32,6 @@ public class SlideController : MonoBehaviour, IDragHandler, IBeginDragHandler, I
 
         ResetSlide();
     }
-
     public void ResetSlide()
     {
         isCompleted = false;
@@ -51,6 +50,7 @@ public class SlideController : MonoBehaviour, IDragHandler, IBeginDragHandler, I
 
     public void OnBeginDrag(PointerEventData eventData)
     {
+        if (GameManage.Instance.isSetting) return;
         if (isCompleted) return;
 
         startPosition = eventData.position;
@@ -59,6 +59,7 @@ public class SlideController : MonoBehaviour, IDragHandler, IBeginDragHandler, I
 
     public void OnDrag(PointerEventData eventData)
     {
+        if (GameManage.Instance.isSetting) return;
         if (isCompleted || !isDragging || sliderHandle == null || sliderBackground == null)
         {
             return;

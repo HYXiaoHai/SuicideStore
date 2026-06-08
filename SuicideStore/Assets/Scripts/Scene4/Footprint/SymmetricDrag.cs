@@ -156,6 +156,8 @@ public class SymmetricDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 
     public void OnBeginDrag(PointerEventData eventData)
     {
+        //if (GameManage.Instance.isSetting) return;   // 设置面板打开时禁止开始拖拽
+
         if (!gameStarted || isWin) return;
         isDragging = true;
         Vector3 mouseWorld;
@@ -176,6 +178,8 @@ public class SymmetricDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 
     public void OnDrag(PointerEventData eventData)
     {
+        //if (GameManage.Instance.isSetting) return;   // 设置面板打开时禁止开始拖拽
+
         if (!isDragging) return;
         Vector3 mouseWorld;
         if (GetMouseWorldPositionOnCanvas(out mouseWorld))

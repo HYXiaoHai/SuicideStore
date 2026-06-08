@@ -121,6 +121,7 @@ public class MemoryWalkManager : MonoBehaviour
 
     void Update()
     {
+        if (GameManage.Instance.isSetting) return;
         if (!isActive) return;
 
         // 输入：显示下一个脚印
