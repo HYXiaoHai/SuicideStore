@@ -51,7 +51,7 @@ public class GameManage : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Escape))
+        if (Input.GetKeyDown(KeyCode.Escape)&&!TransitionManage.Instance.isTransitioning)
         {
             if (currentState == GameState.Menu)
             {

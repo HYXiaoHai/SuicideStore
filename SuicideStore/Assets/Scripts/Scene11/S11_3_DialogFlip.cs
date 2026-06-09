@@ -1,21 +1,32 @@
-using UnityEngine;
-using UnityEngine.UI;
 using DG.Tweening;
+using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.UI;
+using static UnityEngine.RuleTile.TilingRuleOutput;
 
 public class S11_3_DialogFlip : MonoBehaviour
 {
+    public CanvasGroup canvasGroup;
+    public RectTransform rectTransform;
+    [Header("中心位置")]
+    public RectTransform centerPosition;
     [Header("正反面图片")]
     public Sprite frontSprite;
     public Sprite backSprite;
 
     [Header("Image组件")]
     public Image targetImage;
-
+    
     [Header("动画参数")]
     public float moveToCenterDuration = 0.3f;
     public float flipDuration = 0.5f;
     public float centerScale = 1.5f;
 
+    [Header("气泡移动动画")]
+    public float floatAmplitude = 0.3f;
+    public float floatDuration = 1f;
+
+    private Tweener floatTween;
     private Vector3 originalPosition;
     private Vector3 originalScale;
     private Button button;
@@ -41,6 +52,7 @@ public class S11_3_DialogFlip : MonoBehaviour
 
     private void OnButtonClicked()
     {
+        if (GameManage.Instance.isSetting) return;
         if (manager == null || !manager.IsLineComplete()) return;
 
         if (!isCentered)
@@ -60,12 +72,11 @@ public class S11_3_DialogFlip : MonoBehaviour
         if (isAnimating) return;
         isAnimating = true;
 
-        Vector3 centerPos = Camera.main.ViewportToWorldPoint(new Vector3(0.5f, 0.5f, 10f));
-        centerPos.z = transform.position.z;
-
+        floatTween?.Kill();                         // 停止浮动
+        rectTransform.pivot = new Vector2(0.5f,0.5f);
         Sequence seq = DOTween.Sequence();
-        seq.Append(transform.DOMove(centerPos, moveToCenterDuration).SetEase(Ease.OutQuad));
-        seq.Join(transform.DOScale(originalScale * centerScale, moveToCenterDuration).SetEase(Ease.OutQuad));
+        seq.Append(transform.DOMove(centerPosition.position, moveToCenterDuration).SetEase(Ease.OutQuad));
+        seq.Join(transform.DOScale(centerScale, moveToCenterDuration).SetEase(Ease.OutQuad));
         seq.OnComplete(() =>
         {
             isCentered = true;
@@ -73,7 +84,25 @@ public class S11_3_DialogFlip : MonoBehaviour
         });
         seq.Play();
     }
+    public void PlayEnterAnimation(TweenCallback onComplete = null, float scale = 1f)
+    {
+        transform.localScale = Vector3.zero;
+        canvasGroup.alpha = 0f;
 
+        Sequence seq = DOTween.Sequence();
+        seq.Join(transform.DOScale(scale, 0.2f).SetEase(Ease.OutCirc));
+        seq.Join(canvasGroup.DOFade(1f, 0.2f).SetEase(Ease.OutCirc));
+        seq.OnComplete(StartFloating);
+        seq.Play();
+    }
+    public void StartFloating()
+    {
+        floatTween?.Kill();
+        Vector3 upPos = originalPosition + Vector3.up * floatAmplitude;
+        floatTween = transform.DOMove(upPos, floatDuration)
+            .SetEase(Ease.InOutSine)
+            .SetLoops(-1, LoopType.Yoyo);
+    }
     private void StartFlip()
     {
         if (isAnimating) return;
@@ -102,5 +131,9 @@ public class S11_3_DialogFlip : MonoBehaviour
                         StartCoroutine(manager.OnDialogFlipComplete());
                     });
             });
+    }
+    private void OnDestroy()
+    {
+        floatTween?.Kill();
     }
 }

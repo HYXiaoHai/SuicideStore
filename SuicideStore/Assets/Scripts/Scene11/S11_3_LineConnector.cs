@@ -9,6 +9,8 @@ public class S11_3_LineConnector : MonoBehaviour
     public MspPaint paintSystem;
     public bool isComplete = false;
 
+    [Header("线")]
+    public GameObject lineFather;
     [Header("完成后显示")]
     public CanvasGroup silhouetteObject;
     public float fadeInDuration = 0.5f;
@@ -18,8 +20,6 @@ public class S11_3_LineConnector : MonoBehaviour
 
     void Start()
     {
-
-
         if (paintSystem == null)
             paintSystem = FindObjectOfType<MspPaint>();
 
@@ -104,7 +104,7 @@ public class S11_3_LineConnector : MonoBehaviour
 
         if (silhouetteObject != null)
         {
-            silhouetteObject.DOFade(1f, fadeInDuration);
+            silhouetteObject.DOFade(1f, fadeInDuration).OnComplete(() => { lineFather.SetActive(false); });
         }
 
         S11_3_Manager manager = FindObjectOfType<S11_3_Manager>();

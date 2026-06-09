@@ -12,7 +12,7 @@ public class TransitionManage : MonoBehaviour
     public CanvasGroup transitionCanvasGroup;
     public Image transitionImage;
     public float transitionDuration = 1f;
-    private bool isTransitioning = false;
+    public bool isTransitioning = false;
     private Tween activeTween;
     private Coroutine autoFadeCoroutine;
     private bool isLoadingWithAutoFade = false;
