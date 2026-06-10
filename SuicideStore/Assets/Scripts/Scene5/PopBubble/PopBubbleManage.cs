@@ -93,21 +93,22 @@ public class PopBubbleManage : MonoBehaviour
             // 假设 changeDelay = 2f，相机切换完成后启动第二关
             Scene5Manage.Instance.ChangeCamera(nextLevelIndex, changeDelay, () =>
             {
-                if (Scene5Manage.Instance.level3manage != null)
-                {
-                    Scene5Manage.Instance.level3manage.BeginGame();
-                    // 在关卡初始化时播放环境音
-                    envSourse = AudioManager.Instance.PlayLoopingSound(envClip, loop: true, volumeScale: 0.5f);
+                // 在关卡初始化时播放环境音
+                envSourse = AudioManager.Instance.PlayLoopingSound(envClip, loop: true, volumeScale: 0.5f);
 
-                    envSourse.transform.position = envClipPos.position;  // 例如 new Vector3(10, 5, 0)
-                    envSourse.minDistance = 8f;   //距离音源 5 米内音量最大
-                    envSourse.maxDistance = 17f;  //30米外几乎听不到
-                    envSourse.rolloffMode = AudioRolloffMode.Linear;
-                }
-                else
-                {
-                    Debug.LogError("level2Manage 未在 Scene4Manage 中赋值！");
-                }
+                envSourse.transform.position = envClipPos.position;  // 例如 new Vector3(10, 5, 0)
+                envSourse.minDistance = 8f;   //距离音源 5 米内音量最大
+                envSourse.maxDistance = 17f;  //30米外几乎听不到
+                envSourse.rolloffMode = AudioRolloffMode.Linear;
+                //if (Scene5Manage.Instance.level3manage != null)
+                //{
+                //    Scene5Manage.Instance.level3manage.BeginGame();
+                   
+                //}
+                //else
+                //{
+                //    Debug.LogError("level2Manage 未在 Scene4Manage 中赋值！");
+                //}
             });
         }
         else

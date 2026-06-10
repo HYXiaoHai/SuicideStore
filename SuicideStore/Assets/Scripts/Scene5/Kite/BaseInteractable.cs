@@ -5,7 +5,8 @@ using UnityEngine.EventSystems;
 public abstract class BaseInteractable : MonoBehaviour
 {
     public bool isPlayerInRange = false;
-
+    public bool closeRange = false;//不启用范围
+    public bool useMouse = false;//使用鼠标交互
     // 供交互区触发器调用的方法
     public void SetPlayerInRange(bool inRange)
     {
@@ -14,18 +15,18 @@ public abstract class BaseInteractable : MonoBehaviour
 
     public abstract void OnInteract();
 
-    //void OnMouseDown()
-    //{
-    //    if (isPlayerInRange && EventSystem.current != null && !EventSystem.current.IsPointerOverGameObject())
-    //    {
-    //        Debug.Log($"点击 {gameObject.name}");
-    //        OnInteract();
-    //    }
-    //}
+    void OnMouseDown()
+    {
+        if (useMouse&&(closeRange||isPlayerInRange) && EventSystem.current != null && !EventSystem.current.IsPointerOverGameObject())
+        {
+            Debug.Log($"点击 {gameObject.name}");
+            OnInteract();
+        }
+    }
     private void Update()
     {
         if (GameManage.Instance.isSetting) return;
-        if (isPlayerInRange&&Input.GetKeyDown(KeyCode.E))
+        if (!useMouse&&(closeRange || isPlayerInRange) && Input.GetKeyDown(KeyCode.E))
         {
             Debug.Log($"点击 {gameObject.name}");
             OnInteract();
