@@ -42,10 +42,10 @@ public class RowManage : MonoBehaviour
     private bool isFalling = false;
     [Header("线")]
     public Image[] lineImage;
-
     [Header("行数据")]
     public RowController[] rows;         // 按顺序拖入三行的 RowController
     public int currentRowIndex = 0;
+    public bool isToNextRowAni = false;
     [Header("关卡切换")]
     public int nextLevelIndex = 2;//第2关
     public float changeDelay = 1f;//完成后多久切换镜头（延迟）
@@ -213,6 +213,7 @@ public class RowManage : MonoBehaviour
     // 在文字上行走时的逻辑
     private void HandleMovementOnWords(float horizontal)
     {
+        if (isToNextRowAni) return;
         // 刚体移动（水平速度）
         float targetSpeed = horizontal * walkSpeed;
         playerRb.velocity = new Vector2(targetSpeed, playerRb.velocity.y);
@@ -231,6 +232,7 @@ public class RowManage : MonoBehaviour
     // 在横线上行走时的逻辑
     private void HandleMovementOnLine(float horizontal)
     {
+        if (isToNextRowAni) return;
         // 横线上只允许向左移动（按 A 或 左箭头），也可以允许双向，但到达左边界才切换
         // 这里为了符合需求，允许双向移动，但到达左边界后自动切换
         float targetSpeed = horizontal * walkSpeed;
@@ -264,7 +266,11 @@ public class RowManage : MonoBehaviour
             TriggerLevelComplete();  // 触发通关完成
             return;
         }
-        Invoke(nameof(StartLinePhase), 0.5f);
+        canMove = false;
+        playerRb.velocity = Vector2.zero;
+        rows[currentRowIndex].CompleteLine();
+        SwitchToNextRow();
+        //Invoke(nameof(StartLinePhase), 0.5f);
     }
 
     private void StartLinePhase()
@@ -288,17 +294,20 @@ public class RowManage : MonoBehaviour
 
       
         // 切换到下一行
-        SwitchToNextRow();
+        //SwitchToNextRow();
     }
 
     private void SwitchToNextRow()
     {
         currentRowIndex++;
 
-        // 重置新行的状态（文字碰撞体开启，横线碰撞体关闭，填充重置）
+        //重置新行的状态（文字碰撞体开启，横线碰撞体关闭，填充重置）
         rows[currentRowIndex].ResetRow();
-
-        // 重新设置文字行走的边界
+        isToNextRowAni = true;
+        //传送玩家
+        playerRb.DOMove(rows[currentRowIndex].lineLeftBound.position, 2f).OnComplete(() =>{ isToNextRowAni = false; });
+        
+        //重新设置文字行走的边界
         SetupCurrentRowForWords();
 
         currentState = GameState.OnWords;
