@@ -41,6 +41,7 @@ public class FlipMirrorController : MonoBehaviour
     //跟随鼠标移动
     void Update()
     {
+        if (GameManage.Instance.currentState != GameState.Game) return;
         bool isSetting = GameManage.Instance.isSetting;
 
         // 检测设置面板关闭的瞬间，根据当前鼠标状态强行更正模式
@@ -51,6 +52,8 @@ public class FlipMirrorController : MonoBehaviour
             if (mousePressed && isDefaultMode)  // 应该处于拍照模式
             {
                 ForceToPhotoMode();
+                //ForceToDefaultMode();
+
             }
             else if (!mousePressed && !isDefaultMode) // 应该处于默认模式
             {

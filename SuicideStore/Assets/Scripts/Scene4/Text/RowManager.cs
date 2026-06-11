@@ -51,6 +51,7 @@ public class RowManage : MonoBehaviour
     public float changeDelay = 1f;//完成后多久切换镜头（延迟）
     private bool hasTriggeredSwitch = false; //防止重复触发
     public bool shouldUseFade = false;
+    public bool shouldUseAudioFade = false;
     // 状态机
     private enum GameState { OnWords, OnLine }
     private GameState currentState;
@@ -384,7 +385,8 @@ public class RowManage : MonoBehaviour
                         // 转场完成后加载新场景
                         SceneManager.LoadScene(nextScene);
                     });
-                    //AudioManager.Instance.FadeOutCurrentBGM(1f, null);
+                    if(shouldUseAudioFade)
+                    AudioManager.Instance.FadeOutCurrentBGM(1f, null);
                 }
                 else
                 {

@@ -6,10 +6,15 @@ using UnityEngine.UI;
 
 public class DoorInteraction : MonoBehaviour
 {
+    public ElephantController controller;
+
     [Header("交互设置")]
+    public CanvasGroup endBG;
+    public Image image2;
+
     public string nextSceneName = "Scene7.2";
-    public SpriteRenderer interactableCopywriting;//显示的交互文案
     public bool canInteractable = false;
+
     [Header("交互方式")]
     public KeyCode interactKey = KeyCode.E;
 
@@ -22,10 +27,7 @@ public class DoorInteraction : MonoBehaviour
     public SpriteRenderer interactPrompt;//对应的交互提示
     void Start()
     {
-        if (interactableCopywriting != null)
-        {
-            interactableCopywriting.gameObject.SetActive(false);
-        }
+
     }
     public void SetInteractable(bool enable)
     {
@@ -104,25 +106,36 @@ public class DoorInteraction : MonoBehaviour
                 interactPrompt.gameObject.SetActive(false);
             });
         }
+        yield return new WaitForSecondsRealtime(0.5f);
+        controller.canMove = false;
+        yield return endBG.DOFade(1f, 1f).WaitForCompletion();
 
-        if (interactableCopywriting != null)
+        //等待玩家按下任意键（或指定按键）
+        // 等待玩家按下任意键（排除 ESC）
+        yield return new WaitUntil(() =>
         {
-            interactableCopywriting.gameObject.SetActive(true);
-                                                               
-            Color color = interactableCopywriting.color;
-            color.a = 0f;
-            interactableCopywriting.color = color;
+            if (!Input.anyKeyDown) return false;
+            if (Input.GetKeyDown(KeyCode.Escape)) return false;
+            return true;
+        });
+        //yield return new WaitForSeconds(2f);
 
-            yield return interactableCopywriting.DOFade(1f, 0.5f).SetUpdate(true).WaitForCompletion();
+        //可选：避免同一帧内触发多次，稍微延迟一帧
+        yield return null;
 
-            yield return new WaitForSecondsRealtime(1f);  
-        }
-        else
+        //继续后续动画
+        yield return image2.DOFade(1f, 1f).WaitForCompletion();
+        // 等待玩家按下任意键（排除 ESC）
+        yield return new WaitUntil(() =>
         {
-            yield return new WaitForSecondsRealtime(0.5f);
-        }
+            if (!Input.anyKeyDown) return false;
+            if (Input.GetKeyDown(KeyCode.Escape)) return false;
+            return true;
+        });
+        //yield return new WaitForSeconds(2f);
+        yield return null;
 
-        // 4. 跳转场景
+        // 最后跳转
         InteractWithDoor();
     }
 }

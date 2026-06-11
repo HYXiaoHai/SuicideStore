@@ -561,9 +561,11 @@ MonoBehaviour:
   rows:
   - {fileID: 1900997142}
   currentRowIndex: 0
+  isToNextRowAni: 0
   nextLevelIndex: 5
   changeDelay: 0.5
   shouldUseFade: 1
+  shouldUseAudioFade: 0
   canMove: 1
   isGrounded: 0
 --- !u!1 &128273346
@@ -9475,9 +9477,11 @@ MonoBehaviour:
   rows:
   - {fileID: 1016711368}
   currentRowIndex: 0
+  isToNextRowAni: 0
   nextLevelIndex: 3
   changeDelay: 0.5
   shouldUseFade: 0
+  shouldUseAudioFade: 0
   canMove: 1
   isGrounded: 0
 --- !u!1 &1711623425
@@ -11222,6 +11226,7 @@ MonoBehaviour:
   transitionCanvasGroup: {fileID: 2011019961}
   transitionImage: {fileID: 1797690613}
   transitionDuration: 1
+  isTransitioning: 0
 --- !u!114 &2011019963
 MonoBehaviour:
   m_ObjectHideFlags: 0
