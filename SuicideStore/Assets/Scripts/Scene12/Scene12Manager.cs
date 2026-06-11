@@ -87,20 +87,12 @@ public class Scene12Manager : MonoBehaviour
 
     IEnumerator FadeToBlackAndLoadScene()
     {
-        Image blackFade = new GameObject("BlackFade").AddComponent<Image>();
-        blackFade.rectTransform.SetParent(GetComponent<RectTransform>(), false);
-        blackFade.rectTransform.anchorMin = Vector2.zero;
-        blackFade.rectTransform.anchorMax = Vector2.one;
-        blackFade.rectTransform.sizeDelta = Vector2.zero;
-        blackFade.color = Color.black;
-        blackFade.canvasRenderer.SetAlpha(0);
-        blackFade.CrossFadeAlpha(1, fadeDuration, false);
-
         yield return new WaitForSeconds(fadeDuration);
 
         if (!string.IsNullOrEmpty(nextSceneName))
         {
-            SceneManager.LoadScene(nextSceneName);
+            //SceneManager.LoadScene(nextSceneName);
+            CompleteLevel();
         }
         else
         {
