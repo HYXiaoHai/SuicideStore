@@ -7,6 +7,7 @@ public class JourneyManager : MonoBehaviour
 {
     public string nextSceneName;
     public bool isFinal;
+    public Color fadeColor = Color.white;
     void Start()
     {
         if (TransitionManage.Instance != null)
@@ -28,7 +29,7 @@ public class JourneyManager : MonoBehaviour
     public void NextScene()
     {
         // 并行执行转场淡出和 BGM 淡出
-        TransitionManage.Instance.FadeOut(1f, Color.white, () =>
+        TransitionManage.Instance.FadeOut(1f, fadeColor, () =>
         {
             // 转场完成后加载新场景
             SceneManager.LoadScene(nextSceneName);
