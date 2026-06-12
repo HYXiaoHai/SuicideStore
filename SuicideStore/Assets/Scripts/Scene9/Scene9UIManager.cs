@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 // 卡槽：单个固定正确位置
@@ -33,6 +34,7 @@ public class FeedbackImage
 
 public class Scene9UIManager : MonoBehaviour
 {
+
     [Header("==== 所有固定卡槽（按顺序摆放） ====")]
     public List<CardSlot> allSlots = new List<CardSlot>();
 
@@ -72,8 +74,10 @@ public class Scene9UIManager : MonoBehaviour
 
     void Start()
     {
-        // 记录卡槽坐标
-        foreach (var slot in allSlots)
+        if (TransitionManage.Instance != null)
+            TransitionManage.Instance.FadeIn(1f,Color.black);
+            // 记录卡槽坐标
+            foreach (var slot in allSlots)
         {
             if (slot.slotTrans != null)
                 slot.correctPos = slot.slotTrans.position;
@@ -316,6 +320,8 @@ public class Scene9UIManager : MonoBehaviour
                 if (i < feedbackImages.Count && feedbackImages[i].spriteRenderer != null)
                     feedbackImages[i].spriteRenderer.enabled = true;
             }
+
+            CompleteLevel();
         }
     }
 
@@ -348,6 +354,33 @@ public class Scene9UIManager : MonoBehaviour
             }
         }
         Debug.Log("进入下一组");
+    }
+
+    public void CompleteLevel()
+    {
+        // 通知 GameManage 当前关卡通关
+        GameManage.Instance.CompleteCurrentLevel();
+        // 可选：自动进入下一关第一场景（如果希望无缝衔接）
+        int nextLevel = GameManage.Instance.currentLevel + 1;
+        if (nextLevel <= 12)
+        {
+            string nextScene = GameManage.Instance.GetFirstSceneOfLevel(nextLevel);
+            if (!string.IsNullOrEmpty(nextScene))
+            {
+                    // 并行执行转场淡出和 BGM 淡出
+                    TransitionManage.Instance.FadeOut(1f, Color.black, () =>
+                    {
+                        // 转场完成后加载新场景
+                        SceneManager.LoadScene(nextScene);
+                    });
+                    AudioManager.Instance.FadeOutCurrentBGM(1f, null);
+               
+            }
+        }
+        else
+        {
+            Debug.Log("恭喜通关全部12大关！");
+        }
     }
 
     private void LateUpdate()
