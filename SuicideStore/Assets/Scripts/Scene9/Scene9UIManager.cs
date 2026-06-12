@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -20,7 +21,10 @@ public class SortCard
     public SpriteRenderer mainSprite;
     [Tooltip("这张卡片对应的正确卡槽下标(从0开始)")]
     public int targetSlotIndex;
-    [HideInInspector] public bool isLocked = false; // 放对后锁定
+    [Tooltip("初始是否可拖拽")]
+    public bool isUnlocked = true;
+
+    [HideInInspector] public Color originColor;
 }
 
 // 反馈图片
@@ -48,8 +52,8 @@ public class Scene9UIManager : MonoBehaviour
     public int group3_CardNum = 2;
 
     [Header("==== 解锁按钮（一共2个） ====")]
-    public GameObject lock_Group1;
-    public GameObject lock_Group2;
+    public GameObject lock_Group1;  // 第一组通关 → 开启第二组
+    public GameObject lock_Group2;  // 第二组通关 → 开启第三组
 
     [Header("==== 相机移动参数 ====")]
     public Camera mainCam;
@@ -58,13 +62,19 @@ public class Scene9UIManager : MonoBehaviour
     public float camTargetY2;
     public float camMoveSpeed = 2f;
 
-    [Header("==== 拖拽、吸附设置 ====")]
+    [Header("==== 拖拽、吸附、发光设置 ====")]
     [Tooltip("两张卡片靠近多远算互换")]
     public float swapDistance = 1.2f;
     [Tooltip("卡片离卡槽多远自动吸附")]
     public float snapRange = 0.8f;
     [Tooltip("判定归位正确的误差范围")]
     public float judgeRange = 0.3f;
+    [Tooltip("拖拽透明度")]
+    public float dragAlpha = 0.7f;
+    [Tooltip("闪烁速度")]
+    public float flickSpeed = 2f;
+    [Tooltip("发光颜色")]
+    public Color glowColor = new Color(0f, 0.7f, 1f);
 
     private int currentGroup = 1;
     private float currentCamTargetY;
@@ -72,21 +82,33 @@ public class Scene9UIManager : MonoBehaviour
 
     void Start()
     {
-        // 记录卡槽坐标
+        // 1. 记录所有卡槽正确坐标
         foreach (var slot in allSlots)
         {
             if (slot.slotTrans != null)
                 slot.correctPos = slot.slotTrans.position;
         }
 
-        // 隐藏所有反馈图
+        // 2. 初始化卡片颜色、发光
+        foreach (var card in allCards)
+        {
+            if (card.mainSprite == null) continue;
+            card.originColor = card.mainSprite.color;
+
+            if (card.isUnlocked)
+                StartCoroutine(GlowFlicker(card));
+            else
+                card.mainSprite.color = Color.gray;
+        }
+
+        // 3. 隐藏所有反馈图
         foreach (var img in feedbackImages)
         {
             if (img.spriteRenderer != null)
                 img.spriteRenderer.enabled = false;
         }
 
-        // 初始化相机
+        // 4. 相机初始位置
         if (mainCam != null)
         {
             mainCam.transform.position = new Vector3(
@@ -97,15 +119,9 @@ public class Scene9UIManager : MonoBehaviour
             currentCamTargetY = camStartY;
         }
 
-        // 隐藏分组按钮
+        // 5. 隐藏两个解锁按钮
         if (lock_Group1) lock_Group1.SetActive(false);
         if (lock_Group2) lock_Group2.SetActive(false);
-
-        // 初始所有卡片解锁，可拖拽
-        foreach (var card in allCards)
-        {
-            card.isLocked = false;
-        }
     }
 
     void Update()
@@ -126,7 +142,7 @@ public class Scene9UIManager : MonoBehaviour
             dragCard.mainSprite.transform.position = mouseWorld;
         }
 
-        // 鼠标抬起结束拖拽
+        // 鼠标抬起：结束拖拽
         if (Input.GetMouseButtonUp(0) && dragCard != null)
         {
             DragEnd();
@@ -136,15 +152,14 @@ public class Scene9UIManager : MonoBehaviour
 
     void DragEnd()
     {
-        // 恢复渲染层级
-        if (dragCard.mainSprite != null)
-            dragCard.mainSprite.sortingOrder = 0;
+        // 恢复拖拽透明度
+        dragCard.mainSprite.color = dragCard.originColor;
 
-        // 1. 卡片互换（已锁定卡片不参与互换）
+        // 第一步：检测是否和其他卡片相撞 → 互换位置
         bool isSwap = false;
         foreach (var otherCard in allCards)
         {
-            if (otherCard == dragCard || otherCard.isLocked) continue;
+            if (otherCard == dragCard || !otherCard.isUnlocked) continue;
 
             float dist = Vector3.Distance(
                 dragCard.mainSprite.transform.position,
@@ -153,6 +168,7 @@ public class Scene9UIManager : MonoBehaviour
 
             if (dist < swapDistance)
             {
+                // 互换坐标
                 Vector3 tempPos = dragCard.mainSprite.transform.position;
                 dragCard.mainSprite.transform.position = otherCard.mainSprite.transform.position;
                 otherCard.mainSprite.transform.position = tempPos;
@@ -161,62 +177,69 @@ public class Scene9UIManager : MonoBehaviour
             }
         }
 
-        // 2. 自动吸附到最近卡槽
+        // 第二步：没有互换 → 自动吸附到最近卡槽
         if (!isSwap)
         {
             int nearestSlotIdx = -1;
             float minDis = float.MaxValue;
+
             for (int i = 0; i < allSlots.Count; i++)
             {
-                float d = Vector3.Distance(dragCard.mainSprite.transform.position, allSlots[i].correctPos);
+                float d = Vector3.Distance(
+                    dragCard.mainSprite.transform.position,
+                    allSlots[i].correctPos
+                );
                 if (d < minDis)
                 {
                     minDis = d;
                     nearestSlotIdx = i;
                 }
             }
+
+            // 在吸附范围内 → 卡入卡槽
             if (nearestSlotIdx != -1 && minDis < snapRange)
             {
                 dragCard.mainSprite.transform.position = allSlots[nearestSlotIdx].correctPos;
             }
         }
 
-        // 拖拽结束后统一检查分组完成状态
+        // 第三步：检查当前分组是否全部归位正确
         CheckGroupComplete();
     }
 
-    // 鼠标点击检测（修复射线，保证2D卡片可点击）
+    // 鼠标按下 → 开始拖拽
     private void OnMouseDown()
     {
         if (mainCam == null) return;
-
         Ray ray = mainCam.ScreenPointToRay(Input.mousePosition);
-        // 兼容2D碰撞体，优先获取碰撞体
-        RaycastHit2D hit = Physics2D.Raycast(ray.origin, ray.direction, Mathf.Infinity);
-        if (hit)
+        if (!Physics2D.Raycast(ray.origin, ray.direction)) return;
+
+        foreach (var card in allCards)
         {
-            // 遍历卡片，只拾取【未锁定】的卡片
-            foreach (var card in allCards)
+            if (!card.isUnlocked || card.mainSprite == null) continue;
+
+            Collider2D col = card.mainSprite.GetComponent<Collider2D>();
+            if (col != null && col.OverlapPoint(ray.origin))
             {
-                if (card.isLocked || card.mainSprite == null) continue;
-                Collider2D col = card.mainSprite.GetComponent<Collider2D>();
-                if (col != null && col == hit.collider)
-                {
-                    dragCard = card;
-                    card.mainSprite.sortingOrder = 999; // 拖拽置顶
-                    break;
-                }
+                dragCard = card;
+                // 拖拽半透明
+                Color c = card.mainSprite.color;
+                c.a = dragAlpha;
+                card.mainSprite.color = c;
+                // 层级置顶
+                card.mainSprite.sortingOrder = 999;
+                break;
             }
         }
     }
 
-    // 检查当前分组是否全部摆放正确
+    // 检查当前分组是否全部拼对（每张卡落到自己指定卡槽）
     void CheckGroupComplete()
     {
         int startIndex = 0;
         int endIndex = 0;
 
-        // 划分当前分组卡片范围
+        // 根据当前分组，确定卡片范围
         if (currentGroup == 1)
         {
             startIndex = 0;
@@ -233,49 +256,44 @@ public class Scene9UIManager : MonoBehaviour
             endIndex = startIndex + group3_CardNum - 1;
         }
 
-        bool allCorrect = true;
-        // 先批量判定每张卡片是否归位，只在拖拽结束时锁定，不再动态解锁
+        bool allRight = true;
         for (int i = startIndex; i <= endIndex; i++)
         {
             if (i >= allCards.Count) break;
+
             SortCard card = allCards[i];
-            if (card.mainSprite == null || card.targetSlotIndex >= allSlots.Count) continue;
+            if (card.mainSprite == null) continue;
+            if (card.targetSlotIndex >= allSlots.Count) continue;
 
             Vector3 cardPos = card.mainSprite.transform.position;
             Vector3 rightPos = allSlots[card.targetSlotIndex].correctPos;
-            float dis = Vector3.Distance(cardPos, rightPos);
 
-            // 放对位置 → 锁定（一旦锁定，不再解锁）
-            if (dis <= judgeRange)
+            // 坐标不在误差范围内 → 错误
+            if (Vector3.Distance(cardPos, rightPos) > judgeRange)
             {
-                card.isLocked = true;
-            }
-            else
-            {
-                allCorrect = false;
+                allRight = false;
+                break;
             }
         }
 
-        // 整组全部正确 → 触发通关（显示反馈图+按钮）
-        if (allCorrect)
-        {
+        if (allRight)
             GroupSuccess();
-        }
     }
 
-    // 分组通关：显示对应反馈图 + 弹出切换按钮
+    // 当前分组拼对成功
     void GroupSuccess()
     {
-        Debug.Log("分组完成");
+        Debug.Log("当前分组拼对完成！");
+
+        // 显示当前分组对应的反馈图
         if (currentGroup == 1)
         {
-            // 显示第一组反馈图
             for (int i = 0; i < group1_CardNum; i++)
             {
                 if (i < feedbackImages.Count && feedbackImages[i].spriteRenderer != null)
                     feedbackImages[i].spriteRenderer.enabled = true;
             }
-            // 显示下一组按钮
+            // 第一组通关 → 显示第一个锁
             if (lock_Group1)
             {
                 lock_Group1.SetActive(true);
@@ -296,6 +314,7 @@ public class Scene9UIManager : MonoBehaviour
                 if (i < feedbackImages.Count && feedbackImages[i].spriteRenderer != null)
                     feedbackImages[i].spriteRenderer.enabled = true;
             }
+            // 第二组通关 → 显示第二个锁
             if (lock_Group2)
             {
                 lock_Group2.SetActive(true);
@@ -316,38 +335,57 @@ public class Scene9UIManager : MonoBehaviour
                 if (i < feedbackImages.Count && feedbackImages[i].spriteRenderer != null)
                     feedbackImages[i].spriteRenderer.enabled = true;
             }
+            // 第三组是最后一组，不再弹出锁
         }
     }
 
-    // 切换下一组，重置当前组以外卡片状态
+    // 进入下一组、解锁卡片、移动相机
     void NextGroup()
     {
         currentGroup++;
         if (currentGroup == 2)
         {
             currentCamTargetY = camTargetY1;
-            // 第二组卡片全部解锁可拖拽
+            // 解锁第二组卡片
             int start = group1_CardNum;
             int end = group1_CardNum + group2_CardNum - 1;
             for (int i = start; i <= end; i++)
             {
-                if (i < allCards.Count)
-                    allCards[i].isLocked = false;
+                if (i >= allCards.Count) break;
+                allCards[i].isUnlocked = true;
+                allCards[i].mainSprite.color = allCards[i].originColor;
+                StartCoroutine(GlowFlicker(allCards[i]));
             }
         }
         else if (currentGroup == 3)
         {
             currentCamTargetY = camTargetY2;
-            // 第三组卡片全部解锁可拖拽
+            // 解锁第三组卡片
             int start = group1_CardNum + group2_CardNum;
             int end = start + group3_CardNum - 1;
             for (int i = start; i <= end; i++)
             {
-                if (i < allCards.Count)
-                    allCards[i].isLocked = false;
+                if (i >= allCards.Count) break;
+                allCards[i].isUnlocked = true;
+                allCards[i].mainSprite.color = allCards[i].originColor;
+                StartCoroutine(GlowFlicker(allCards[i]));
             }
         }
         Debug.Log("进入下一组");
+    }
+
+    // 卡片颜色闪烁发光（纯代码，不用材质/Outline）
+    System.Collections.IEnumerator GlowFlicker(SortCard card)
+    {
+        float time = 0f;
+        while (card.isUnlocked)
+        {
+            time += Time.deltaTime * flickSpeed;
+            float bright = (Mathf.Sin(time) + 1f) * 0.5f;
+            card.mainSprite.color = Color.Lerp(card.originColor, glowColor, bright);
+            yield return null;
+        }
+        card.mainSprite.color = card.originColor;
     }
 
     private void LateUpdate()
