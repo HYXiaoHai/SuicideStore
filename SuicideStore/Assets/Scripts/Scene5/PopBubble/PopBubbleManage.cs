@@ -94,7 +94,7 @@ public class PopBubbleManage : MonoBehaviour
             Scene5Manage.Instance.ChangeCamera(nextLevelIndex, changeDelay, () =>
             {
                 // 在关卡初始化时播放环境音
-                envSourse = AudioManager.Instance.PlayLoopingSound(envClip, loop: true, volumeScale: 0.5f);
+                envSourse = AudioManager.Instance.PlayLoopingSound(envClip, loop: true, volumeScale: 0.3f);
 
                 envSourse.transform.position = envClipPos.position;  // 例如 new Vector3(10, 5, 0)
                 envSourse.minDistance = 8f;   //距离音源 5 米内音量最大

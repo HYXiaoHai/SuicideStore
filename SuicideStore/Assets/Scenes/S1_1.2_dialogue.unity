@@ -1297,6 +1297,7 @@ MonoBehaviour:
   currentLevel: 0
   isSetting: 0
   menuSceneName: Menu
+  unlockedLevel: 1
 --- !u!4 &476167901
 Transform:
   m_ObjectHideFlags: 0
@@ -4067,7 +4068,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 26caab1746b63374d9e497af423752ce, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 49236f66deb9e6e4382659dedf7df3d5, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -4491,6 +4492,7 @@ MonoBehaviour:
   transitionCanvasGroup: {fileID: 1791268383}
   transitionImage: {fileID: 1341345187}
   transitionDuration: 1
+  isTransitioning: 0
 --- !u!114 &1791268385
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5842,6 +5844,10 @@ MonoBehaviour:
   typingSpeed: 0.1
   endHint: {fileID: 1914998491}
   requireButtonToAdvanceWhenAvailable: 1
+  useLeleImage: 0
+  leleImage1: {fileID: 0}
+  leleImage2: {fileID: 0}
+  leleImage3: {fileID: 0}
   dialogAudioClip: {fileID: 8300000, guid: f582fb29fa74e3640832f03d1a8da1c3, type: 3}
 --- !u!4 &2080904770
 Transform:
