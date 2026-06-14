@@ -15,7 +15,10 @@ public class PuzzleManage : MonoBehaviour
     public Puzzle[] puzzles1;//第一轮拼图
     public Puzzle[] puzzles2;//第二轮拼图
     public Puzzle[] puzzles3;//第三轮拼图
-
+    [Header("干扰拼图（id = -1）")]
+    public Puzzle[] decoyPuzzles1; // 第一轮干扰 (1个)
+    public Puzzle[] decoyPuzzles2; // 第二轮干扰 (2个)
+    public Puzzle[] decoyPuzzles3; // 第三轮干扰 (2个)
     [Header("拖拽边界（相对于拼图父级局部坐标）")]
     public float dragLeft = -500f;
     public float dragRight = 500f;
@@ -35,9 +38,12 @@ public class PuzzleManage : MonoBehaviour
     public Transform rectTransform2;//第二个默认出生位置
     public Transform rectTransform3;//第三个默认出生位置
 
-
+    [Header("干扰拼图额外出生点（数量必须足够）")]
+    public Transform[] decoySpawnPoints;   // 例如配置 2 个点，供第二轮/第三轮使用
 
     private Puzzle[] currentPuzzles;   // 当前激活的拼图数组
+    private Puzzle[] currentDecoys;    // 当前激活的干扰拼图
+
     private int currentRound = 0;      // 0=第一轮, 1=第二轮, 2=第三轮
     private void Awake()
     {
@@ -140,73 +146,73 @@ public class PuzzleManage : MonoBehaviour
         HideAllPuzzles();
 
         // 获取新轮次的拼图数组
-        Puzzle[] newPuzzles = null;
+        Puzzle[] normalPuzzles = null;
+        Puzzle[] decoyPuzzles = null;
+
         switch (round)
         {
-            case 0: newPuzzles = puzzles1; break;
-            case 1: newPuzzles = puzzles2; break;
-            case 2: newPuzzles = puzzles3; break;
+            case 0:
+                normalPuzzles = puzzles1;
+                decoyPuzzles = decoyPuzzles1;
+                break;
+            case 1:
+                normalPuzzles = puzzles2;
+                decoyPuzzles = decoyPuzzles2;
+                break;
+            case 2:
+                normalPuzzles = puzzles3;
+                decoyPuzzles = decoyPuzzles3;
+                break;
         }
-
-        if (newPuzzles == null || newPuzzles.Length != 3)
+        if (normalPuzzles == null || normalPuzzles.Length != 3)
         {
-            Debug.LogError($"第{round + 1}轮拼图配置错误，需要3个拼图！");
+            Debug.LogError($"第{round + 1}轮正常拼图配置错误，需要3个拼图！");
             return;
         }
 
-        currentPuzzles = newPuzzles;
+        currentPuzzles = normalPuzzles;
+        currentDecoys = decoyPuzzles;
         currentRound = round;
 
-        // 准备三个默认出生点（必须已赋值）
-        Transform[] spawnPoints = { rectTransform1, rectTransform2, rectTransform3 };
-        // 随机打乱出生点顺序（用于随机分配）
+        // --- 正常拼图的出生点（三个固定）---
+        Transform[] normalSpawnPoints = { rectTransform1, rectTransform2, rectTransform3 };
         System.Random rng = new System.Random();
-        for (int i = spawnPoints.Length - 1; i > 0; i--)
+        for (int i = normalSpawnPoints.Length - 1; i > 0; i--)
         {
             int j = rng.Next(i + 1);
-            Transform temp = spawnPoints[i];
-            spawnPoints[i] = spawnPoints[j];
-            spawnPoints[j] = temp;
+            Transform temp = normalSpawnPoints[i];
+            normalSpawnPoints[i] = normalSpawnPoints[j];
+            normalSpawnPoints[j] = temp;
         }
 
         // 建立 id -> Slot 的映射
-        var slotMap = new Dictionary<int, Slot>
-    {
-        { 0, slot0 },
-        { 1, slot1 },
-        { 2, slot2 }
-    };
+        Dictionary<int, Slot> slotMap = new Dictionary<int, Slot>
+        {
+            { 0, slot0 },
+            { 1, slot1 },
+            { 2, slot2 }
+        };
 
-        // 遍历当前轮次的拼图，根据其 id 设置对应插槽的位置
+        // 激活正常拼图
         for (int i = 0; i < currentPuzzles.Length; i++)
         {
             Puzzle puzzle = currentPuzzles[i];
             if (puzzle == null) continue;
 
-            // 根据拼图的 id 找到对应的插槽
             if (slotMap.TryGetValue(puzzle.id, out Slot targetSlot) && targetSlot != null)
             {
                 if (puzzle.currentSlotPosition != null)
-                {
                     targetSlot.transform.position = puzzle.currentSlotPosition.position;
-                    Debug.Log($"设置插槽 {puzzle.id} 的位置到 {puzzle.currentSlotPosition.position}");
-                }
-                else
-                {
-                    Debug.LogWarning($"拼图 {puzzle.name} (id={puzzle.id}) 的 currentSlotPosition 未赋值！");
-                }
             }
             else
             {
                 Debug.LogError($"找不到 id={puzzle.id} 对应的插槽！");
             }
 
-            // 激活拼图并初始化
             puzzle.gameObject.SetActive(true);
             puzzle.currentSlot = null;
 
-            // 分配到随机出生点（使用打乱后的 spawnPoints[i]）
-            Transform spawnPoint = spawnPoints[i];
+            Transform spawnPoint = normalSpawnPoints[i];
             if (spawnPoint != null)
             {
                 RectTransform targetRect = spawnPoint.GetComponent<RectTransform>();
@@ -217,7 +223,6 @@ public class PuzzleManage : MonoBehaviour
             }
             else
             {
-                Debug.LogWarning($"出生点 {i} 未赋值！使用拼图自身的 defaultPosition 作为后备");
                 if (puzzle.defaultPosition != null)
                 {
                     RectTransform targetRect = puzzle.defaultPosition.GetComponent<RectTransform>();
@@ -228,11 +233,64 @@ public class PuzzleManage : MonoBehaviour
                 }
             }
 
-            // 设置随机旋转
             puzzle.SetRandomRotation();
-            // 重置运动方向并开始漂浮
             puzzle.ResetMovement();
             puzzle.StartFloating();
+        }
+
+        // --- 激活干扰拼图 ---
+        if (decoyPuzzles != null && decoyPuzzles.Length > 0)
+        {
+            // 确保有足够的出生点
+            if (decoySpawnPoints == null || decoySpawnPoints.Length < decoyPuzzles.Length)
+            {
+                Debug.LogError("干扰拼图额外出生点不足！请检查 decoySpawnPoints 数量。");
+                return;
+            }
+
+            // 打乱干扰拼图的出生点顺序（随机分配）
+            Transform[] shuffledDecoySpawns = (Transform[])decoySpawnPoints.Clone();
+            for (int i = shuffledDecoySpawns.Length - 1; i > 0; i--)
+            {
+                int j = rng.Next(i + 1);
+                Transform temp = shuffledDecoySpawns[i];
+                shuffledDecoySpawns[i] = shuffledDecoySpawns[j];
+                shuffledDecoySpawns[j] = temp;
+            }
+
+            for (int i = 0; i < decoyPuzzles.Length; i++)
+            {
+                Puzzle decoy = decoyPuzzles[i];
+                if (decoy == null) continue;
+
+                decoy.gameObject.SetActive(true);
+                decoy.currentSlot = null;
+                // 干扰拼图 id 必须为 -1（预制体中设置好）
+                if (decoy.id != -1)
+                    Debug.LogWarning($"干扰拼图 {decoy.name} 的 id 不是 -1，请修正！");
+
+                Transform spawnPoint = shuffledDecoySpawns[i];
+                if (spawnPoint != null)
+                {
+                    RectTransform targetRect = spawnPoint.GetComponent<RectTransform>();
+                    if (targetRect != null)
+                        decoy.GetComponent<RectTransform>().anchoredPosition = targetRect.anchoredPosition;
+                    else
+                        decoy.transform.position = spawnPoint.position;
+                }
+                else
+                {
+                    // 后备：如果出生点缺失，放在随机位置（边界内）
+                    var rect = decoy.GetComponent<RectTransform>();
+                    float randX = UnityEngine.Random.Range(dragLeft, dragRight);
+                    float randY = UnityEngine.Random.Range(dragBottom, dragTop);
+                    rect.anchoredPosition = new Vector2(randX, randY);
+                }
+
+                decoy.SetRandomRotation();
+                decoy.ResetMovement();
+                decoy.StartFloating();
+            }
         }
     }
     private void HideAllPuzzles()
@@ -240,6 +298,9 @@ public class PuzzleManage : MonoBehaviour
         HidePuzzlesArray(puzzles1);
         HidePuzzlesArray(puzzles2);
         HidePuzzlesArray(puzzles3);
+        HidePuzzlesArray(decoyPuzzles1);
+        HidePuzzlesArray(decoyPuzzles2);
+        HidePuzzlesArray(decoyPuzzles3);
     }
 
     private void HidePuzzlesArray(Puzzle[] puzzles)

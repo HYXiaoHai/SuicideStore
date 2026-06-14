@@ -22,6 +22,7 @@ public class Scene7_3Manager : MonoBehaviour
     public string text2 = "可以快点吗？我不喜欢拍照啦";
 
     [Header("=== 缆车轨迹设置 ===")]
+    public CableCarDrag drag;
     public RectTransform cableCar;
     public Vector2 startPoint = new Vector2(-250, 0);
     public Vector2 endPoint = new Vector2(250, 0);
@@ -41,7 +42,7 @@ public class Scene7_3Manager : MonoBehaviour
     public AudioClip sliderClip;//滑动音效
     public AudioClip takePhotoClip;//滑动音效
 
-    private int currentPanel = 0;
+    public int currentPanel = 0;
     private bool canClick = true;
     private bool isDrag = false;
     void Start()
@@ -173,6 +174,9 @@ public class Scene7_3Manager : MonoBehaviour
 
         if (progress >= 0.95f)
         {
+            // 停止缆车脉冲动画
+            if (drag != null) drag.StopPulse();
+
             ShowPanel(1);
             AudioManager.Instance.Play2DSound(sliderClip, 1f);
             ShowText(text2, blackColor);
@@ -247,26 +251,3 @@ public class Scene7_3Manager : MonoBehaviour
     }
 }
 
-public class CableCarDrag : MonoBehaviour, IDragHandler, IEndDragHandler
-{
-    public Scene7_3Manager manager;
-
-    public void OnDrag(PointerEventData eventData)
-    {
-        if (GameManage.Instance.isSetting) return;
-
-        if (manager != null)
-        {
-            manager.OnCableCarDrag(eventData.delta);
-        }
-    }
-
-    public void OnEndDrag(PointerEventData eventData)
-    {
-
-        if (manager != null)
-        {
-            manager.OnCableCarDragEnd();
-        }
-    }
-}

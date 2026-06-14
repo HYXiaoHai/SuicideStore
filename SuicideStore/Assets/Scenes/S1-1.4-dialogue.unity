@@ -563,14 +563,14 @@ RectTransform:
   m_GameObject: {fileID: 94785821}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.383521, y: 0.383521, z: 0.383521}
+  m_LocalScale: {x: 0.24114649, y: 0.24114649, z: 0.24114649}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 788894017}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -6.000061, y: 54.000008}
+  m_AnchoredPosition: {x: 596.9999, y: -74.99999}
   m_SizeDelta: {x: 3000, y: 3999.9998}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &94785823
@@ -727,14 +727,14 @@ RectTransform:
   m_GameObject: {fileID: 110473142}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.383521, y: 0.383521, z: 0.383521}
+  m_LocalScale: {x: 0.24114649, y: 0.24114649, z: 0.24114649}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 788894017}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -6.000061, y: 54.000008}
+  m_AnchoredPosition: {x: 596.9999, y: -74.99999}
   m_SizeDelta: {x: 3000, y: 3999.9998}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &110473144
@@ -1256,14 +1256,14 @@ RectTransform:
   m_GameObject: {fileID: 547240473}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.383521, y: 0.383521, z: 0.383521}
+  m_LocalScale: {x: 0.24114649, y: 0.24114649, z: 0.24114649}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 788894017}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -6, y: 54}
+  m_AnchoredPosition: {x: 597, y: -75}
   m_SizeDelta: {x: 3000, y: 3999.9998}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &547240475
@@ -5462,6 +5462,7 @@ MonoBehaviour:
   transitionCanvasGroup: {fileID: 1978804623}
   transitionImage: {fileID: 747527194}
   transitionDuration: 1
+  isTransitioning: 0
 --- !u!114 &1978804625
 MonoBehaviour:
   m_ObjectHideFlags: 0

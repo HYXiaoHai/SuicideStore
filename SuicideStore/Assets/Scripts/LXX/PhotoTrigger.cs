@@ -9,6 +9,8 @@ public class PhotoTrigger : MonoBehaviour
     public AudioClip clickAudioClip;
     public SpriteRenderer interacRenderer;//交互后图片
 
+    public SpriteRenderer completeSprite1;//最后一个
+
     private bool isPlayerInside = false;
     private bool isTriggered = false;
     private SpriteRenderer defualSprite;//默认
@@ -51,6 +53,9 @@ public class PhotoTrigger : MonoBehaviour
     {
         defualSprite.DOFade(0f,0.5f);
         interacRenderer.DOFade(1f,0.5f);
+
+        if(completeSprite1!=null)
+        completeSprite1.DOFade(1f, 0.5f);
     }
 
     void ShowPrompt()
@@ -59,7 +64,7 @@ public class PhotoTrigger : MonoBehaviour
         ePrompt.gameObject.SetActive(true);
         ePrompt.transform.localScale = Vector3.zero;
         ePrompt.DOFade(1f, 0.2f).SetEase(Ease.OutQuad);
-        ePrompt.transform.DOScale(1.5f, 0.25f).SetEase(Ease.OutElastic, 0.8f, 0.5f);
+        ePrompt.transform.DOScale(2.3f, 0.25f).SetEase(Ease.OutElastic, 0.8f, 0.5f);
     }
 
     void HidePrompt()
