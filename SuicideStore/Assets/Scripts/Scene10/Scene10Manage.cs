@@ -13,6 +13,7 @@ public class Scene10Manage : MonoBehaviour
     public GameObject rightRoundFather;
     public GameObject leftRoundFather;
     public SpriteRenderer levelBg;//¹Ø¿¨×Ü±³¾°
+    public SpriteRenderer leve3Bg;//¹Ø¿¨×Ü±³¾°
     //public Sprite level1Bg_Sprit;//
     public Sprite level2Bg_Sprit;
 
@@ -118,6 +119,8 @@ public class Scene10Manage : MonoBehaviour
     public void Leve3Start()
     {
         level3Father.SetActive(true);
+        levelBg.gameObject.SetActive(false);
+        leve3Bg.gameObject.SetActive(true);
         level3GameCanvas.gameObject.SetActive(true);
         transitionCanvas.DOFade(0f, 1f);//½¥ÏÔ
     }

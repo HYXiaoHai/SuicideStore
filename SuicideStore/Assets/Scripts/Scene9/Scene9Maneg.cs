@@ -36,10 +36,11 @@ public class Scene9Maneg : MonoBehaviour
     public Button puzzleButton;//切换到拼图视角的按钮
 
     [Header("第三关 - 文档")]
-    public GameObject fileParent;
+    public SpriteRenderer file;
     public CinemachineVirtualCamera fileCamera;//文档视角
     public Button fileButton;//切换到档案的按钮
     public string fileSceneName;
+    private Tween pulseTween;
 
     [Header("音效")]
     public AudioClip steamClip;
@@ -205,14 +206,34 @@ public class Scene9Maneg : MonoBehaviour
     // ---------- 第三关逻辑 ----------
     public void Level3Start()
     {
-        fileParent.gameObject.SetActive(true);
+        file.gameObject.SetActive(true);
         fileButton.gameObject.SetActive(true);
+        StartPulse();
         AudioManager.Instance.Play2DSound(cameraClip, 0.8f);
         puzzleCompleteCamera.Priority = 10;
         fileCamera.Priority = 20;
     }
+
+    private void StartPulse()
+    {
+        // 停止现有动画
+        if (pulseTween != null && pulseTween.IsActive())
+            pulseTween.Kill();
+        // 确保完全可见后开始脉冲
+        file.color = new Color(file.color.r, file.color.g, file.color.b, 1f);
+        pulseTween = file.DOFade(0.3f, 0.8f).SetLoops(-1, LoopType.Yoyo).SetEase(Ease.InOutSine);
+    }
+    public void StopPulse()
+    {
+        if (pulseTween != null && pulseTween.IsActive())
+            pulseTween.Kill();
+        if (file != null)
+            file.color = new Color(file.color.r, file.color.g, file.color.b, 0f);
+    }
+
     public void Onlevel3Button()
     {
+        StopPulse();
         // 并行执行转场淡出和 BGM 淡出
         TransitionManage.Instance.FadeOut(0.3f, Color.black, () =>
         {
