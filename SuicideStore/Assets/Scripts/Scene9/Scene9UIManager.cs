@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using System.Collections;
 
 // 卡槽：单个固定正确位置
 [Serializable]
@@ -48,6 +49,12 @@ public class Scene9UIManager : MonoBehaviour
     public int group1_CardNum = 3;
     public int group2_CardNum = 3;
     public int group3_CardNum = 2;
+
+    [Header("==== 图片显示设置 ====")]
+    [Tooltip("每张反馈图出现的间隔时间（秒）")]
+    public float imageShowDelay = 0.2f;
+    [Tooltip("图片淡入动画时长（秒）")]
+    public float fadeInDuration = 0.3f;
 
     [Header("==== 解锁按钮（一共2个） ====")]
     public GameObject lock_Group1;
@@ -273,56 +280,75 @@ public class Scene9UIManager : MonoBehaviour
         Debug.Log("分组完成");
         if (currentGroup == 1)
         {
-            // 显示第一组反馈图
-            for (int i = 0; i < group1_CardNum; i++)
-            {
-                if (i < feedbackImages.Count && feedbackImages[i].spriteRenderer != null)
-                    feedbackImages[i].spriteRenderer.enabled = true;
-            }
-            // 显示下一组按钮
-            if (lock_Group1)
-            {
-                lock_Group1.SetActive(true);
-                Button btn = lock_Group1.GetComponent<Button>();
-                if (btn != null)
-                {
-                    btn.onClick.RemoveAllListeners();
-                    btn.onClick.AddListener(NextGroup);
-                }
-            }
+            StartCoroutine(ShowImagesWithButton(0, group1_CardNum, lock_Group1));
         }
         else if (currentGroup == 2)
         {
             int start = group1_CardNum;
-            int count = group2_CardNum;
-            for (int i = start; i < start + count; i++)
-            {
-                if (i < feedbackImages.Count && feedbackImages[i].spriteRenderer != null)
-                    feedbackImages[i].spriteRenderer.enabled = true;
-            }
-            if (lock_Group2)
-            {
-                lock_Group2.SetActive(true);
-                Button btn = lock_Group2.GetComponent<Button>();
-                if (btn != null)
-                {
-                    btn.onClick.RemoveAllListeners();
-                    btn.onClick.AddListener(NextGroup);
-                }
-            }
+            StartCoroutine(ShowImagesWithButton(start, group2_CardNum, lock_Group2));
         }
         else if (currentGroup == 3)
         {
             int start = group1_CardNum + group2_CardNum;
-            int count = group3_CardNum;
-            for (int i = start; i < start + count; i++)
-            {
-                if (i < feedbackImages.Count && feedbackImages[i].spriteRenderer != null)
-                    feedbackImages[i].spriteRenderer.enabled = true;
-            }
-
-            CompleteLevel();
+            StartCoroutine(ShowImagesAndComplete(start, group3_CardNum));
         }
+    }
+
+    IEnumerator ShowImagesWithButton(int startIndex, int count, GameObject buttonObj)
+    {
+        for (int i = startIndex; i < startIndex + count; i++)
+        {
+            if (i < feedbackImages.Count && feedbackImages[i].spriteRenderer != null)
+            {
+                yield return StartCoroutine(FadeInImage(feedbackImages[i].spriteRenderer));
+            }
+            yield return new WaitForSeconds(imageShowDelay);
+        }
+
+        if (buttonObj)
+        {
+            buttonObj.SetActive(true);
+            Button btn = buttonObj.GetComponent<Button>();
+            if (btn != null)
+            {
+                btn.onClick.RemoveAllListeners();
+                btn.onClick.AddListener(NextGroup);
+            }
+        }
+    }
+
+    IEnumerator ShowImagesAndComplete(int startIndex, int count)
+    {
+        for (int i = startIndex; i < startIndex + count; i++)
+        {
+            if (i < feedbackImages.Count && feedbackImages[i].spriteRenderer != null)
+            {
+                yield return StartCoroutine(FadeInImage(feedbackImages[i].spriteRenderer));
+            }
+            yield return new WaitForSeconds(imageShowDelay);
+        }
+
+        CompleteLevel();
+    }
+
+    IEnumerator FadeInImage(SpriteRenderer spriteRenderer)
+    {
+        spriteRenderer.enabled = true;
+        Color color = spriteRenderer.color;
+        color.a = 0f;
+        spriteRenderer.color = color;
+
+        float elapsed = 0f;
+        while (elapsed < fadeInDuration)
+        {
+            elapsed += Time.deltaTime;
+            color.a = Mathf.Lerp(0f, 1f, elapsed / fadeInDuration);
+            spriteRenderer.color = color;
+            yield return null;
+        }
+
+        color.a = 1f;
+        spriteRenderer.color = color;
     }
 
     // 切换下一组，重置当前组以外卡片状态
