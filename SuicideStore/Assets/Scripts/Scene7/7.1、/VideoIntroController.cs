@@ -8,8 +8,11 @@ public class VideoIntroController : MonoBehaviour
     public VideoPlayer videoPlayer;
     public CanvasGroup vieoCanvasGroup;
     public ElephantController player;
+    public AudioClip audioClip;
     void Start()
     {
+        AudioManager.Instance.Play2DSound(audioClip);
+
         if (TransitionManage.Instance != null)
             TransitionManage.Instance.FadeIn(0.5f, Color.black);
         if (videoPlayer != null)
