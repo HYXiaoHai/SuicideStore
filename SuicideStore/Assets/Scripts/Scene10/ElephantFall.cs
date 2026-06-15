@@ -5,7 +5,9 @@ using UnityEngine.SceneManagement;
 public class ElephantFall : MonoBehaviour
 {
     [Header("=== 角色设置 ===")]
-    public Rigidbody2D elephantRb;
+    // 移除Rigidbody2D重力相关，改用匀速下落
+    public Transform elephantTrans;
+    public float fallSpeed = 2f; // 小象匀速下落速度
 
     [Header("=== 气球设置 ===")]
     public SpriteRenderer balloonSprite;
@@ -20,6 +22,11 @@ public class ElephantFall : MonoBehaviour
     public bool shouldUseFade = true;
     public float fallDelay = 1.5f;
 
+    [Header("=== 落地平台设置 ===")]
+    public Transform groundPlatform; // 目标落地平台
+    private bool isFalling = false;
+    private bool isLanded = false;
+
     [Header("=== 调试设置 ===")]
     public bool showDebugLog = true;
 
@@ -33,11 +40,9 @@ public class ElephantFall : MonoBehaviour
 
         mainCamera = Camera.main;
 
-        if (elephantRb != null)
-        {
-            elephantRb.gravityScale = 0;
-            elephantRb.isKinematic = true;
-        }
+        // 移除刚体重力/运动学设置，不再使用Rigidbody2D控制下落
+        if (elephantTrans == null)
+            elephantTrans = transform;
 
         if (balloonSprite != null && balloonSprite.GetComponent<Collider2D>() == null)
         {
@@ -50,6 +55,23 @@ public class ElephantFall : MonoBehaviour
         if (!isBalloonClicked && Input.GetMouseButtonDown(0))
         {
             CheckBalloonClick();
+        }
+
+        // 匀速下落逻辑 + 落地判断
+        if (isFalling && !isLanded && groundPlatform != null)
+        {
+            float targetY = groundPlatform.position.y;
+            // 向下匀速移动
+            elephantTrans.Translate(Vector2.down * fallSpeed * Time.deltaTime);
+
+            // 到达平台高度，停止下落，保持直立
+            if (elephantTrans.position.y <= targetY)
+            {
+                isLanded = true;
+                elephantTrans.position = new Vector3(elephantTrans.position.x, targetY, elephantTrans.position.z);
+                if (showDebugLog)
+                    Debug.Log("小象已平稳落到平台上");
+            }
         }
     }
 
@@ -76,19 +98,20 @@ public class ElephantFall : MonoBehaviour
             Debug.Log("气球被点击，气球上升，小象开始下落");
         }
 
+        // 气球上升动画 保留
         if (balloonSprite != null)
         {
             Vector3 originalPos = balloonSprite.transform.position;
             balloonSprite.transform.DOMoveY(originalPos.y + balloonUpwardDistance, balloonMoveDuration).SetEase(Ease.OutQuad);
         }
 
-        if (elephantRb != null)
-        {
-            elephantRb.isKinematic = false;
-            AudioManager.Instance.Play2DSound(balloonSound, 0.8f);
-            elephantRb.gravityScale = 1;
-        }
+        // 播放气球音效 保留
+        AudioManager.Instance.Play2DSound(balloonSound, 0.8f);
 
+        // 开启下落状态
+        isFalling = true;
+
+        // 延迟加载场景 保留原逻辑
         Invoke(nameof(LoadNextScene), fallDelay);
     }
 
@@ -96,7 +119,6 @@ public class ElephantFall : MonoBehaviour
     {
         if (!string.IsNullOrEmpty(nextSceneName))
         {
-            //SceneManager.LoadScene(nextSceneName);
             CompleteLevel();
         }
         else if (showDebugLog)
@@ -104,6 +126,7 @@ public class ElephantFall : MonoBehaviour
             Debug.LogWarning("nextSceneName 未设置");
         }
     }
+
     public void CompleteLevel()
     {
         // 通知 GameManage 当前关卡通关
@@ -136,7 +159,9 @@ public class ElephantFall : MonoBehaviour
             Debug.Log("恭喜通关全部12大关！");
         }
     }
-void OnCollisionEnter2D(Collision2D collision)
+
+    // 原有碰撞检测保留
+    void OnCollisionEnter2D(Collision2D collision)
     {
         if (showDebugLog)
         {

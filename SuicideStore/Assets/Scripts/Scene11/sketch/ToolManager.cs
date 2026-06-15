@@ -17,7 +17,7 @@ public class ToolManager
         _eraserMat = eraser;
         _painter = painter;
 
-        //Ä¬ÈÏ
+        //Ä¬ï¿½ï¿½
         SetTool(ToolType.None);
     }
 
@@ -31,12 +31,12 @@ public class ToolManager
             case ToolType.Pencil:
                 currentType = ToolType.Pencil;
                 _currentBrushMat = _pencilMat;
-                Debug.Log("ÒÑÇÐ»»µ½Ç¦±Ê");
+                Debug.Log("ï¿½ï¿½ï¿½Ð»ï¿½ï¿½ï¿½Ç¦ï¿½ï¿½");
                 break;
             case ToolType.Eraser:
                 currentType = ToolType.Eraser;
                 _currentBrushMat = _eraserMat;
-                Debug.Log("ÒÑÇÐ»»µ½ÏðÆ¤");
+                Debug.Log("ï¿½ï¿½ï¿½Ð»ï¿½ï¿½ï¿½ï¿½ï¿½Æ¤");
                 break;
         }
     }
@@ -49,6 +49,14 @@ public class ToolManager
         if (_isPressing&&currentType != ToolType.None)
         {
             _painter.DrawAtMousePosition(_currentBrushMat);
+        }
+    }
+
+    public void DrawAtToolPosition(Vector3 toolWorldPos)
+    {
+        if (currentType != ToolType.None)
+        {
+            _painter.DrawAtWorldPosition(toolWorldPos, _currentBrushMat);
         }
     }
 }

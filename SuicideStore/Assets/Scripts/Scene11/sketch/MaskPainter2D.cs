@@ -8,9 +8,9 @@ public class MaskPainter2D
 
     public System.Action OnDraw;
 
-    // ÓÃÓÚ¶ÁÈ¡Êı¾İµÄÁÙÊ±Ğ¡ÌùÍ¼ºÍÊı×é
+    // ï¿½ï¿½ï¿½Ú¶ï¿½È¡ï¿½ï¿½ï¿½İµï¿½ï¿½ï¿½Ê±Ğ¡ï¿½ï¿½Í¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     private Texture2D _readTexture;
-    private const int CheckResolution = 64; // ¼ì²â·Ö±æÂÊ£¬64x64 ×ã¹»¾«×¼ÇÒĞÔÄÜºÃ
+    private const int CheckResolution = 64; // ï¿½ï¿½ï¿½Ö±ï¿½ï¿½Ê£ï¿½64x64 ï¿½ã¹»ï¿½ï¿½×¼ï¿½ï¿½ï¿½ï¿½ï¿½Üºï¿½
 
     public MaskPainter2D(RenderTexture rt, Camera cam, Transform spriteTF)
     {
@@ -22,32 +22,23 @@ public class MaskPainter2D
 
     public void DrawAtMousePosition(Material brushMat)
     {
-        // 1. »ñÈ¡Êó±êÆÁÄ»×ø±ê (Pixels)
-        Vector3 mousePos = Input.mousePosition;
+        DrawAtWorldPosition(Camera.main.ScreenToWorldPoint(Input.mousePosition), brushMat);
+    }
 
-        // 2. ×ª»»µ½ÊÀ½ç¿Õ¼ä (World Space)
-        // ×¢Òâ£º2D ÏÂ z ÖáÍ¨³£ÉèÎªÏà¶ÔÓÚÏà»úµÄ¾àÀë
-        mousePos.z = Mathf.Abs(_cam.transform.position.z - _spriteTransform.position.z);
-        Vector3 worldPos = _cam.ScreenToWorldPoint(mousePos);
-
-        // 3. ×ª»»µ½ Sprite µÄ±¾µØ×ø±êÏµ (Local Space)
-        // ÕâÒ»²½·Ç³£¹Ø¼ü£¬Ëü»á×Ô¶¯´¦ÀíÎïÌåµÄ Position, Rotation, Scale
+    public void DrawAtWorldPosition(Vector3 worldPos, Material brushMat)
+    {
+        worldPos.z = _spriteTransform.position.z;
+        
         Vector3 localPos = _spriteTransform.InverseTransformPoint(worldPos);
 
-        // 4. »ñÈ¡ Sprite µÄÊµ¼Ê³ß´ç (ÒÔ Unit Îªµ¥Î»)
-        // Èç¹ûÄãÓÃµÄÊÇÄ¬ÈÏµÄ Square£¬ËüµÄ´óĞ¡ÊÇ 1x1£¬ÖĞĞÄÔÚ 0,0
-        // Èç¹ûÄãÓÃÁË×Ô¶¨ÒåÍ¼Æ¬£¬ÕâÀïĞèÒª¿¼ÂÇ Sprite µÄ bounds
         SpriteRenderer sr = _spriteTransform.GetComponent<SpriteRenderer>();
-        Vector2 size = sr.sprite.bounds.size; // »ñÈ¡Í¼Æ¬µÄÔ­Ê¼¿í¸ß
+        Vector2 size = sr.sprite.bounds.size;
 
-        // 5. Ó³Éäµ½ UV ¿Õ¼ä [0, 1]
-        // Ëã·¨£º(±¾µØÎ»ÖÃ / ×Ü³ß´ç) + ÖĞĞÄÆ«ÒÆ (0.5)
         float u = (localPos.x / size.x) + 0.5f;
         float v = (localPos.y / size.y) + 0.5f;
 
         Vector2 uv = new Vector2(u, v);
 
-        // 6. ·¶Î§¼ì²âÓë»æÖÆ
         if (uv.x >= 0 && uv.x <= 1 && uv.y >= 0 && uv.y <= 1)
         {
             DrawToRT(uv, brushMat);
@@ -57,23 +48,23 @@ public class MaskPainter2D
 
     private void DrawToRT(Vector2 uv, Material brushMat)
     {
-        // ºËĞÄ²½Öè£ºÊ¹ÓÃ GL ÔÚ RT µÄÖ¸¶¨ UV Î»ÖÃ»æÖÆÒ»¸ö Quad
+        // ï¿½ï¿½ï¿½Ä²ï¿½ï¿½è£ºÊ¹ï¿½ï¿½ GL ï¿½ï¿½ RT ï¿½ï¿½Ö¸ï¿½ï¿½ UV Î»ï¿½Ã»ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ Quad
 
-        // ÉèÖÃµ±Ç°äÖÈ¾µÄÄ¿±ê RT
+        // ï¿½ï¿½ï¿½Ãµï¿½Ç°ï¿½ï¿½È¾ï¿½ï¿½Ä¿ï¿½ï¿½ RT
         RenderTexture.active = _targetRT;
 
-        // ±£´æµ±Ç°¾ØÕó£¬ÇĞ»»µ½Õı½»Í¶Ó°£¨UV ¿Õ¼ä£©
+        // ï¿½ï¿½ï¿½æµ±Ç°ï¿½ï¿½ï¿½ï¿½ï¿½Ğ»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¶Ó°ï¿½ï¿½UV ï¿½Õ¼ä£©
         GL.PushMatrix();
-        GL.LoadPixelMatrix(0, 1, 0, 1); // Ó³Éäµ½ 0 µ½ 1 µÄÏñËØ¾ØÕó
+        GL.LoadPixelMatrix(0, 1, 0, 1); // Ó³ï¿½äµ½ 0 ï¿½ï¿½ 1 ï¿½ï¿½ï¿½ï¿½ï¿½Ø¾ï¿½ï¿½ï¿½
 
-        // »ñÈ¡²ÄÖÊÖĞÉèÖÃµÄ±ÊË¢´óĞ¡£¬È·¶¨ Quad µÄ»æÖÆÇøÓò
+        // ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÃµÄ±ï¿½Ë¢ï¿½ï¿½Ğ¡ï¿½ï¿½È·ï¿½ï¿½ Quad ï¿½Ä»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         float size = brushMat.GetFloat("_Size");
         Rect rect = new Rect(uv.x - size, uv.y - size, size * 2, size * 2);
 
-        // Ê¹ÓÃ±ÊË¢²ÄÖÊ£¬°Ñ°×µ×ÎÆÀí»æÖÆµ½Ö¸¶¨ÇøÓò£¨¹Ø¼üÊÇ Shader ÀïµÄ Blend Ä£Ê½£©
+        // Ê¹ï¿½Ã±ï¿½Ë¢ï¿½ï¿½ï¿½Ê£ï¿½ï¿½Ñ°×µï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æµï¿½Ö¸ï¿½ï¿½ï¿½ï¿½ï¿½ò£¨¹Ø¼ï¿½ï¿½ï¿½ Shader ï¿½ï¿½ï¿½ Blend Ä£Ê½ï¿½ï¿½
         Graphics.DrawTexture(rect, Texture2D.whiteTexture, brushMat);
 
-        // »Ö¸´¾ØÕó£¬Çå¿Õµ±Ç° RT
+        // ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Õµï¿½Ç° RT
         GL.PopMatrix();
         RenderTexture.active = null;
     }
@@ -81,26 +72,26 @@ public class MaskPainter2D
     /// </summary>
     public float GetDrawingProgress()
     {
-        // 1. ´´½¨Ò»¸öÁÙÊ±µÄ¼«Ğ¡ RT ÓÃÓÚÏÂ²ÉÑù
+        // 1. ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½Ê±ï¿½Ä¼ï¿½Ğ¡ RT ï¿½ï¿½ï¿½ï¿½ï¿½Â²ï¿½ï¿½ï¿½
         RenderTexture tempRT = RenderTexture.GetTemporary(CheckResolution, CheckResolution, 0, RenderTextureFormat.R8);
 
-        // 2. ½«´óµÄÃÉ°æ RT Ñ¹Ëõµ½Ğ¡µÄ RT ÖĞ (GPU Íê³É£¬¼«¿ì)
+        // 2. ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É°ï¿½ RT Ñ¹ï¿½ï¿½ï¿½ï¿½Ğ¡ï¿½ï¿½ RT ï¿½ï¿½ (GPU ï¿½ï¿½É£ï¿½ï¿½ï¿½ï¿½ï¿½)
         Graphics.Blit(_targetRT, tempRT);
 
-        // 3. ½«Ğ¡ RT µÄÊı¾İ¶ÁÈ¡µ½ CPU ¿ÉÒÔ·ÃÎÊµÄ Texture2D
+        // 3. ï¿½ï¿½Ğ¡ RT ï¿½ï¿½ï¿½ï¿½ï¿½İ¶ï¿½È¡ï¿½ï¿½ CPU ï¿½ï¿½ï¿½Ô·ï¿½ï¿½Êµï¿½ Texture2D
         RenderTexture.active = tempRT;
         _readTexture.ReadPixels(new Rect(0, 0, CheckResolution, CheckResolution), 0, 0);
         _readTexture.Apply();
         RenderTexture.active = null;
 
-        // 4. ÊÍ·ÅÁÙÊ±×ÊÔ´
+        // 4. ï¿½Í·ï¿½ï¿½ï¿½Ê±ï¿½ï¿½Ô´
         RenderTexture.ReleaseTemporary(tempRT);
 
-        // 5. ±éÀúÏñËØ¼ÆËã°×É«Õ¼±È
+        // 5. ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ø¼ï¿½ï¿½ï¿½ï¿½É«Õ¼ï¿½ï¿½
         Color32[] pixels = _readTexture.GetPixels32();
         int filledCount = 0;
 
-        // ÕâÀïµÄ 128 ÊÇãĞÖµ£¬RÍ¨µÀÖµ´óÓÚ 128 ÈÏÎªÊÇ±»Í¿¹ıÁË
+        // ï¿½ï¿½ï¿½ï¿½ï¿½ 128 ï¿½ï¿½ï¿½ï¿½Öµï¿½ï¿½RÍ¨ï¿½ï¿½Öµï¿½ï¿½ï¿½ï¿½ 128 ï¿½ï¿½Îªï¿½Ç±ï¿½Í¿ï¿½ï¿½ï¿½ï¿½
         for (int i = 0; i < pixels.Length; i++)
         {
             if (pixels[i].r > 128) filledCount++;

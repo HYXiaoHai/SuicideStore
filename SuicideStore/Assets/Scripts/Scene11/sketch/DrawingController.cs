@@ -5,21 +5,21 @@ public class DrawingController : MonoBehaviour
     public int id;
     public bool isBegin = false;
     private bool hasDrawn = false;
-    [Header("ÅäÖÃ")]
+    [Header("ï¿½ï¿½ï¿½ï¿½")]
     public Camera mainCamera;
     public SpriteRenderer targetSprite;
     public int rtWide = 1024;
     public int rtLong = 1024;
 
-    [Header("ãÐÖµÉèÖÃ")]
-    [Range(0f, 1f)] public float winThreshold = 0.9f; // Í¿Âú 90% Ëã¹ý¹Ø
-    [Range(0f, 1f)] public float clearThreshold = 0.05f; // Ê£ÏÂ²»µ½ 5% Ëã²Á³ý¸É¾»
+    [Header("ï¿½ï¿½Öµï¿½ï¿½ï¿½ï¿½")]
+    [Range(0f, 1f)] public float winThreshold = 0.9f; // Í¿ï¿½ï¿½ 90% ï¿½ï¿½ï¿½ï¿½ï¿½
+    [Range(0f, 1f)] public float clearThreshold = 0.05f; // Ê£ï¿½Â²ï¿½ï¿½ï¿½ 5% ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É¾ï¿½
 
-    [Header("ÒôÐ§")]
-    public AudioClip drawingLoopClip;      // ³¤ÒôÐ§£¨Ñ­»·²¥·Å£©
+    [Header("ï¿½ï¿½Ð§")]
+    public AudioClip drawingLoopClip;      // ï¿½ï¿½ï¿½ï¿½Ð§ï¿½ï¿½Ñ­ï¿½ï¿½ï¿½ï¿½ï¿½Å£ï¿½
     public AudioSource currentLoopingSound;
-    private bool isActuallyDrawing; // ±ê¼Ç±¾´Î»æÖÆÖÜÆÚÊÇ·ñÓÐÕæÕý»æÖÆ
-    [Header("²ÄÖÊÒýÓÃ")]
+    private bool isActuallyDrawing; // ï¿½ï¿½Ç±ï¿½ï¿½Î»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    [Header("ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½")]
     public Material pencilMaterial;
     public Material eraserMaterial;
     public Material revealMaterial;
@@ -28,19 +28,19 @@ public class DrawingController : MonoBehaviour
     public MaskPainter2D _painter;
     public ToolManager _toolManager;
 
-    // ¼ÇÂ¼ÉÏÒ»´ÎÊÇ·ñÒÑ´¥·¢¹ý¡°Í¿Âú¡±ºÍ¡°²Á¾»¡±
+    // ï¿½ï¿½Â¼ï¿½ï¿½Ò»ï¿½ï¿½ï¿½Ç·ï¿½ï¿½Ñ´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¿ï¿½ï¿½ï¿½ï¿½ï¿½Í¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     private bool hasTriggeredWin = false;
     private bool hasTriggeredClear = false;
 
     private float _currentProgress = 0f;
-    // ¶ÔÍâ¹«¿ª£ºµ±Ç°»­°åÊÇ·ñÒÑÍê³É£¨Í¿Âú»ò²Á¾»ÈÎÒ»Ìõ¼þÂú×ã£©
+    // ï¿½ï¿½ï¿½â¹«ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç°ï¿½ï¿½ï¿½ï¿½ï¿½Ç·ï¿½ï¿½ï¿½ï¿½ï¿½É£ï¿½Í¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ã£©
     public bool IsCompleted => hasTriggeredWin;
     void Start()
     {
-        //»ù´¡¼ì²é£º·ÀÖ¹Ã»ÍÏ¶«Î÷µ¼ÖÂ±ÀÀ£
+        //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½é£ºï¿½ï¿½Ö¹Ã»ï¿½Ï¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Â±ï¿½ï¿½ï¿½
         if (revealMaterial == null || targetSprite == null)
         {
-            Debug.LogError("ÇëÔÚ Inspector Ãæ°å¸³Öµ²ÄÖÊºÍ Sprite£¡");
+            Debug.LogError("ï¿½ï¿½ï¿½ï¿½ Inspector ï¿½ï¿½å¸³Öµï¿½ï¿½ï¿½Êºï¿½ Spriteï¿½ï¿½");
             return;
         }
 
@@ -59,11 +59,11 @@ public class DrawingController : MonoBehaviour
 
         _painter = new MaskPainter2D(_maskRT, mainCamera, targetSprite.transform);
 
-        // ¶©ÔÄ»æÖÆÊÂ¼þ£ºµÚÒ»´Î»æÖÆÊ±±ê¼Ç
+        // ï¿½ï¿½ï¿½Ä»ï¿½ï¿½ï¿½ï¿½Â¼ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½Î»ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ï¿½
         _painter.OnDraw += () =>
         {
             hasDrawn = true;
-            // ÕæÕý»æÖÆÊ±£¬Èç¹ûÑ­»·ÒôÐ§Î´Æô¶¯ÇÒµ±Ç°¹¤¾ßÓÐÐ§£¬ÔòÆô¶¯
+            // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½ï¿½Ñ­ï¿½ï¿½ï¿½ï¿½Ð§Î´ï¿½ï¿½ï¿½ï¿½ï¿½Òµï¿½Ç°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð§ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
             if (drawingLoopClip != null && currentLoopingSound == null && _toolManager != null && _toolManager.currentType != ToolType.None)
             {
                 currentLoopingSound = AudioManager.Instance.PlayLoopingSound(drawingLoopClip, true, 0.6f);
@@ -75,77 +75,71 @@ public class DrawingController : MonoBehaviour
 
     void Update()
     {
-        //Èç¹û _toolManager »¹Ã»³õÊ¼»¯³É¹¦£¨±ÈÈç Start ±¨´íÁË£©£¬Ö±½Ó·µ»Ø£¬±ÜÃâÃ¿Ö¡Ë¢±¨´í
         if (GameManage.Instance.isSetting) return;
 
         if (_toolManager == null || _painter == null) return;
         if (Input.GetMouseButtonDown(0))
         {
             _toolManager.StartDrawing();
-            // ÖØÖÃ±êÖ¾£¬µÈ´ýÕæÕý»æÖÆ
             isActuallyDrawing = false;
         }
         if (Input.GetMouseButtonUp(0))
         {
             _toolManager.StopDrawing();
-            // Í£Ö¹Ñ­»·ÒôÐ§
             if (currentLoopingSound != null)
             {
                 AudioManager.Instance.StopLoopingSound(currentLoopingSound);
                 currentLoopingSound = null;
             }
-            //if (hasDrawn)
-            //    CheckProgress();
-            hasDrawn = false; // ÖØÖÃ»æÖÆ±ê¼Ç£¬ÒÔ±ãÏÂÒ»ÂÖ
+            hasDrawn = false;
         }
         if (hasDrawn)
             CheckProgress();
-        _toolManager.DoUpdate();
     }
 
     void CheckProgress()
     {
         //_currentProgress = _painter.GetDrawingProgress();
-        //Debug.Log($"µ±Ç°»­ÃæÍê³É¶È: {_currentProgress * 100:F2}%");
+        //Debug.Log($"ï¿½ï¿½Ç°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É¶ï¿½: {_currentProgress * 100:F2}%");
 
-        ////¸ù¾Ý¹Ø¿¨ÐèÇóÅÐ¶ÏÂß¼­
+        ////ï¿½ï¿½ï¿½Ý¹Ø¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð¶ï¿½ï¿½ß¼ï¿½
         //if (_currentProgress >= winThreshold)
         //{
-        //    Debug.Log(gameObject+"¹§Ï²£¡Í¿ÂúÁË£¡");
+        //    Debug.Log(gameObject+"ï¿½ï¿½Ï²ï¿½ï¿½Í¿ï¿½ï¿½ï¿½Ë£ï¿½");
         //    DrawManage.instance.OnDrawAll();
-        //    //ÕâÀïÖ´ÐÐÇÐ¹ØÂß¼­
+        //    //ï¿½ï¿½ï¿½ï¿½Ö´ï¿½ï¿½ï¿½Ð¹ï¿½ï¿½ß¼ï¿½
         //}
         //else if (_currentProgress <= clearThreshold)
         //{
-        //    Debug.Log(gameObject+"²Á³ýµÃºÜ¸É¾»£¡");
+        //    Debug.Log(gameObject+"ï¿½ï¿½ï¿½ï¿½ï¿½ÃºÜ¸É¾ï¿½ï¿½ï¿½");
         //    DrawManage.instance.OnEraseAll();
-        //    //ÕâÀïÖ´ÐÐ²Á³ýÈÎÎñ³É¹¦µÄÂß¼­
+        //    //ï¿½ï¿½ï¿½ï¿½Ö´ï¿½Ð²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É¹ï¿½ï¿½ï¿½ï¿½ß¼ï¿½
         //}
         float progress = _painter.GetDrawingProgress();
-        Debug.Log($"µ±Ç°»­ÃæÍê³É¶È: {progress * 100:F2}%");
+        Debug.Log($"ï¿½ï¿½Ç°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É¶ï¿½: {progress * 100:F2}%");
 
-        // ¼ì²éÍ¿ÂúÌõ¼þ
+        // ï¿½ï¿½ï¿½Í¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         if (progress >= winThreshold)
         {
-            if (!hasTriggeredWin)   // Ê×´ÎÂú×ã²Å´¥·¢
+            if (!hasTriggeredWin)   // ï¿½×´ï¿½ï¿½ï¿½ï¿½ï¿½Å´ï¿½ï¿½ï¿½
             {
                 hasTriggeredWin = true;
-                Debug.Log(gameObject + " ¹§Ï²£¡Í¿ÂúÁË£¡");
+                Debug.Log(gameObject + " ï¿½ï¿½Ï²ï¿½ï¿½Í¿ï¿½ï¿½ï¿½Ë£ï¿½");
                 DrawManage.instance.OnDrawAll();
             }
         }
         else
         {
-            // Èç¹û½ø¶È»ØÂä£¨ÀýÈç²Á³ýÁËÒ»²¿·Ö£©£¬ÖØÖÃ±ê¼Ç£¬ÒÔ±ãÏÂ´ÎÖØÐÂÂú×ãÊ±¿ÉÔÙ´Î´¥·¢
+            // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È»ï¿½ï¿½ä£¨ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½Ö£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã±ï¿½Ç£ï¿½ï¿½Ô±ï¿½ï¿½Â´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ï¿½Ù´Î´ï¿½ï¿½ï¿½
             if (hasTriggeredWin) hasTriggeredWin = false;
         }
-        // ¼ì²é²Á¾»Ìõ¼þ£¨×¢Òâ£º²Á¾»ºÍÍ¿Âú¿ÉÄÜÍ¬Ê±Âú×ã£¿µ«Í¨³£²»»á£¬ÒòÎªãÐÖµ²»ÖØµþ£©
+        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×¢ï¿½â£ºï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¬Ê±ï¿½ï¿½ï¿½ã£¿ï¿½ï¿½Í¨ï¿½ï¿½ï¿½ï¿½ï¿½á£¬ï¿½ï¿½Îªï¿½ï¿½Öµï¿½ï¿½ï¿½Øµï¿½ï¿½ï¿½
         if (progress <= clearThreshold)
         {
             if (!hasTriggeredClear)
             {
                 hasTriggeredClear = true;
-                Debug.Log(gameObject + " ²Á³ýµÃºÜ¸É¾»£¡");
+                Debug.Log(gameObject + " ï¿½ï¿½ï¿½ï¿½ï¿½ÃºÜ¸É¾ï¿½ï¿½ï¿½");
                 DrawManage.instance.OnEraseAll();
             }
         }
@@ -157,7 +151,7 @@ public class DrawingController : MonoBehaviour
 
     private void OnDestroy()
     {
-        // ÏÔÊ½ÊÍ·Å RT ×ÊÔ´
+        // ï¿½ï¿½Ê½ï¿½Í·ï¿½ RT ï¿½ï¿½Ô´
         if (_maskRT != null) _maskRT.Release();
     }
 }

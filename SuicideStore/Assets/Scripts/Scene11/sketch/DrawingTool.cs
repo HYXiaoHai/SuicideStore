@@ -70,7 +70,18 @@ public class DrawingTool : MonoBehaviour
         if (GameManage.Instance.isSetting) return;
         if (isMoving) return;
         transform.position = GetMouseWorldPos() + offset;
-        SetZOffset();   // ��קʱ���� Z
+        SetZOffset();
+
+        if (DrawManage.instance != null && DrawManage.instance.drawingControllers != null)
+        {
+            foreach (DrawingController dc in DrawManage.instance.drawingControllers)
+            {
+                if (dc != null && dc._toolManager != null && dc._toolManager.currentType != ToolType.None)
+                {
+                    dc._toolManager.DrawAtToolPosition(transform.position);
+                }
+            }
+        }
     }
 
     void OnMouseUp()
