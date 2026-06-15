@@ -24,6 +24,10 @@ public class DrawingController : MonoBehaviour
     public Material eraserMaterial;
     public Material revealMaterial;
 
+    [Header("画笔大小")]
+    [Range(0.05f, 1f)] public float pencilSize = 0.2f;
+    [Range(0.05f, 1f)] public float eraserSize = 0.4f;
+
     private RenderTexture _maskRT;
     public MaskPainter2D _painter;
     public ToolManager _toolManager;
@@ -58,6 +62,12 @@ public class DrawingController : MonoBehaviour
         isBegin = false;
 
         _painter = new MaskPainter2D(_maskRT, mainCamera, targetSprite.transform);
+
+        // 设置画笔大小到材质
+        if (pencilMaterial != null)
+            pencilMaterial.SetFloat("_Size", pencilSize);
+        if (eraserMaterial != null)
+            eraserMaterial.SetFloat("_Size", eraserSize);
 
         // ���Ļ����¼�����һ�λ���ʱ���
         _painter.OnDraw += () =>

@@ -45,6 +45,10 @@ public class S10PuzzleController : MonoBehaviour
     public AudioClip adsorptionClip;//吸附音效
     public AudioClip clickClip;//点击音效
 
+    [Header("吸附动画设置")]
+    [SerializeField] private float snapAnimationDuration = 0.3f;
+    [SerializeField] private Ease snapAnimationEase = Ease.OutBack;
+
     [Header("Events")]
     public UnityEvent onAllPiecesPlaced;
 
@@ -64,6 +68,10 @@ public class S10PuzzleController : MonoBehaviour
     public Transform position1;
     public Transform position2;
     public Transform position3;
+
+    [Header("转场淡化效果")]
+    public CanvasGroup fadeCanvas;
+    public float fadeDuration = 0.5f;
 
 
     [System.Serializable]
@@ -575,29 +583,30 @@ public class S10PuzzleController : MonoBehaviour
 
         Vector3 targetPos = target.position;
         Vector3 snapPoint = GetPieceSnapPoint(idx);
-        Vector3 delta = targetPos - snapPoint;
-        Vector3 pos = piece.position;
-        pos.x += delta.x;
-        pos.y += delta.y;
-        piece.position = pos;
+        Vector3 finalPos = piece.position + (targetPos - snapPoint);
 
         if (lockRotationToTarget[idx])
-            piece.rotation = target.rotation;
+            piece.DORotateQuaternion(target.rotation, snapAnimationDuration).SetEase(snapAnimationEase);
 
-        Collider2D col = pieceColliders[idx];
-        if (col != null)
-            col.enabled = false;
+        piece.DOMove(finalPos, snapAnimationDuration)
+            .SetEase(snapAnimationEase)
+            .OnComplete(() =>
+            {
+                Collider2D col = pieceColliders[idx];
+                if (col != null)
+                    col.enabled = false;
 
-        if (!placed[idx])
-        {
-            placed[idx] = true;
-            if (adsorptionClip != null)
-                AudioManager.Instance.Play2DSound(adsorptionClip, 1f);
-            placedCount++;
+                if (!placed[idx])
+                {
+                    placed[idx] = true;
+                    if (adsorptionClip != null)
+                        AudioManager.Instance.Play2DSound(adsorptionClip, 1f);
+                    placedCount++;
 
-            if (placedCount == placed.Length)
-                onAllPiecesPlaced?.Invoke();
-        }
+                    if (placedCount == placed.Length)
+                        onAllPiecesPlaced?.Invoke();
+                }
+            });
     }
 
     public void BeginCompletionSequence()
@@ -609,25 +618,45 @@ public class S10PuzzleController : MonoBehaviour
 
         Sequence seq = DOTween.Sequence();
 
-        // 1. 移动拼图父物体
+        // 0. 初始化淡化画布
+        if (fadeCanvas != null)
+        {
+            fadeCanvas.gameObject.SetActive(true);
+            fadeCanvas.alpha = 0f;
+        }
+
+        // 1. 淡出效果
+        if (fadeCanvas != null)
+        {
+            seq.Append(fadeCanvas.DOFade(1f, fadeDuration).SetEase(Ease.InQuad));
+        }
+
+        // 2. 移动拼图父物体（在淡出期间或之后）
         if (puzzleFather != null && puzzleMoveTarget != null)
         {
-            seq.Append(puzzleFather.transform.DOMove(puzzleMoveTarget.position, puzzleMoveDuration)
+            seq.Join(puzzleFather.transform.DOMove(puzzleMoveTarget.position, puzzleMoveDuration)
                 .SetEase(Ease.InOutQuad));
         }
         else if (puzzleFather != null)
         {
-            seq.Append(puzzleFather.transform.DOMoveY(puzzleFather.transform.position.y + 1f, 0.5f)
+            seq.Join(puzzleFather.transform.DOMoveY(puzzleFather.transform.position.y + 1f, 0.5f)
                 .SetEase(Ease.OutQuad));
         }
-        // 2. 移动相机到 position2（使用 targetCamera）
+
+        // 3. 移动相机到 position2（使用 targetCamera）
         if (enableCameraVerticalMoveAfterSolved && targetCamera != null && position2 != null)
         {
             seq.Append(targetCamera.DOMove(position2.position, autoCameraMoveDuration)
                 .SetEase(Ease.InOutQuad));
         }
 
-        // 3. 动画完成后，启动星星机制
+        // 4. 淡入效果
+        if (fadeCanvas != null)
+        {
+            seq.Append(fadeCanvas.DOFade(0f, fadeDuration).SetEase(Ease.OutQuad));
+        }
+
+        // 5. 动画完成后，启动星星机制
         seq.OnComplete(() =>
         {
             completionDone = true;
