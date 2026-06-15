@@ -28,10 +28,10 @@ public class S6_Dialogue : MonoBehaviour
 
     private List<string> lines = new List<string>()
     {
-        "列车员（我）：乐乐，现在你要选择离开，去往顿丘吗？",
-        "象乐乐：我……我要去！",
-        "列车员（我）：可是你看起来很爱你的爸爸妈妈啊？",
-        "象乐乐：我…"
+        "我：乐乐，现在你要选择离开，去往顿丘吗？",
+        "乐乐：我……我要去！",
+        "我：可是你看起来很爱你的爸爸妈妈啊？",
+        "乐乐：我…"
     };
 
     private int index = 0;

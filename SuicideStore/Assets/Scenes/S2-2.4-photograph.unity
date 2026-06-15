@@ -1100,6 +1100,7 @@ MonoBehaviour:
   transitionCanvasGroup: {fileID: 391278666}
   transitionImage: {fileID: 678632191}
   transitionDuration: 1
+  isTransitioning: 0
 --- !u!114 &391278668
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1386,7 +1387,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &434634013
 RectTransform:
   m_ObjectHideFlags: 0
