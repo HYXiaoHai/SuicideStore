@@ -78,6 +78,7 @@ public class Scene9UIManager : MonoBehaviour
     private int currentGroup = 1;
     private float currentCamTargetY;
     private SortCard dragCard;
+    private bool group3ImagesShown = false;
 
     void Start()
     {
@@ -284,13 +285,17 @@ public class Scene9UIManager : MonoBehaviour
         }
         else if (currentGroup == 2)
         {
+            group3ImagesShown = true;
             int start = group1_CardNum;
             StartCoroutine(ShowImagesWithButton(start, group2_CardNum, lock_Group2));
         }
         else if (currentGroup == 3)
         {
-            int start = group1_CardNum + group2_CardNum;
-            StartCoroutine(ShowImagesAndComplete(start, group3_CardNum));
+            if (!group3ImagesShown)
+            {
+                int start = group1_CardNum + group2_CardNum;
+                StartCoroutine(ShowImagesAndComplete(start, group3_CardNum));
+            }
         }
     }
 
@@ -370,10 +375,14 @@ public class Scene9UIManager : MonoBehaviour
         else if (currentGroup == 3)
         {
             currentCamTargetY = camTargetY2;
-            // 第三组卡片全部解锁可拖拽
-            int start = group1_CardNum + group2_CardNum;
-            int end = start + group3_CardNum - 1;
-            for (int i = start; i <= end; i++)
+            if (group3ImagesShown)
+            {
+                int start = group1_CardNum + group2_CardNum;
+                StartCoroutine(ShowImagesWithButton(start, group3_CardNum, null));
+            }
+            int startCard = group1_CardNum + group2_CardNum;
+            int end = startCard + group3_CardNum - 1;
+            for (int i = startCard; i <= end; i++)
             {
                 if (i < allCards.Count)
                     allCards[i].isLocked = false;
