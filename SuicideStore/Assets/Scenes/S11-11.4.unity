@@ -172,7 +172,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 25080545}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
@@ -400,8 +400,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: -1.508}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 5.4, y: 96.600006}
-  m_SizeDelta: {x: 38.2682, y: 154.0865}
+  m_AnchoredPosition: {x: -0.000014305115, y: 0}
+  m_SizeDelta: {x: 136, y: 509}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &59424175
 MonoBehaviour:
@@ -1148,7 +1148,7 @@ RectTransform:
   m_Father: {fileID: 679224005}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 35, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -1223,7 +1223,7 @@ RectTransform:
   m_Father: {fileID: 1798414464}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 35, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -1282,7 +1282,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &423875251
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2212,7 +2212,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Material: {fileID: 2100000, guid: 16bab52bd2ccebf4d9c9839e14cb4dfe, type: 2}
+  m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
@@ -2221,11 +2221,11 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_Sprite: {fileID: 21300000, guid: 3c92856fb926ba744b70f815cb5e2543, type: 3}
-  m_Type: 0
+  m_Type: 3
   m_PreserveAspect: 0
   m_FillCenter: 1
-  m_FillMethod: 4
-  m_FillAmount: 1
+  m_FillMethod: 3
+  m_FillAmount: 0
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
@@ -2894,7 +2894,7 @@ RectTransform:
   m_Father: {fileID: 1324926493}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 35, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -4192,7 +4192,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1296057150
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5008,19 +5008,19 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1631747842}
-  m_LocalRotation: {x: 0, y: 0, z: 0.11857727, w: 0.99294484}
+  m_LocalRotation: {x: 0, y: 0, z: 0.7050675, w: 0.70914024}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 59424174}
   m_Father: {fileID: 25080546}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 13.62}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 89.67}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 27, y: -547}
+  m_AnchoredPosition: {x: 4, y: -539}
   m_SizeDelta: {x: 136, y: 509}
-  m_Pivot: {x: 0.5, y: 0}
+  m_Pivot: {x: 0.4, y: 0}
 --- !u!114 &1631747844
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5483,7 +5483,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1993641356
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5818,16 +5818,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5fbf94249b1c49246be36447975b824f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  fillImage: {fileID: 674224882}
+  minuteHand: {fileID: 1631747843}
+  hourHand: {fileID: 137291460}
   clockCanvasGroup: {fileID: 2127748386}
   nextSceneName: S12
   shouldUseFade: 1
-  minuteHand: {fileID: 1631747843}
-  hourHand: {fileID: 137291460}
-  startAngle: 0
-  handZeroOffset: 4.38
-  handCenterOffset: {x: 0, y: 88.2}
-  maskGraphic: {fileID: 674224882}
   autoRotateSpeed: 6
+  handCenterOffset: {x: 0, y: 0}
+  handZeroOffset: 0
   handClip: {fileID: 8300000, guid: 48e6d4e4f0350064dbf0bf1aad556da4, type: 3}
   tickStep: 6
 --- !u!114 &2127748388
@@ -5888,7 +5887,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!225 &2141698106
 CanvasGroup:
   m_ObjectHideFlags: 0
