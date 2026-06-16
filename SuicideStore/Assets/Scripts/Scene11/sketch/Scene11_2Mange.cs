@@ -22,7 +22,7 @@ public class Scene11_2Mange : MonoBehaviour
     private bool[] roundCompleted = new bool[2];
 
     private SpriteRenderer currentSpriteRenderer;
-    private DrawingController currentDrawingCtrl;
+    public DrawingController currentDrawingCtrl;
 
     void Start()
     {
@@ -82,9 +82,11 @@ public class Scene11_2Mange : MonoBehaviour
         }
         else if (currentState == RoundState.WaitForClick)
         {
+            OnPhotoClick();
+
             if (Input.GetMouseButtonUp(0) && IsMouseOverCurrentSprite())
             {
-                OnPhotoClick();
+                //OnPhotoClick();
             }
         }
         else if (currentState == RoundState.WaitForFinalClick)
@@ -102,13 +104,12 @@ public class Scene11_2Mange : MonoBehaviour
 
     private void OnDrawingComplete()
     {
-        if (currentDrawingCtrl.currentLoopingSound != null)
-        {
-            AudioManager.Instance.StopLoopingSound(currentDrawingCtrl.currentLoopingSound);
-            currentDrawingCtrl.currentLoopingSound = null;
-        }
+        Debug.Log("绘画完成");
+        // 停止音效
+        if (currentDrawingCtrl != null)
+            currentDrawingCtrl.StopDrawingSound();
 
-        currentDrawingCtrl.enabled = false;
+        //currentDrawingCtrl.enabled = false;
         currentState = RoundState.WaitForClick;
         Debug.Log($"第{currentRound + 1}轮绘画完成，等待点击照片");
     }
@@ -119,7 +120,7 @@ public class Scene11_2Mange : MonoBehaviour
         {
             // 第一轮：渐隐 sprite1，渐显 sprite2
             if (sprite1 != null)
-                sprite1.DOFade(0f, 1f);
+                sprite1.DOFade(0f, 1f).OnComplete(() => { sprite1.gameObject.SetActive(false); });
             if (sprite2 != null)
             {
                 sprite2.gameObject.SetActive(true);
@@ -152,6 +153,10 @@ public class Scene11_2Mange : MonoBehaviour
 
     private IEnumerator SwitchToNextRoundAfterDelay(float delay)
     {
+        // 停止音效
+        if (currentDrawingCtrl != null)
+            currentDrawingCtrl.StopDrawingSound();
+
         yield return new WaitForSeconds(delay);
         int nextRound = currentRound + 1;
         if (nextRound >= 2) // 只有两轮
@@ -159,7 +164,7 @@ public class Scene11_2Mange : MonoBehaviour
             Debug.LogWarning("已经是最后一轮，无法切换");
             yield break;
         }
-
+       
         // 隐藏当前画板
         currentDrawingCtrl.gameObject.SetActive(false);
 

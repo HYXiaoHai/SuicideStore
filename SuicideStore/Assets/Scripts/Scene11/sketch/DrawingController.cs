@@ -74,8 +74,9 @@ public class DrawingController : MonoBehaviour
         {
             hasDrawn = true;
             // ��������ʱ�����ѭ����Чδ�����ҵ�ǰ������Ч��������
-            if (drawingLoopClip != null && currentLoopingSound == null && _toolManager != null && _toolManager.currentType != ToolType.None)
+            if (drawingLoopClip != null && currentLoopingSound == null && _toolManager != null && !IsCompleted && _toolManager.currentType != ToolType.None)
             {
+                Debug.Log(gameObject+"开始写字音效");
                 currentLoopingSound = AudioManager.Instance.PlayLoopingSound(drawingLoopClip, true, 0.6f);
             }
         };
@@ -126,7 +127,7 @@ public class DrawingController : MonoBehaviour
         //    //����ִ�в�������ɹ����߼�
         //}
         float progress = _painter.GetDrawingProgress();
-        Debug.Log($"��ǰ������ɶ�: {progress * 100:F2}%");
+        //Debug.Log($"��ǰ������ɶ�: {progress * 100:F2}%");
 
         // ���Ϳ������
         if (progress >= winThreshold)
@@ -134,22 +135,25 @@ public class DrawingController : MonoBehaviour
             if (!hasTriggeredWin)   // �״�����Ŵ���
             {
                 hasTriggeredWin = true;
-                Debug.Log(gameObject + " ��ϲ��Ϳ���ˣ�");
+                Debug.Log(gameObject + "完成");
+                if (currentLoopingSound != null)
+                {
+                    AudioManager.Instance.StopLoopingSound(currentLoopingSound);
+                    currentLoopingSound = null;
+                }
                 DrawManage.instance.OnDrawAll();
             }
         }
         else
         {
-            // ������Ȼ��䣨���������һ���֣������ñ�ǣ��Ա��´���������ʱ���ٴδ���
             if (hasTriggeredWin) hasTriggeredWin = false;
         }
-        // ������������ע�⣺������Ϳ������ͬʱ���㣿��ͨ�����ᣬ��Ϊ��ֵ���ص���
         if (progress <= clearThreshold)
         {
             if (!hasTriggeredClear)
             {
                 hasTriggeredClear = true;
-                Debug.Log(gameObject + " �����úܸɾ���");
+                //Debug.Log(gameObject + " �����úܸɾ���");
                 DrawManage.instance.OnEraseAll();
             }
         }
@@ -158,10 +162,18 @@ public class DrawingController : MonoBehaviour
             if (hasTriggeredClear) hasTriggeredClear = false;
         }
     }
-
+    public void StopDrawingSound()
+    {
+        if (currentLoopingSound != null)
+        {
+            Debug.Log("停止绘画音效");
+            AudioManager.Instance.StopLoopingSound(currentLoopingSound);
+            currentLoopingSound = null;
+        }
+    }
     private void OnDestroy()
     {
-        // ��ʽ�ͷ� RT ��Դ
+        StopDrawingSound();
         if (_maskRT != null) _maskRT.Release();
     }
 }
