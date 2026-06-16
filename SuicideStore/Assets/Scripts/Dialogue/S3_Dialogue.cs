@@ -92,7 +92,7 @@ public class S6_Dialogue : MonoBehaviour
                 AnimatorStateInfo stateInfo = noteAnimator.GetCurrentAnimatorStateInfo(0);
                 float animLength = stateInfo.length;
                 // 等待动画播放完毕
-                DOVirtual.DelayedCall(animLength, OnAnimationFinished);
+                DOVirtual.DelayedCall(2.5f, OnAnimationFinished);
             }
             else
             {

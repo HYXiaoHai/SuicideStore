@@ -1960,6 +1960,8 @@ MonoBehaviour:
   pencilMaterial: {fileID: 2100000, guid: 108caf73a354cc248b896cca21e532b5, type: 2}
   eraserMaterial: {fileID: 2100000, guid: b43ba7a3ad28505479fc7ab7cb66efcc, type: 2}
   revealMaterial: {fileID: 2100000, guid: 96c4563fece82af47b6fcb62423effa8, type: 2}
+  pencilSize: 0.2
+  eraserSize: 0.4
 --- !u!4 &497445326
 Transform:
   m_ObjectHideFlags: 0
@@ -8059,6 +8061,8 @@ MonoBehaviour:
   pencilMaterial: {fileID: 2100000, guid: 108caf73a354cc248b896cca21e532b5, type: 2}
   eraserMaterial: {fileID: 2100000, guid: b43ba7a3ad28505479fc7ab7cb66efcc, type: 2}
   revealMaterial: {fileID: 2100000, guid: fe8b165b69bc9144caa6469b2d892e45, type: 2}
+  pencilSize: 0.2
+  eraserSize: 0.4
 --- !u!4 &1222090443
 Transform:
   m_ObjectHideFlags: 0
@@ -9322,7 +9326,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -2.26, y: -2.67}
+  m_AnchoredPosition: {x: -2.26, y: -3.21}
   m_SizeDelta: {x: 2.55, y: 0.4245}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1480932733
@@ -9345,7 +9349,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\u4F1A\u5FD8\u8BB0\u8FC7\u5F80"
+  m_text: "\u8BB0\u5FC6\u4F1A\u6C38\u8FDC\u7559\u5728\u7AD9\u53F0"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 4fb36bd28f4235b4cb8ef57c09e57bd5, type: 2}
   m_sharedMaterial: {fileID: -7492712008117019815, guid: 4fb36bd28f4235b4cb8ef57c09e57bd5, type: 2}
@@ -9571,7 +9575,7 @@ Transform:
   m_GameObject: {fileID: 1486048751}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.271, y: -0.308, z: 0}
+  m_LocalPosition: {x: 0.234, y: -0.257, z: 0}
   m_LocalScale: {x: 0.06107864, y: 0.06107864, z: 0.06107864}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -9655,7 +9659,7 @@ PolygonCollider2D:
   m_Offset: {x: 0, y: 0}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0.5, y: 0.5}
+    pivot: {x: 0.27828163, y: 0.8526469}
     oldSize: {x: 2.61, y: 3.19}
     newSize: {x: 1, y: 1}
     adaptiveTilingThreshold: 0.5
@@ -9664,35 +9668,35 @@ PolygonCollider2D:
   m_AutoTiling: 0
   m_Points:
     m_Paths:
-    - - {x: 1.305, y: -0.895}
-      - {x: 1.305, y: -0.78499997}
-      - {x: 1.275, y: -0.755}
-      - {x: 1.0749999, y: -0.345}
-      - {x: 0.765, y: 0.235}
-      - {x: 0.525, y: 0.715}
-      - {x: 0.355, y: 1.0849999}
-      - {x: 0.265, y: 1.255}
-      - {x: 0.085, y: 1.525}
-      - {x: 0.005, y: 1.5949999}
-      - {x: -0.195, y: 1.5949999}
-      - {x: -0.33499998, y: 1.545}
-      - {x: -0.525, y: 1.4649999}
-      - {x: -0.895, y: 1.255}
-      - {x: -1.0649999, y: 1.155}
-      - {x: -1.305, y: 0.935}
-      - {x: -1.305, y: 0.72499996}
-      - {x: -1.175, y: 0.45499998}
-      - {x: -1.135, y: 0.385}
-      - {x: -1.105, y: 0.345}
-      - {x: -0.84499997, y: -0.175}
-      - {x: -0.72499996, y: -0.405}
-      - {x: -0.585, y: -0.675}
-      - {x: -0.325, y: -1.175}
-      - {x: -0.095, y: -1.5949999}
-      - {x: 0.035, y: -1.5949999}
-      - {x: 0.225, y: -1.495}
-      - {x: 1.045, y: -1.045}
-      - {x: 1.285, y: -0.935}
+    - - {x: 1.883685, y: -2.0199435}
+      - {x: 1.883685, y: -1.9099435}
+      - {x: 1.8536849, y: -1.8799435}
+      - {x: 1.653685, y: -1.4699435}
+      - {x: 1.3436849, y: -0.88994354}
+      - {x: 1.1036849, y: -0.40994352}
+      - {x: 0.9336849, y: -0.039943542}
+      - {x: 0.8436849, y: 0.13005646}
+      - {x: 0.6636849, y: 0.40005645}
+      - {x: 0.5836849, y: 0.47005644}
+      - {x: 0.3836849, y: 0.47005644}
+      - {x: 0.24368492, y: 0.42005646}
+      - {x: 0.05368492, y: 0.34005645}
+      - {x: -0.31631508, y: 0.13005646}
+      - {x: -0.48631507, y: 0.030056456}
+      - {x: -0.7263151, y: -0.18994354}
+      - {x: -0.7263151, y: -0.39994353}
+      - {x: -0.5963151, y: -0.6699435}
+      - {x: -0.55631506, y: -0.7399435}
+      - {x: -0.5263151, y: -0.7799435}
+      - {x: -0.26631507, y: -1.2999436}
+      - {x: -0.14631508, y: -1.5299435}
+      - {x: -0.0063150786, y: -1.7999434}
+      - {x: 0.2536849, y: -2.2999434}
+      - {x: 0.4836849, y: -2.7199435}
+      - {x: 0.6136849, y: -2.7199435}
+      - {x: 0.8036849, y: -2.6199434}
+      - {x: 1.623685, y: -2.1699436}
+      - {x: 1.863685, y: -2.0599434}
   m_UseDelaunayMesh: 0
 --- !u!1 &1493514925
 GameObject:
