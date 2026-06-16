@@ -7,28 +7,34 @@ using UnityEngine.UI;
 [RequireComponent(typeof(RectTransform))]
 public class ClockController_reverse : MonoBehaviour
 {
-    [Header("表盘UI")]
-    public Image fillImage;
-    public Transform minuteHand;
-    public Transform hourHand;
-
-    [Header("完成动画")]
+    [Header("表盘")]
     public CanvasGroup clockCanvasGroup;
     public string nextSceneName;
     public bool shouldUseFade = true;
+    private CanvasGroup minuteHandCG;
+    private CanvasGroup hourHandCG;
 
-    [Header("参数")]
-    public float autoRotateSpeed = 6f;
+    [Header("指针")]
+    public Transform minuteHand;
+    public Transform hourHand;
+    [SerializeField] private float startAngle = 0f;
+    [SerializeField] private float handZeroOffset = 90f;
+
+    [Header("中心偏移（像素）")]
     public Vector2 handCenterOffset = Vector2.zero;
-    [SerializeField] private float handZeroOffset = 0f;
 
-    private float currentAngle = 0f;          // 0~180度（9点=0, 12点=90, 3点=180）
+    [Header("WhiteMask 目标")]
+    public Graphic maskGraphic;
+
+    [Header("旋转速度")]
+    public float autoRotateSpeed = 6f;
+
+    private float currentAngle = 0f;      // 连续角度，范围 [270, 450]
     private bool isComplete = false;
     private bool isDragging = false;
-    private RectTransform clockRect;
+    private Material targetMaterial;
+    private RectTransform rectTransform;
     private Canvas canvas;
-    private Vector2 centerPoint;
-    private float aspect;
 
     [Header("音效")]
     public AudioClip handClip;
@@ -40,39 +46,61 @@ public class ClockController_reverse : MonoBehaviour
         if (TransitionManage.Instance != null)
             TransitionManage.Instance.FadeIn(0.5f, Color.black);
 
-        clockRect = GetComponent<RectTransform>();
+        rectTransform = GetComponent<RectTransform>();
         canvas = GetComponentInParent<Canvas>();
-        centerPoint = clockRect.rect.center;
-        aspect = clockRect.rect.width / clockRect.rect.height;
 
-        currentAngle = 0f;
+        // 起始角度 270°（9点），目标 450°（3点，即 90° + 360°）
+        currentAngle = 270f;
         lastTickAngle = currentAngle;
-        UpdateDisplay();
+
+        if (maskGraphic != null)
+            targetMaterial = maskGraphic.material;
+
+        if (minuteHand != null)
+            minuteHandCG = minuteHand.GetComponent<CanvasGroup>();
+        if (hourHand != null)
+            hourHandCG = hourHand.GetComponent<CanvasGroup>();
+
+        UpdateAspectRatio();
+        UpdateHandPosition();
+        UpdateHand();
+        UpdateShader();
     }
 
     void Update()
     {
         if (GameManage.Instance.isSetting) return;
-        if (isComplete) return;
+        if (isComplete || targetMaterial == null) return;
 
         HandleInput();
 
         if (!isDragging)
         {
-            float old = currentAngle;
+            float oldAngle = currentAngle;
+            // 顺时针增加角度
             float newAngle = currentAngle + autoRotateSpeed * Time.deltaTime;
-            if (newAngle > 180f) newAngle = 180f;
-            CheckAndPlayTick(old, newAngle);
+            if (newAngle > 450f) newAngle = 450f;
+            CheckAndPlayTick(oldAngle, newAngle);
             currentAngle = newAngle;
-            UpdateDisplay();
         }
 
-        if (currentAngle >= 180f && !isComplete)
+        // 完成条件：达到 450°
+        if (currentAngle >= 450f)
         {
-            currentAngle = 180f;
-            UpdateDisplay();
+            currentAngle = 450f;
             Complete();
         }
+
+        UpdateHand();
+        UpdateShader();
+    }
+
+    private void UpdateHandPosition()
+    {
+        if (minuteHand != null && minuteHand is RectTransform minuteRect)
+            minuteRect.anchoredPosition = handCenterOffset;
+        if (hourHand != null && hourHand is RectTransform hourRect)
+            hourRect.anchoredPosition = handCenterOffset;
     }
 
     private void HandleInput()
@@ -85,15 +113,23 @@ public class ClockController_reverse : MonoBehaviour
 
         if (Input.GetMouseButton(0) && isDragging)
         {
-            float mouseAngle = GetAngleFromMouse();
-            if (mouseAngle >= currentAngle && mouseAngle <= 180f)
+            float mouseAngle = GetAngleFromMouse(); // 范围 0~360
+            // 将鼠标角度映射到与 currentAngle 连续的值域 [270, 450]
+            float mappedMouseAngle = mouseAngle;
+            if (mappedMouseAngle < 270f && currentAngle > 270f)
+                mappedMouseAngle += 360f; // 跨过 0° 时加一圈
+            // 限制在允许范围 [270, 450]
+            mappedMouseAngle = Mathf.Clamp(mappedMouseAngle, 270f, 450f);
+
+            // 顺时针拖拽：新角度必须大于等于当前角度
+            if (mappedMouseAngle >= currentAngle && mappedMouseAngle <= 450f)
             {
-                float old = currentAngle;
-                currentAngle = mouseAngle;
-                CheckAndPlayTick(old, currentAngle);
-                UpdateDisplay();
+                float oldAngle = currentAngle;
+                float newAngle = mappedMouseAngle;
+                CheckAndPlayTick(oldAngle, newAngle);
+                currentAngle = newAngle;
             }
-            else if (mouseAngle < currentAngle - 10f)
+            else if (mappedMouseAngle < currentAngle - 10f) // 明显逆时针则取消拖拽
                 isDragging = false;
         }
 
@@ -101,67 +137,94 @@ public class ClockController_reverse : MonoBehaviour
             isDragging = false;
     }
 
-    // 鼠标位置 → 角度（0~180）
     private float GetAngleFromMouse()
     {
         Vector2 localPoint;
-        RectTransformUtility.ScreenPointToLocalPointInRectangle(clockRect, Input.mousePosition, canvas.worldCamera, out localPoint);
-        float dx = localPoint.x - centerPoint.x;
-        float dy = localPoint.y - centerPoint.y;
-        dx /= aspect;
-        float angle = Mathf.Atan2(dx, -dy) * Mathf.Rad2Deg;
-        float t = (angle + 90f) / 180f;
-        return Mathf.Clamp(t, 0f, 1f) * 180f;
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(rectTransform, Input.mousePosition, canvas.worldCamera, out localPoint);
+        float angle = Mathf.Atan2(localPoint.x - handCenterOffset.x, localPoint.y - handCenterOffset.y) * Mathf.Rad2Deg;
+        if (angle < 0) angle += 360f;
+        return angle;
     }
 
-    // 获取当前分针的视觉角度（0~180）
-    private float GetHandAngle()
-    {
-        if (minuteHand == null) return 0f;
-        float angle = minuteHand.localEulerAngles.z - handZeroOffset;
-        if (angle > 180f) angle -= 360f;
-        // 顺时针旋转的UI角度是负值，取反得到视觉角度（-90~90）
-        float visualAngle = -angle;
-        return visualAngle + 90f;   // 映射到 0~180
-    }
-
-    // 原版角度差检测（阈值15度）
     private bool IsMouseOverMinuteHand()
     {
         if (minuteHand == null) return false;
+
+        Vector2 localMousePos;
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(rectTransform, Input.mousePosition, canvas.worldCamera, out localMousePos);
+        if (localMousePos.magnitude < 20f) return false;
+
         float mouseAngle = GetAngleFromMouse();
-        float handAngle = GetHandAngle();
-        float diff = Mathf.Abs(mouseAngle - handAngle);
-        // 调试输出（正式使用时注释）
-        Debug.Log($"鼠标角度: {mouseAngle:F1}, 分针角度: {handAngle:F1}, 差值: {diff:F1}");
-        return diff < 15f;
+        // 将鼠标角度映射到接近 currentAngle 的连续值
+        float mappedMouse = mouseAngle;
+        if (currentAngle > 270f && mouseAngle < 270f)
+            mappedMouse += 360f;
+        // 计算角度差（考虑连续域）
+        float angleDiff = Mathf.Abs(mappedMouse - currentAngle);
+        return angleDiff < 15f;
     }
 
-    private void UpdateDisplay()
+    private void UpdateAspectRatio()
     {
-        float progress = currentAngle / 180f;
-        if (fillImage != null)
-            fillImage.fillAmount = progress;
+        if (rectTransform != null && targetMaterial != null)
+        {
+            float aspect = rectTransform.rect.width / rectTransform.rect.height;
+            targetMaterial.SetFloat("_AspectRatio", aspect);
+        }
+    }
 
-        // 指针旋转：视觉角度 = -90 + progress*180
-        float visualAngle = -90f + progress * 180f;
-        float uiAngle = -visualAngle;          // UI坐标系顺时针为负
+    private void UpdateHand()
+    {
+        // 使用模360的角度用于实际旋转（0~360）
+        float displayAngle = currentAngle % 360f;
         if (minuteHand != null)
-            minuteHand.localRotation = Quaternion.Euler(0, 0, uiAngle + handZeroOffset);
+            minuteHand.localRotation = Quaternion.Euler(0, 0, -displayAngle + handZeroOffset);
         if (hourHand != null)
-            hourHand.localRotation = Quaternion.Euler(0, 0, uiAngle / 12f + handZeroOffset);
+            hourHand.localRotation = Quaternion.Euler(0, 0, -displayAngle / 12f + handZeroOffset);
+    }
+
+    private void UpdateShader()
+    {
+        if (targetMaterial != null)
+        {
+            // 当前指针角度（基于12点为0°，顺时针）
+            float rawAngle = currentAngle % 360f;
+            // 转换为基于9点为0°的角度（供Shader使用）
+            float shaderAngle = (rawAngle - 270f + 360f) % 360f;
+            targetMaterial.SetFloat("_Angle", shaderAngle);
+        }
     }
 
     private void CheckAndPlayTick(float oldAngle, float newAngle)
     {
         if (Mathf.Approximately(oldAngle, newAngle)) return;
-        int startIndex = Mathf.FloorToInt(oldAngle / tickStep);
-        int endIndex = Mathf.FloorToInt(newAngle / tickStep);
-        int stepCount = Mathf.Abs(endIndex - startIndex);
-        if (stepCount > 0)
+        // 将角度映射到 0~360 区间计算刻度跨越
+        float oldMod = oldAngle % 360f;
+        float newMod = newAngle % 360f;
+        // 处理跨 360 的情况
+        if (newAngle > oldAngle && oldMod > newMod) // 跨过0°
         {
-            for (int i = 0; i < stepCount; i++)
+            // 先播放从 oldMod 到 360 的刻度，再从 0 到 newMod 的刻度
+            int startIdx1 = Mathf.FloorToInt(oldMod / tickStep);
+            int endIdx1 = Mathf.FloorToInt(360f / tickStep);
+            int steps1 = endIdx1 - startIdx1;
+            int startIdx2 = 0;
+            int endIdx2 = Mathf.FloorToInt(newMod / tickStep);
+            int steps2 = endIdx2 - startIdx2;
+            int totalSteps = steps1 + steps2;
+            for (int i = 0; i < totalSteps; i++)
                 AudioManager.Instance.PlayShortSound(handClip, 0.8f);
+        }
+        else
+        {
+            int startIndex = Mathf.FloorToInt(oldMod / tickStep);
+            int endIndex = Mathf.FloorToInt(newMod / tickStep);
+            int stepCount = Mathf.Abs(endIndex - startIndex);
+            if (stepCount > 0)
+            {
+                for (int i = 0; i < stepCount; i++)
+                    AudioManager.Instance.PlayShortSound(handClip, 0.8f);
+            }
         }
     }
 
@@ -169,24 +232,43 @@ public class ClockController_reverse : MonoBehaviour
     {
         if (isComplete) return;
         isComplete = true;
+
+        if (targetMaterial != null)
+            targetMaterial.SetFloat("_Angle", 0f);
+
         StartCoroutine(TransitionRoutine());
     }
 
     private IEnumerator TransitionRoutine()
     {
         float duration = 1f;
+
         if (clockCanvasGroup != null)
             clockCanvasGroup.DOFade(0f, duration);
+        if (minuteHandCG != null)
+            minuteHandCG.DOFade(0f, duration);
+        if (hourHandCG != null)
+            hourHandCG.DOFade(0f, duration);
+
         yield return new WaitForSeconds(duration);
+
+        if (minuteHandCG != null) minuteHandCG.interactable = false;
+        if (hourHandCG != null) hourHandCG.interactable = false;
+        if (clockCanvasGroup != null) clockCanvasGroup.interactable = false;
+
         LoadScene();
     }
 
     public void LoadScene()
     {
         if (!string.IsNullOrEmpty(nextSceneName))
+        {
             CompleteLevel();
+        }
         else
-            Debug.LogWarning("Next scene name not set!");
+        {
+            Debug.LogWarning("Next scene name is not set!");
+        }
     }
 
     public void CompleteLevel()

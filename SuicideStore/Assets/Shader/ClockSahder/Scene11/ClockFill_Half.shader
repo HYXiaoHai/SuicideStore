@@ -2,30 +2,42 @@ Shader "Custom/ClockFill_Half"
 {
     Properties
     {
-        _MainTex ("未填充纹理 (左侧背景)", 2D) = "white" {}
-        _FillTex ("填充纹理 (右侧已擦除)", 2D) = "white" {}
-        _Progress ("填充进度 (0~1)", Range(0,1)) = 0
-        _AspectRatio ("Aspect Ratio", Float) = 1
+        _MainTex ("Main Texture", 2D) = "white" {}
+        _SecondTex ("Second Texture", 2D) = "white" {}
+        _Angle ("Angle (0=9 o'clock, clockwise)", Range(0,360)) = 0
+        _CenterX ("Center X", Range(0,1)) = 0.5
+        _CenterY ("Center Y", Range(0,1)) = 0.5
+        _AspectRatio ("Aspect Ratio", Float) = 1 
     }
+
     SubShader
     {
-        Tags { "RenderType"="Transparent" "Queue"="Transparent" }
-        Blend SrcAlpha OneMinusSrcAlpha
-        ZWrite Off
-        Cull Off
+        Tags 
+        { 
+            "RenderType"="Transparent" 
+            "Queue"="Transparent"
+            "IgnoreProjector"="True"
+            "PreviewType"="Plane"
+            "CanUseSpriteAtlas"="True"
+        }
 
         Pass
         {
+            Blend SrcAlpha OneMinusSrcAlpha
+            ZWrite Off
+            Cull Off
+
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
+
             #include "UnityCG.cginc"
 
             struct appdata
             {
                 float4 vertex : POSITION;
                 float2 uv : TEXCOORD0;
-                float4 color : COLOR;
+                float4 color : COLOR; 
             };
 
             struct v2f
@@ -36,8 +48,10 @@ Shader "Custom/ClockFill_Half"
             };
 
             sampler2D _MainTex;
-            sampler2D _FillTex;
-            float _Progress;
+            sampler2D _SecondTex;
+            float _Angle;
+            float _CenterX;
+            float _CenterY;
             float _AspectRatio;
 
             v2f vert (appdata v)
@@ -51,22 +65,32 @@ Shader "Custom/ClockFill_Half"
 
             fixed4 frag (v2f i) : SV_Target
             {
-                // 计算相对于中心点的 UV（中心为 (0.5,0.5)）
-                float2 centered = i.uv - float2(0.5, 0.5);
-                centered.x *= _AspectRatio; // 修正宽高比
+                // 相对于中心点的偏移
+                float2 centeredUV = i.uv - float2(_CenterX, _CenterY);
 
-                // 计算角度（-90° 为 9点方向，+90° 为 3点方向）
-                float angle = atan2(centered.y, centered.x) * 180 / UNITY_PI;
-                // 将角度范围 -90~90 映射到 0~1
-                float t = (angle + 90) / 180.0;
-                t = clamp(t, 0, 1);
+                // 修正长宽比（圆形擦除）
+                float2 correctedUV = centeredUV;
+                correctedUV.x *= _AspectRatio;
 
-                // 根据进度决定用哪张图
+                // 计算原始角度（12点方向为0°，顺时针为正）
+                float angleRad = atan2(correctedUV.x, correctedUV.y);
+                float ang = degrees(angleRad);
+                if (ang < 0) ang += 360.0;
+
+                // 偏移：使9点方向（原270°）变为0°
+                ang = ang - 270.0;
+                if (ang < 0) ang += 360.0;
+
+                // 根据角度选择纹理
                 fixed4 col;
-                if (t <= _Progress)
-                    col = tex2D(_FillTex, i.uv) * i.color;
+                if (ang < _Angle)
+                {
+                    col = tex2D(_SecondTex, i.uv) * i.color;
+                }
                 else
+                {
                     col = tex2D(_MainTex, i.uv) * i.color;
+                }
 
                 return col;
             }
