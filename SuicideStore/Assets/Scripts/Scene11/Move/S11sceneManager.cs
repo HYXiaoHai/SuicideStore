@@ -171,6 +171,7 @@ public class S11_1_Manager : MonoBehaviour
                     break;
                 case 3:
                     ShowMotherSilhouette(fullSilhouetteSprite);
+                    HideDialog(roundImages[0]);
                     ShowDialog(roundImages[1]);
                     if (motherZoneCollider != null)
                         motherZoneCollider.enabled = true;
@@ -192,11 +193,13 @@ public class S11_1_Manager : MonoBehaviour
             player.SetCanMoveRight(true);
         // 交互后隐藏提示
         HideEPrompt();
-        ShowDialog(roundImages[2], () =>
-        {
-            ShowDialog(roundImages[3], null);
-        });
+        //ShowDialog(roundImages[2], () =>
+        //{
 
+        //});
+        HideDialog(roundImages[1]);
+        ShowDialog(roundImages[2], null);
+        ShowDialog(roundImages[3], null);
         // 2. 同时妈妈渐隐消失（与文案显示同步进行）
         if (motherSilhouette != null)
         {
@@ -311,11 +314,11 @@ public class S11_1_Manager : MonoBehaviour
         image.color = c;
         image.DOFade(1f, 0.3f);
 
-        DOVirtual.DelayedCall(dialogDuration, () =>
-        {
-            HideDialog(image);
-            onComplete?.Invoke();
-        });
+        //DOVirtual.DelayedCall(dialogDuration, () =>
+        //{
+        //    HideDialog(image);
+        //    onComplete?.Invoke();
+        //});
     }
 
     void HideDialog(Image image)
