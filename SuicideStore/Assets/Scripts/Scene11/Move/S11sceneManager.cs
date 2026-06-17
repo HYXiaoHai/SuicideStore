@@ -30,9 +30,7 @@ public class S11_1_Manager : MonoBehaviour
 
     private bool isInMotherZone = false;    // 玩家是否在交互区域内
     [Header("=== 对话设置 ===")]
-    public GameObject dialogPanel;
-    public TMP_Text dialogText;
-    [TextArea] public string[] roundDialogues = new string[3]; // 0:文案一,1:文案二,2:文案三
+    public Image[] roundImages = new Image[4]; // 0:第一轮图片,1:第二轮图片,2:第三轮图片1,3:第三轮图片2
     public float dialogDuration = 3f;
 
     [Header("=== 转场动画 ===")]
@@ -58,7 +56,15 @@ public class S11_1_Manager : MonoBehaviour
         hasInteractedInRound3 = false;
 
         if (player != null)
+        {
             player.SetCanMoveRight(true);
+            player.SetCanMove(true);
+            Debug.Log("S11_1_Manager: 玩家已初始化，可以移动");
+        }
+        else
+        {
+            Debug.LogError("S11_1_Manager: player 引用未赋值！请在 Inspector 中拖入玩家对象");
+        }
         // 进入第一轮
         EnterRound(1);
     }
@@ -154,23 +160,23 @@ public class S11_1_Manager : MonoBehaviour
         }
 
         switch (round)
-        {
-            case 1:
-                HideMotherSilhouette();
-                HideDialog();
-                break;
-            case 2:
-                ShowMotherSilhouette(halfSilhouetteSprite);
-                ShowDialog(roundDialogues[0]);
-                break;
-            case 3:
-                ShowMotherSilhouette(fullSilhouetteSprite);
-                ShowDialog(roundDialogues[1]);
-                if (motherZoneCollider != null)
-                    motherZoneCollider.enabled = true;
-                isInMotherZone = false;
-                break;
-        }
+            {
+                case 1:
+                    HideMotherSilhouette();
+                    HideDialog();
+                    break;
+                case 2:
+                    ShowMotherSilhouette(halfSilhouetteSprite);
+                    ShowDialog(roundImages[0]);
+                    break;
+                case 3:
+                    ShowMotherSilhouette(fullSilhouetteSprite);
+                    ShowDialog(roundImages[1]);
+                    if (motherZoneCollider != null)
+                        motherZoneCollider.enabled = true;
+                    isInMotherZone = false;
+                    break;
+            }
 
         Debug.Log($"进入第 {round} 轮，速度={player?.moveSpeed}");
     }
@@ -186,8 +192,10 @@ public class S11_1_Manager : MonoBehaviour
             player.SetCanMoveRight(true);
         // 交互后隐藏提示
         HideEPrompt();
-        // 1. 同时显示文案三（渐显，自动隐藏）
-        ShowDialog(roundDialogues[2], null);
+        ShowDialog(roundImages[2], () =>
+        {
+            ShowDialog(roundImages[3], null);
+        });
 
         // 2. 同时妈妈渐隐消失（与文案显示同步进行）
         if (motherSilhouette != null)
@@ -293,30 +301,40 @@ public class S11_1_Manager : MonoBehaviour
         }
     }
 
-    void ShowDialog(string text, System.Action onComplete = null)
+    void ShowDialog(Image image, System.Action onComplete = null)
     {
-        if (dialogPanel == null || dialogText == null) return;
+        if (image == null) return;
 
-        dialogPanel.SetActive(true);
-        dialogText.text = text;
-        dialogText.alpha = 0;
-        dialogText.DOFade(1f, 0.3f);
+        image.gameObject.SetActive(true);
+        Color c = image.color;
+        c.a = 0;
+        image.color = c;
+        image.DOFade(1f, 0.3f);
 
-        // 自动隐藏对话
         DOVirtual.DelayedCall(dialogDuration, () =>
         {
-            if (dialogPanel != null && dialogPanel.activeSelf)
-                HideDialog();
+            HideDialog(image);
             onComplete?.Invoke();
+        });
+    }
+
+    void HideDialog(Image image)
+    {
+        if (image == null) return;
+        image.DOFade(0f, 0.3f).OnComplete(() =>
+        {
+            image.gameObject.SetActive(false);
         });
     }
 
     void HideDialog()
     {
-        if (dialogPanel == null || dialogText == null) return;
-        dialogText.DOFade(0f, 0.3f).OnComplete(() =>
+        foreach (Image img in roundImages)
         {
-            dialogPanel.SetActive(false);
-        });
+            if (img != null && img.gameObject.activeSelf)
+            {
+                HideDialog(img);
+            }
+        }
     }
 }
