@@ -749,7 +749,7 @@ public class S10PuzzleController : MonoBehaviour
             starsPhaseActive = false;
             if (targetCamera != null && position3 != null)
             {
-                DOVirtual.DelayedCall(1f, () =>
+                DOVirtual.DelayedCall(2f, () =>
                 {
                     targetCamera.DOMove(position3.position, 1.0f).SetEase(Ease.InOutQuad)
                         .OnComplete(() => StartFinalMessagesPhase());
