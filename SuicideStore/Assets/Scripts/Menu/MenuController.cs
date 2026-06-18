@@ -1,4 +1,5 @@
 using DG.Tweening;
+using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -17,7 +18,11 @@ public class MenuController : MonoBehaviour
 
     [Header("关卡选择的界面")]
     public Button[] levelButtons;
-
+    public Sprite[] levelSprites;//关卡解锁的图片（和按钮顺序对应）
+    public Sprite lockSprite;//关卡未解锁的图片
+    public TMP_Text lockText;//关卡未解锁的提示
+    private Coroutine lockCoroutine; //用于控制未解锁提示协程
+    private Vector2[] initialButtonPositions;
     [Header("音量设置的界面")]
     public Slider masterVolumeSlider;
     public Slider backgroundVolumeSlider;
@@ -54,10 +59,23 @@ public class MenuController : MonoBehaviour
         menuPanel.blocksRaycasts = true;
 
         // 绑定关卡按钮
+
         for (int i = 0; i < levelButtons.Length; i++)
         {
             int level = i + 1;
             levelButtons[i].onClick.AddListener(() => OnLevelButtonClick(level));
+        }
+        initialButtonPositions = new Vector2[levelButtons.Length];
+        for (int i = 0; i < levelButtons.Length; i++)
+        {
+            initialButtonPositions[i] = levelButtons[i].GetComponent<RectTransform>().anchoredPosition;
+        }
+        RefreshArchivePanel();
+        // 初始化提示文本（默认隐藏）
+        if (lockText != null)
+        {
+            lockText.alpha = 0f;
+            lockText.gameObject.SetActive(false);
         }
 
         // 音量滑条初始化
@@ -314,18 +332,73 @@ public class MenuController : MonoBehaviour
         GameManage.Instance.QuitGame();
     }
 
+    //private void RefreshArchivePanel()
+    //{
+    //    int unlocked = GameManage.Instance.GetUnlockedLevel();
+    //    for (int i = 0; i < levelButtons.Length; i++)
+    //    {
+    //        bool isUnlocked = (i + 1) <= unlocked;
+    //        levelButtons[i].interactable = isUnlocked;
+    //    }
+    //}
+    // ==================== 关卡选择相关 ====================
     private void RefreshArchivePanel()
     {
         int unlocked = GameManage.Instance.GetUnlockedLevel();
         for (int i = 0; i < levelButtons.Length; i++)
         {
             bool isUnlocked = (i + 1) <= unlocked;
-            levelButtons[i].interactable = isUnlocked;
+            //levelButtons[i].interactable = isUnlocked;
+            // 设置按钮图片
+            Image btnImage = levelButtons[i].image;
+            if (btnImage != null)
+            {
+                if (isUnlocked && i < levelSprites.Length)
+                    btnImage.sprite = levelSprites[i];
+                else
+                    btnImage.sprite = lockSprite;
+            }
         }
     }
-
     private void OnLevelButtonClick(int level)
     {
+        if (level > GameManage.Instance.GetUnlockedLevel())
+        {
+            Button btn = levelButtons[level - 1];
+            RectTransform rt = btn.GetComponent<RectTransform>();
+            rt.DOKill(); // 停止所有动画
+            rt.anchoredPosition = initialButtonPositions[level - 1]; //复位
+                                                                     //抖动动画（左右晃动）
+            rt.DOPunchAnchorPos(new Vector2(15f, 0), 0.25f).SetEase(Ease.OutBack);
+
+            if (lockCoroutine != null)
+                StopCoroutine(lockCoroutine);
+            lockCoroutine = StartCoroutine(ShowLockText());
+            return;
+        }
         GameManage.Instance.StartFromLevel(level);
     }
+
+    private IEnumerator ShowLockText()
+    {
+        if (lockText == null) yield break;
+        lockText.gameObject.SetActive(true);
+        lockText.alpha = 0f;
+        // 渐显
+        lockText.DOFade(1f, 0.5f);
+        yield return new WaitForSeconds(1.5f);
+        // 渐隐
+        lockText.DOFade(0f, 0.5f);
+        yield return new WaitForSeconds(0.5f);
+        lockText.gameObject.SetActive(false);
+        lockCoroutine = null; // 协程结束，置空
+    }
+
+
+
+    //private void OnLevelButtonClick(int level)
+    //{
+    //    GameManage.Instance.StartFromLevel(level);
+    //}
+
 }
