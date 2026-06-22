@@ -10,8 +10,8 @@ public class PhotoTrigger : MonoBehaviour
     public AudioClip clickAudioClip;
     
     public SpriteRenderer interacRenderer;//交互后图片
-    public SpriteRenderer downRenderer;//交互后图片
-    public Light2D downlight;
+    public SpriteRenderer[] downRenderers;//交互后图片
+    public Light2D[] downlights;
 
     public SpriteRenderer completeSprite1;//最后一个
 
@@ -57,8 +57,16 @@ public class PhotoTrigger : MonoBehaviour
     {
         defualSprite.DOFade(0f,0.5f);
         interacRenderer.DOFade(1f,0.5f);
-        downRenderer.DOFade(1f,0.5f);
-        DOTween.To(() => downlight.intensity, x => downlight.intensity = x, 0.4f, 0.5f).SetEase(Ease.OutQuad);
+        foreach (var d in downRenderers)
+        {
+            d.DOFade(1f, 0.5f);
+        }
+        foreach (var l in downlights)
+        {
+            DOTween.To(() => l.intensity, x => l.intensity = x, 0.4f, 0.5f).SetEase(Ease.OutQuad);
+            //l.DOFade(1f, 0.5f);
+        }
+        //downRenderer.DOFade(1f,0.5f);
         if (completeSprite1!=null)
         completeSprite1.DOFade(1f, 0.5f);
     }

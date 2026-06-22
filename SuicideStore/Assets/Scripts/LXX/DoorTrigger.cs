@@ -2,10 +2,13 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.Video;
 using DG.Tweening;
+using UnityEngine.Rendering.Universal;
 
 public class DoorTrigger : MonoBehaviour
 {
     public bool canLoad = false;
+    [Header("灯光")]
+    public Light2D[] lights;
     [Header("场景设置")]
     public bool isScene12 = false;
     public string nextSceneName;
@@ -79,8 +82,19 @@ public class DoorTrigger : MonoBehaviour
 
     private void PerformTransition()
     {
+
+        foreach (var l in lights)
+        {
+            if (l != null)
+            {
+                Debug.Log("隐藏" + l.gameObject);
+                l.gameObject.SetActive(false);
+            }
+        }
+
         // 根据 isScene12 或其他条件决定跳转方式
-        if (isScene12 || !string.IsNullOrEmpty(nextSceneName))
+        //if (isScene12 || !string.IsNullOrEmpty(nextSceneName))
+        if (isScene12)
         {
             if (shouldUseFade)
             {
@@ -107,6 +121,7 @@ public class DoorTrigger : MonoBehaviour
 
     public void CompleteLevel()
     {
+        Debug.Log("跳转");
         GameManage.Instance.CompleteCurrentLevel();
         int nextLevel = GameManage.Instance.currentLevel + 1;
         if (nextLevel <= 12)
