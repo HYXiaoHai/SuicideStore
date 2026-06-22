@@ -1,7 +1,9 @@
 using Cinemachine;
+using DG.Tweening;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering.Universal;
 using static UnityEngine.Rendering.DebugUI;
 
 public class ReversalMange : MonoBehaviour
@@ -51,6 +53,10 @@ public class ReversalMange : MonoBehaviour
 
     [Header("传送门")]
     public Portal currentPortal;//当前关卡的传送门
+    public Light2D currentPortalLight;//当前关卡的传送门
+    public Light2D portalLight1;//当前关卡的传送门
+    public Light2D portalLight2;//当前关卡的传送门
+    public Light2D portalLight3;//当前关卡的传送门
     public Portal portal1;//传送门1 完成交互后开启
     public Portal portal2;//传送门2 完成交互后开启
     public Portal portal3;//传送门3 完成交互后开启
@@ -95,17 +101,20 @@ public class ReversalMange : MonoBehaviour
         {
             case 1:
                 currentPortal = portal1;
+                currentPortalLight = portalLight1;
                 currentcoinSpawnPoint = coinSpawnPoint1;
                 flipMirrorController.InitMirror(level1OuterLayer,level1MiddleLayer,level1InnerLayer);
                 break;
             case 2:
                 currentPortal = portal2;
+                currentPortalLight = portalLight2;
                 currentcoinSpawnPoint = coinSpawnPoint2;
                 flipMirrorController.InitMirror(level2OuterLayer, level2MiddleLayer, level2InnerLayer);
 
                 break;
             case 3:
                 currentPortal = portal3;
+                currentPortalLight = portalLight3;
                 currentcoinSpawnPoint = coinSpawnPoint3;
                 flipMirrorController.InitMirror(level3OuterLayer, level3MiddleLayer, level3InnerLayer);
                 requiredInteractions = 2;
@@ -220,6 +229,9 @@ public class ReversalMange : MonoBehaviour
         if (currentPortal != null)
         {
             currentPortal.canTeleport = true;
+            currentPortalLight.gameObject.SetActive(true);
+            DOTween.To(() => currentPortalLight.intensity, x => currentPortalLight.intensity = x, 0.25f, 0.5f).SetEase(Ease.OutQuad);
+
             Debug.Log("金币已拾取，传送门已开启！");
         }
         else

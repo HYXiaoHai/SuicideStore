@@ -31,7 +31,7 @@ public class Scene7_3Manager : MonoBehaviour
 
     [Header("=== 相机画面 ===")]
     public GameObject cameraScreen;
-
+    private bool isCameraClick = false;
     [Header("=== 转场设置 ===")]
     public Image fadeImage;
     public string nextSceneName;
@@ -119,8 +119,9 @@ public class Scene7_3Manager : MonoBehaviour
 
         if (cameraScreen != null && cameraScreen.activeSelf && canClick && (comicCanvas == null || !comicCanvas.enabled))
         {
-            if (Input.GetMouseButtonDown(0))
+            if (Input.GetMouseButtonDown(0)&&!isCameraClick)
             {
+                isCameraClick = true;
                 AudioManager.Instance.Play2DSound(takePhotoClip, 1f);
                 StartCoroutine(FadeToBlackAndLoadScene());
             }
