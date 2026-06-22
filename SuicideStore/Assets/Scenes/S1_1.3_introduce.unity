@@ -3009,6 +3009,7 @@ MonoBehaviour:
   transitionCanvasGroup: {fileID: 1006305097}
   transitionImage: {fileID: 114377808}
   transitionDuration: 1
+  isTransitioning: 0
 --- !u!114 &1006305099
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3240,7 +3241,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 136a3f36358b717409ea8089b790da9c, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 18ac282e018e1c5449a83f3e29502ef7, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -3518,6 +3519,10 @@ MonoBehaviour:
   typingSpeed: 0.1
   endHint: {fileID: 0}
   requireButtonToAdvanceWhenAvailable: 1
+  useLeleImage: 0
+  leleImage1: {fileID: 0}
+  leleImage2: {fileID: 0}
+  leleImage3: {fileID: 0}
   dialogAudioClip: {fileID: 0}
 --- !u!4 &1142190733
 Transform:
