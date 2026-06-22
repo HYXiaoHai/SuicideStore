@@ -1,5 +1,6 @@
 using UnityEngine;
 using DG.Tweening;
+using UnityEngine.Rendering.Universal;
 
 public class PhotoTrigger : MonoBehaviour
 {
@@ -7,7 +8,10 @@ public class PhotoTrigger : MonoBehaviour
     public PhotoSystem photoSystem;
     public SpriteRenderer ePrompt;
     public AudioClip clickAudioClip;
+    
     public SpriteRenderer interacRenderer;//交互后图片
+    public SpriteRenderer downRenderer;//交互后图片
+    public Light2D downlight;
 
     public SpriteRenderer completeSprite1;//最后一个
 
@@ -53,8 +57,9 @@ public class PhotoTrigger : MonoBehaviour
     {
         defualSprite.DOFade(0f,0.5f);
         interacRenderer.DOFade(1f,0.5f);
-
-        if(completeSprite1!=null)
+        downRenderer.DOFade(1f,0.5f);
+        DOTween.To(() => downlight.intensity, x => downlight.intensity = x, 0.4f, 0.5f).SetEase(Ease.OutQuad);
+        if (completeSprite1!=null)
         completeSprite1.DOFade(1f, 0.5f);
     }
 
