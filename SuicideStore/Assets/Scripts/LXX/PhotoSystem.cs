@@ -12,6 +12,7 @@ public class PhotoSystem : MonoBehaviour
 
     [Header("灯光效果")]
     public Light2D[] lights;
+    public SpriteRenderer[] tishis;
     public float[] lightTargetIntensities;
     public float[] volumetricTargetIntensities;
     public float lightAnimationDuration = 0.5f;
@@ -36,6 +37,7 @@ public class PhotoSystem : MonoBehaviour
     {
         Initialize();
         SetLightState(0);
+        SetPromoteState(0);
     }
 
     void Initialize()
@@ -97,7 +99,8 @@ public class PhotoSystem : MonoBehaviour
 
                 DOTween.To(() => light.intensity, x => light.intensity = x, targetIntensity, lightAnimationDuration)
                     .SetEase(Ease.OutQuad)
-                    .OnComplete(() => { CheckAndSetLightEnabled(light);
+                    .OnComplete(() => {
+                        CheckAndSetLightEnabled(light);
                         if (light.enabled && light.intensity > 0.01f)
                             StartHeartbeat(localIndex, targetIntensity, targetVol);
                     });
@@ -117,6 +120,30 @@ public class PhotoSystem : MonoBehaviour
                 DOTween.To(() => light.volumeIntensity, x => light.volumeIntensity = x, 0f, lightAnimationDuration)
                     .SetEase(Ease.OutQuad)
                     .OnComplete(() => CheckAndSetLightEnabled(light));
+            }
+        }
+    }
+    //提示控制
+    public void SetPromoteState(int activeIndex)
+    {
+        for (int i = 0; i < tishis.Length; i++)
+        {
+            int localIndex = i;
+            SpriteRenderer promo = tishis[localIndex];
+            if (promo == null) continue;
+
+            bool shouldActivate = (activeIndex >= 0 && localIndex == activeIndex);
+
+            if (shouldActivate)
+            {
+                promo.gameObject.SetActive(true);
+                promo.DOFade(1f, 0.5f);
+            }
+            else
+            {
+                promo.DOFade(0f, 0.5f).OnComplete(() => {
+                    //promo.gameObject.SetActive(false);
+                });
             }
         }
     }
@@ -182,9 +209,15 @@ public class PhotoSystem : MonoBehaviour
 
         // 切换到下一个灯光
         if (photoIndex + 1 < lights.Length)
+        {
             SetLightState(photoIndex + 1);
+            SetPromoteState(photoIndex + 1);
+        }
         else
+        {
+            SetPromoteState(-1);
             SetLightState(-1);   // 所有照片完成，熄灭所有灯光
+        }
 
         StartCoroutine(NextPhoto(photoIndex));
     }
