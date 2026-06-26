@@ -630,7 +630,6 @@ public class S10PuzzleController : MonoBehaviour
         {
             seq.Append(fadeCanvas.DOFade(1f, fadeDuration).SetEase(Ease.InQuad));
         }
-
         // 2. 移动拼图父物体（在淡出期间或之后）
         if (puzzleFather != null && puzzleMoveTarget != null)
         {
@@ -646,6 +645,7 @@ public class S10PuzzleController : MonoBehaviour
         // 3. 移动相机到 position2（使用 targetCamera）
         if (enableCameraVerticalMoveAfterSolved && targetCamera != null && position2 != null)
         {
+            seq.AppendInterval(2f);
             seq.Append(targetCamera.DOMove(position2.position, autoCameraMoveDuration)
                 .SetEase(Ease.InOutQuad));
         }
