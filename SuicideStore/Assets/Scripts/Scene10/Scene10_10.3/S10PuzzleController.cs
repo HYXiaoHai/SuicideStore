@@ -1,4 +1,6 @@
 using DG.Tweening;
+using System.Collections;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.SceneManagement;
@@ -70,9 +72,11 @@ public class S10PuzzleController : MonoBehaviour
     public Transform position3;
 
     [Header("转场淡化效果")]
-    public CanvasGroup fadeCanvas;
-    public float fadeDuration = 0.5f;
-
+    //public CanvasGroup fadeCanvas;
+    //public float fadeDuration = 0.5f;
+    [Header("等待提示")]
+    public TMP_Text waitPrompt;          // 提示文字（例如“按 空格 继续”）
+    private bool isWaitingForSpace = false;
 
     [System.Serializable]
     public struct StarMessageGroup
@@ -240,7 +244,7 @@ public class S10PuzzleController : MonoBehaviour
                 mrs = 18f;
             magnetRotationSpeed[i] = mrs;
 
-           if (p != null)
+            if (p != null)
             {
                 originalParents[i] = p.parent;
                 if (reparentPiecesToControllerOnStart && p.parent != transform)
@@ -616,56 +620,28 @@ public class S10PuzzleController : MonoBehaviour
 
         completionAnimating = true;
 
+        // 直接移动父物体（无淡化）
         Sequence seq = DOTween.Sequence();
 
-        // 0. 初始化淡化画布
-        if (fadeCanvas != null)
-        {
-            fadeCanvas.gameObject.SetActive(true);
-            fadeCanvas.alpha = 0f;
-        }
-
-        // 1. 淡出效果
-        if (fadeCanvas != null)
-        {
-            seq.Append(fadeCanvas.DOFade(1f, fadeDuration).SetEase(Ease.InQuad));
-        }
-        // 2. 移动拼图父物体（在淡出期间或之后）
         if (puzzleFather != null && puzzleMoveTarget != null)
-        {
-            seq.Join(puzzleFather.transform.DOMove(puzzleMoveTarget.position, puzzleMoveDuration)
-                .SetEase(Ease.InOutQuad));
-        }
+            seq.Append(puzzleFather.transform.DOMove(puzzleMoveTarget.position, puzzleMoveDuration).SetEase(Ease.InOutQuad));
         else if (puzzleFather != null)
-        {
-            seq.Join(puzzleFather.transform.DOMoveY(puzzleFather.transform.position.y + 1f, 0.5f)
-                .SetEase(Ease.OutQuad));
-        }
+            seq.Append(puzzleFather.transform.DOMoveY(puzzleFather.transform.position.y + 1f, 0.5f).SetEase(Ease.OutQuad));
 
-        // 3. 移动相机到 position2（使用 targetCamera）
-        if (enableCameraVerticalMoveAfterSolved && targetCamera != null && position2 != null)
-        {
-            seq.AppendInterval(2f);
-            seq.Append(targetCamera.DOMove(position2.position, autoCameraMoveDuration)
-                .SetEase(Ease.InOutQuad));
-        }
-
-        // 4. 淡入效果
-        if (fadeCanvas != null)
-        {
-            seq.Append(fadeCanvas.DOFade(0f, fadeDuration).SetEase(Ease.OutQuad));
-        }
-
-        // 5. 动画完成后，启动星星机制
+        // 父物体移动完成后，等待空格再移动相机
         seq.OnComplete(() =>
         {
-            completionDone = true;
-            completionAnimating = false;
-            StartStarsPhase();
+            WaitForSpaceAndMove(position2, () =>
+            {
+                completionDone = true;
+                completionAnimating = false;
+                StartStarsPhase();
+            });
         });
 
         seq.Play();
     }
+
 
     private void HideAllMessagesOnStart()
     {
@@ -684,6 +660,12 @@ public class S10PuzzleController : MonoBehaviour
             {
                 finalTexts[i].gameObject.SetActive(false);
             }
+        }
+
+        if (waitPrompt != null)
+        {
+            waitPrompt.alpha = 0f;
+            waitPrompt.gameObject.SetActive(false);
         }
     }
 
@@ -704,12 +686,49 @@ public class S10PuzzleController : MonoBehaviour
     }
 
 
+    private void WaitForSpaceAndMove(Transform targetPos, System.Action onComplete)
+    {
+        if (isWaitingForSpace) return;
+        if (targetPos == null || targetCamera == null)
+        {
+            onComplete?.Invoke();
+            return;
+        }
 
+        // 显示提示文字
+        if (waitPrompt != null)
+        {
+            waitPrompt.gameObject.SetActive(true);
+            waitPrompt.alpha = 0f;
+            waitPrompt.DOFade(1f, 0.5f);
+        }
+
+        isWaitingForSpace = true;
+        StartCoroutine(WaitForSpaceCoroutine(targetPos, onComplete));
+    }
+
+    private IEnumerator WaitForSpaceCoroutine(Transform targetPos, System.Action onComplete)
+    {
+        yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.Space));
+        isWaitingForSpace = false;
+
+        if (waitPrompt != null)
+        {
+            waitPrompt.DOFade(0f, 0.3f).OnComplete(() =>
+            {
+                waitPrompt.gameObject.SetActive(false);
+            });
+        }
+
+        targetCamera.DOMove(targetPos.position, autoCameraMoveDuration)
+            .SetEase(Ease.InOutQuad)
+            .OnComplete(() => onComplete?.Invoke());
+    }
     private void HandleStarClicks()
     {
         if (Input.GetMouseButtonDown(0))
         {
-        
+
             Vector2 screenPos = Input.mousePosition;
 
             // 否则使用 Physics2D 检测（如果是2D物体）
@@ -747,18 +766,10 @@ public class S10PuzzleController : MonoBehaviour
         if (starsClickedCount >= 3)
         {
             starsPhaseActive = false;
-            if (targetCamera != null && position3 != null)
+            WaitForSpaceAndMove(position3, () =>
             {
-                DOVirtual.DelayedCall(2f, () =>
-                {
-                    targetCamera.DOMove(position3.position, 1.0f).SetEase(Ease.InOutQuad)
-                        .OnComplete(() => StartFinalMessagesPhase());
-                });
-            }
-            else
-            {
-                DOVirtual.DelayedCall(1f, () => StartFinalMessagesPhase());
-            }
+                StartFinalMessagesPhase();
+            });
         }
     }
 
@@ -789,8 +800,8 @@ public class S10PuzzleController : MonoBehaviour
             if (!finalMessagesCompleted)
             {
                 finalMessagesCompleted = true;
-                finalMessagesPhase = false;   
-  
+                finalMessagesPhase = false;
+
                 DOVirtual.DelayedCall(finalMessagesCompleteDelay, () =>
                 {
                     LoadNextScene();

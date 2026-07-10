@@ -82,7 +82,7 @@ public class DoorTrigger : MonoBehaviour
 
     private void PerformTransition()
     {
-
+        if(lights!=null)
         foreach (var l in lights)
         {
             if (l != null)

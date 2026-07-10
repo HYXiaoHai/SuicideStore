@@ -40,7 +40,7 @@ public class Scene12Manager : MonoBehaviour
     void Update()
     {
         if (GameManage.Instance.isSetting) return;
-        if (canClick && !isTransitioning && Input.GetMouseButtonDown(0))
+        if (canClick && !isTransitioning && (Input.GetMouseButtonDown(0)|| Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.A)))
         {
             OnScreenClick();
         }

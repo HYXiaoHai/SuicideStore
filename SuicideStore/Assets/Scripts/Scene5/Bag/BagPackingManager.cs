@@ -31,6 +31,9 @@ public class BagPackingManager : MonoBehaviour
     [Header("全部物品列表")]
     public List<DraggableItem> allItems;
 
+    [Header("遮罩")]
+    public SpriteRenderer maskSprite;
+
     private int itemsFromInsideToOutside = 0;
     private int itemsFromOutsideToInside = 0;
     public bool gameCompleted = false;
@@ -238,6 +241,8 @@ public class BagPackingManager : MonoBehaviour
         seq.Join(bagText2.transform.DOScale(1f, startDuration).SetEase(Ease.OutExpo));
         seq.OnComplete(() =>
         {
+            maskSprite.gameObject.SetActive(true);
+            maskSprite.DOFade(1f, 0.5f);
             PopBubbleManage.Instance.StartGame();
             Debug.Log("打包完成，进入下一环节");
         });

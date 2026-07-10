@@ -2,6 +2,7 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using DG.Tweening;
+using TMPro;
 
 public class Scene11_2Mange : MonoBehaviour
 {
@@ -11,28 +12,31 @@ public class Scene11_2Mange : MonoBehaviour
     public SpriteRenderer sprite3;
     public SpriteRenderer sprite4;
 
-    public Material defaultMaterial; // 默认材质（恢复用）
+    public Material defaultMaterial;
 
     [Header("场景跳转")]
     public string nextSceneName;
 
+    [Header("空格提示")]
+    public TMP_Text waitPrompt;
+
     private enum RoundState { Drawing, WaitForClick, WaitForFinalClick }
     private RoundState currentState = RoundState.Drawing;
-    private int currentRound = 0;          // 0: 第一幅绘画, 1: 第二幅绘画
+    private int currentRound = 0;
     private bool[] roundCompleted = new bool[2];
 
     private SpriteRenderer currentSpriteRenderer;
     public DrawingController currentDrawingCtrl;
 
+    private bool isWaitingForSpace = false;
+
     void Start()
     {
         if (TransitionManage.Instance != null)
-            TransitionManage.Instance.FadeIn(0.5f,Color.black);
+            TransitionManage.Instance.FadeIn(0.5f, Color.black);
 
-        // 初始化所有画板（隐藏、禁用）
         InitAllPanels();
 
-        // 启用第一轮绘画
         currentDrawingCtrl = GetDrawingControllerByRound(0);
         if (currentDrawingCtrl != null)
         {
@@ -45,10 +49,15 @@ public class Scene11_2Mange : MonoBehaviour
             Debug.LogError("未找到第一轮的 DrawingController！");
         }
 
-        // 设置 Sprite 显隐状态
         if (sprite1 != null) sprite1.gameObject.SetActive(true);
         if (sprite2 != null) sprite2.gameObject.SetActive(false);
         if (sprite3 != null) sprite3.gameObject.SetActive(false);
+
+        if (waitPrompt != null)
+        {
+            waitPrompt.alpha = 0f;
+            waitPrompt.gameObject.SetActive(false);
+        }
 
         currentState = RoundState.Drawing;
     }
@@ -82,20 +91,17 @@ public class Scene11_2Mange : MonoBehaviour
         }
         else if (currentState == RoundState.WaitForClick)
         {
-            OnPhotoClick();
-
-            if (Input.GetMouseButtonUp(0) && IsMouseOverCurrentSprite())
+            if (Input.GetKeyDown(KeyCode.Space) && !isWaitingForSpace)
             {
-                //OnPhotoClick();
+                OnPhotoClick();
             }
         }
         else if (currentState == RoundState.WaitForFinalClick)
         {
-            if (Input.GetMouseButtonUp(0) && IsMouseOverCurrentSprite())
+            if (Input.GetKeyDown(KeyCode.Space) && !isWaitingForSpace)
             {
                 TransitionManage.Instance.FadeOut(0.5f, Color.white, () =>
                 {
-                    // 转场完成后加载新场景
                     SceneManager.LoadScene(nextSceneName);
                 });
             }
@@ -105,20 +111,20 @@ public class Scene11_2Mange : MonoBehaviour
     private void OnDrawingComplete()
     {
         Debug.Log("绘画完成");
-        // 停止音效
         if (currentDrawingCtrl != null)
             currentDrawingCtrl.StopDrawingSound();
 
-        //currentDrawingCtrl.enabled = false;
         currentState = RoundState.WaitForClick;
-        Debug.Log($"第{currentRound + 1}轮绘画完成，等待点击照片");
+        ShowPrompt();
+        Debug.Log($"第{currentRound + 1}轮绘画完成，按空格继续");
     }
 
     private void OnPhotoClick()
     {
+        HidePrompt();
+
         if (currentRound == 0)
         {
-            // 第一轮：渐隐 sprite1，渐显 sprite2
             if (sprite1 != null)
                 sprite1.DOFade(0f, 1f).OnComplete(() => { sprite1.gameObject.SetActive(false); });
             if (sprite2 != null)
@@ -135,7 +141,7 @@ public class Scene11_2Mange : MonoBehaviour
         }
         else if (currentRound == 1)
         {
-            // 第二轮：渐隐 sprite2，渐显 sprite3，然后进入最终等待点击
+            // 第二轮：渐隐 sprite2 和 sprite3，渐显 sprite4
             if (sprite2 != null)
                 sprite2.DOFade(0f, 1f);
             if (sprite3 != null)
@@ -145,30 +151,30 @@ public class Scene11_2Mange : MonoBehaviour
                 sprite4.gameObject.SetActive(true);
                 sprite4.DOFade(1f, 1f);
             }
-            currentSpriteRenderer = sprite3; // 将点击检测对象改为 sprite3
+            currentSpriteRenderer = sprite3;
             currentState = RoundState.WaitForFinalClick;
-            Debug.Log("第二轮绘画完成，等待点击最终照片跳转");
+
+            // 延迟后再显示最终提示，避免与 HidePrompt 冲突
+            StartCoroutine(DelayedShowPrompt(0.5f));
+            Debug.Log("第二轮绘画完成，按空格跳转场景");
         }
     }
 
     private IEnumerator SwitchToNextRoundAfterDelay(float delay)
     {
-        // 停止音效
         if (currentDrawingCtrl != null)
             currentDrawingCtrl.StopDrawingSound();
 
         yield return new WaitForSeconds(delay);
         int nextRound = currentRound + 1;
-        if (nextRound >= 2) // 只有两轮
+        if (nextRound >= 2)
         {
             Debug.LogWarning("已经是最后一轮，无法切换");
             yield break;
         }
-       
-        // 隐藏当前画板
+
         currentDrawingCtrl.gameObject.SetActive(false);
 
-        // 获取并激活下一个画板
         DrawingController nextCtrl = GetDrawingControllerByRound(nextRound);
         if (nextCtrl == null)
         {
@@ -179,7 +185,6 @@ public class Scene11_2Mange : MonoBehaviour
         nextCtrl.gameObject.SetActive(true);
         nextCtrl.enabled = true;
 
-        // 更新引用
         currentDrawingCtrl = nextCtrl;
         currentSpriteRenderer = nextCtrl.targetSprite;
         currentRound = nextRound;
@@ -197,17 +202,26 @@ public class Scene11_2Mange : MonoBehaviour
         return DrawManage.instance.drawingControllers[round];
     }
 
-    private bool IsMouseOverCurrentSprite()
+    private void ShowPrompt()
     {
-        if (currentSpriteRenderer == null) return false;
-        Vector2 mouseWorldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        Collider2D collider = currentSpriteRenderer.GetComponent<Collider2D>();
-        if (collider != null)
-            return collider.OverlapPoint(mouseWorldPos);
-        else
+        if (waitPrompt == null) return;
+        waitPrompt.gameObject.SetActive(true);
+        waitPrompt.alpha = 0f;
+        waitPrompt.DOFade(1f, 0.5f).SetEase(Ease.OutQuad);
+    }
+
+    private void HidePrompt()
+    {
+        if (waitPrompt == null) return;
+        waitPrompt.DOFade(0f, 0.3f).SetEase(Ease.InQuad).OnComplete(() =>
         {
-            Bounds bounds = currentSpriteRenderer.bounds;
-            return bounds.Contains(mouseWorldPos);
-        }
+            waitPrompt.gameObject.SetActive(false);
+        });
+    }
+
+    private IEnumerator DelayedShowPrompt(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        ShowPrompt();
     }
 }
