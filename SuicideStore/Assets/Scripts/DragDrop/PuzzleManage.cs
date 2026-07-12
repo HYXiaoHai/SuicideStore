@@ -316,7 +316,25 @@ public class PuzzleManage : MonoBehaviour
             }
         }
     }
+    //获取最近位置
+    public Vector2 GetClosestBoundaryPosition(Vector2 localPos)
+    {
+        float leftDist = Mathf.Abs(localPos.x - dragLeft);
+        float rightDist = Mathf.Abs(localPos.x - dragRight);
+        float bottomDist = Mathf.Abs(localPos.y - dragBottom);
+        float topDist = Mathf.Abs(localPos.y - dragTop);
 
+        float minDist = Mathf.Min(leftDist, rightDist, bottomDist, topDist);
+
+        if (minDist == leftDist)
+            return new Vector2(dragLeft, Mathf.Clamp(localPos.y, dragBottom, dragTop));
+        else if (minDist == rightDist)
+            return new Vector2(dragRight, Mathf.Clamp(localPos.y, dragBottom, dragTop));
+        else if (minDist == bottomDist)
+            return new Vector2(Mathf.Clamp(localPos.x, dragLeft, dragRight), dragBottom);
+        else // top
+            return new Vector2(Mathf.Clamp(localPos.x, dragLeft, dragRight), dragTop);
+    }
 #if UNITY_EDITOR
     private void OnDrawGizmos()
     {

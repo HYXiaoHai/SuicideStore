@@ -15,8 +15,8 @@ public class ClockController : MonoBehaviour
     [Header("指针")]
     public Transform minuteHand;
     public Transform hourHand;
-    [SerializeField] private float startAngle = 0f;
-    [SerializeField] private float handZeroOffset = 90f;  // 素材指向3点填90
+    [SerializeField] private float startAngle = 360f;  // 改为起始角度 360°（逆时针）
+    [SerializeField] private float handZeroOffset = 90f;
 
     [Header("中心偏移（像素）")]
     public Vector2 handCenterOffset = Vector2.zero;
@@ -25,7 +25,7 @@ public class ClockController : MonoBehaviour
     public Graphic maskGraphic;
 
     [Header("参数")]
-    public float autoRotateSpeed = 6f;
+    public float autoRotateSpeed = 6f;   // 速度值保持正数，但在Update中减去
 
     private float currentAngle = 0f;
     private bool isComplete = false;
@@ -34,21 +34,23 @@ public class ClockController : MonoBehaviour
     private RectTransform rectTransform;
     private Canvas canvas;
     [Header("音效")]
-    public AudioClip handClip;//拨动指针的音效
-    // 音效触发相关
-    private float lastTickAngle = 0f;        // 上次触发音效时的角度
-    public float tickStep = 30f;   // 每30度触发一次音效
+    public AudioClip handClip;
+    private float lastTickAngle = 0f;
+    public float tickStep = 30f;
+
     void Start()
     {
-        if(TransitionManage.Instance!=null)
+        if (TransitionManage.Instance != null)
         {
-            TransitionManage.Instance.FadeIn(1f,Color.white);
+            TransitionManage.Instance.FadeIn(1f, Color.white);
         }
 
         rectTransform = GetComponent<RectTransform>();
         canvas = GetComponentInParent<Canvas>();
-        currentAngle = startAngle;
-        lastTickAngle = startAngle;           // 初始化上次触发角度
+        // 逆时针：起始角度 360°，逐渐减小到 0°
+        currentAngle = 360f;                // 强制从 360 开始
+        lastTickAngle = currentAngle;
+
         if (maskGraphic != null)
             targetMaterial = maskGraphic.material;
 
@@ -70,27 +72,20 @@ public class ClockController : MonoBehaviour
 
         HandleInput();
 
-        //if (!isDragging)
-        //{
-        //    currentAngle += autoRotateSpeed * Time.deltaTime;
-
-        //}
         if (!isDragging)
         {
-            // 自动旋转
+            // 自动旋转：角度递减（逆时针）
             float oldAngle = currentAngle;
-            float newAngle = currentAngle + autoRotateSpeed * Time.deltaTime;
-            if (newAngle > 360f) newAngle = 360f;
-
-            // 检查并播放音效（基于角度增量）
+            float newAngle = currentAngle - autoRotateSpeed * Time.deltaTime;
+            if (newAngle < 0f) newAngle = 0f;
             CheckAndPlayTick(oldAngle, newAngle);
-
             currentAngle = newAngle;
         }
 
-        if (currentAngle >= 360f)
+        // 完成条件：角度减到 0
+        if (currentAngle <= 0f)
         {
-            currentAngle = 360f;
+            currentAngle = 0f;
             Complete();
         }
 
@@ -111,30 +106,30 @@ public class ClockController : MonoBehaviour
         if (Input.GetMouseButtonDown(0))
         {
             if (IsMouseOverMinuteHand())
+            {
                 isDragging = true;
+            }
         }
 
         if (Input.GetMouseButton(0) && isDragging)
         {
             float mouseAngle = GetAngleFromMouse();
-            //if (mouseAngle >= currentAngle && mouseAngle <= 360f)
-            //    currentAngle = mouseAngle;
-            if (mouseAngle >= currentAngle && mouseAngle <= 360f)
+            // 逆时针：只允许角度减小（鼠标角度必须 <= 当前角度）
+            if (mouseAngle <= currentAngle && mouseAngle >= 0f)
             {
                 float oldAngle = currentAngle;
                 float newAngle = mouseAngle;
-
-                // 检查并播放音效（基于角度增量）
                 CheckAndPlayTick(oldAngle, newAngle);
-
                 currentAngle = newAngle;
             }
-            else if (mouseAngle < currentAngle - 10f)
+            else if (mouseAngle > currentAngle + 10f)
                 isDragging = false;
         }
 
         if (Input.GetMouseButtonUp(0))
+        {
             isDragging = false;
+        }
     }
 
     private float GetAngleFromMouse()
@@ -170,6 +165,8 @@ public class ClockController : MonoBehaviour
 
     private void UpdateHand()
     {
+        // 指针旋转公式不变：-currentAngle + handZeroOffset
+        // 逆时针时 currentAngle 减小，指针会反向转动
         if (minuteHand != null)
             minuteHand.localRotation = Quaternion.Euler(0, 0, -currentAngle + handZeroOffset);
         if (hourHand != null)
@@ -181,60 +178,51 @@ public class ClockController : MonoBehaviour
         if (targetMaterial != null)
             targetMaterial.SetFloat("_Angle", currentAngle);
     }
+
     private void CheckAndPlayTick(float oldAngle, float newAngle)
     {
         if (Mathf.Approximately(oldAngle, newAngle)) return;
 
-        // 计算起始和结束所在的区间索引（从0开始，每个区间宽度 tickStep）
         int startIndex = Mathf.FloorToInt(oldAngle / tickStep);
         int endIndex = Mathf.FloorToInt(newAngle / tickStep);
-
-        // 如果区间索引不同，说明跨越了至少一个 tickStep 边界
-        if (endIndex > startIndex)
+        int stepCount = Mathf.Abs(endIndex - startIndex);
+        if (stepCount > 0)
         {
-            int tickCount = endIndex - startIndex;
-            for (int i = 0; i < tickCount; i++)
+            for (int i = 0; i < stepCount; i++)
             {
                 AudioManager.Instance.PlayShortSound(handClip, 0.8f);
             }
         }
     }
+
     private void Complete()
     {
         if (isComplete) return;
         isComplete = true;
 
-        // 停止自动旋转（已经不会再更新）
-        // 确保材质角度为360
         if (targetMaterial != null)
-            targetMaterial.SetFloat("_Angle", 360f);
+            targetMaterial.SetFloat("_Angle", 0f);   // 最终角度为0
 
-        // 开始转场动画
         StartCoroutine(TransitionRoutine());
     }
+
     private IEnumerator TransitionRoutine()
     {
-        // 同时淡出表盘 CanvasGroup 和指针 CanvasGroup
         float duration = 1f;
 
-        // 使用 DOTween 并行播放动画
         if (clockCanvasGroup != null)
             clockCanvasGroup.DOFade(0f, duration);
-
         if (minuteHandCG != null)
             minuteHandCG.DOFade(0f, duration);
-
         if (hourHandCG != null)
             hourHandCG.DOFade(0f, duration);
 
         yield return new WaitForSeconds(duration);
 
-        // 可选：彻底禁用指针交互（防止残留点击）
         if (minuteHandCG != null) minuteHandCG.interactable = false;
         if (hourHandCG != null) hourHandCG.interactable = false;
         if (clockCanvasGroup != null) clockCanvasGroup.interactable = false;
 
-        // 加载场景
         LoadScene();
     }
 
@@ -250,3 +238,251 @@ public class ClockController : MonoBehaviour
         }
     }
 }
+
+//原顺时针逻辑
+//public class ClockController : MonoBehaviour
+//{
+//    [Header("转场")]
+//    public CanvasGroup clockCanvasGroup;
+//    public string nextSceneName;
+//    private CanvasGroup minuteHandCG;
+//    private CanvasGroup hourHandCG;
+
+//    [Header("指针")]
+//    public Transform minuteHand;
+//    public Transform hourHand;
+//    [SerializeField] private float startAngle = 0f;
+//    [SerializeField] private float handZeroOffset = 90f;  // 素材指向3点填90
+
+//    [Header("中心偏移（像素）")]
+//    public Vector2 handCenterOffset = Vector2.zero;
+
+//    [Header("WhiteMask 目标")]
+//    public Graphic maskGraphic;
+
+//    [Header("参数")]
+//    public float autoRotateSpeed = 6f;
+
+//    private float currentAngle = 0f;
+//    private bool isComplete = false;
+//    private bool isDragging = false;
+//    private Material targetMaterial;
+//    private RectTransform rectTransform;
+//    private Canvas canvas;
+//    [Header("音效")]
+//    public AudioClip handClip;//拨动指针的音效
+//    // 音效触发相关
+//    private float lastTickAngle = 0f;        // 上次触发音效时的角度
+//    public float tickStep = 30f;   // 每30度触发一次音效
+//    void Start()
+//    {
+//        if(TransitionManage.Instance!=null)
+//        {
+//            TransitionManage.Instance.FadeIn(1f,Color.white);
+//        }
+
+//        rectTransform = GetComponent<RectTransform>();
+//        canvas = GetComponentInParent<Canvas>();
+//        currentAngle = startAngle;
+//        lastTickAngle = startAngle;           // 初始化上次触发角度
+//        if (maskGraphic != null)
+//            targetMaterial = maskGraphic.material;
+
+//        if (minuteHand != null)
+//            minuteHandCG = minuteHand.GetComponent<CanvasGroup>();
+//        if (hourHand != null)
+//            hourHandCG = hourHand.GetComponent<CanvasGroup>();
+
+//        UpdateAspectRatio();
+//        UpdateHandPosition();
+//        UpdateHand();
+//        UpdateShader();
+//    }
+
+//    void Update()
+//    {
+//        if (GameManage.Instance.isSetting) return;
+//        if (isComplete || targetMaterial == null) return;
+
+//        HandleInput();
+
+//        //if (!isDragging)
+//        //{
+//        //    currentAngle += autoRotateSpeed * Time.deltaTime;
+
+//        //}
+//        if (!isDragging)
+//        {
+//            // 自动旋转
+//            float oldAngle = currentAngle;
+//            float newAngle = currentAngle + autoRotateSpeed * Time.deltaTime;
+//            if (newAngle > 360f) newAngle = 360f;
+
+//            // 检查并播放音效（基于角度增量）
+//            CheckAndPlayTick(oldAngle, newAngle);
+
+//            currentAngle = newAngle;
+//        }
+
+//        if (currentAngle >= 360f)
+//        {
+//            currentAngle = 360f;
+//            Complete();
+//        }
+
+//        UpdateHand();
+//        UpdateShader();
+//    }
+
+//    private void UpdateHandPosition()
+//    {
+//        if (minuteHand != null && minuteHand is RectTransform minuteRect)
+//            minuteRect.anchoredPosition = handCenterOffset;
+//        if (hourHand != null && hourHand is RectTransform hourRect)
+//            hourRect.anchoredPosition = handCenterOffset;
+//    }
+
+//    private void HandleInput()
+//    {
+//        if (Input.GetMouseButtonDown(0))
+//        {
+//            if (IsMouseOverMinuteHand())
+//                isDragging = true;
+//        }
+
+//        if (Input.GetMouseButton(0) && isDragging)
+//        {
+//            float mouseAngle = GetAngleFromMouse();
+//            //if (mouseAngle >= currentAngle && mouseAngle <= 360f)
+//            //    currentAngle = mouseAngle;
+//            if (mouseAngle >= currentAngle && mouseAngle <= 360f)
+//            {
+//                float oldAngle = currentAngle;
+//                float newAngle = mouseAngle;
+
+//                // 检查并播放音效（基于角度增量）
+//                CheckAndPlayTick(oldAngle, newAngle);
+
+//                currentAngle = newAngle;
+//            }
+//            else if (mouseAngle < currentAngle - 10f)
+//                isDragging = false;
+//        }
+
+//        if (Input.GetMouseButtonUp(0))
+//            isDragging = false;
+//    }
+
+//    private float GetAngleFromMouse()
+//    {
+//        Vector2 localPoint;
+//        RectTransformUtility.ScreenPointToLocalPointInRectangle(rectTransform, Input.mousePosition, canvas.worldCamera, out localPoint);
+//        float angle = Mathf.Atan2(localPoint.x - handCenterOffset.x, localPoint.y - handCenterOffset.y) * Mathf.Rad2Deg;
+//        if (angle < 0) angle += 360f;
+//        return angle;
+//    }
+
+//    private bool IsMouseOverMinuteHand()
+//    {
+//        if (minuteHand == null) return false;
+
+//        Vector2 localMousePos;
+//        RectTransformUtility.ScreenPointToLocalPointInRectangle(rectTransform, Input.mousePosition, canvas.worldCamera, out localMousePos);
+//        if (localMousePos.magnitude < 20f) return false;
+
+//        float mouseAngle = GetAngleFromMouse();
+//        float angleDiff = Mathf.Abs(Mathf.DeltaAngle(mouseAngle, currentAngle));
+//        return angleDiff < 15f;
+//    }
+
+//    private void UpdateAspectRatio()
+//    {
+//        if (rectTransform != null && targetMaterial != null)
+//        {
+//            float aspect = rectTransform.rect.width / rectTransform.rect.height;
+//            targetMaterial.SetFloat("_AspectRatio", aspect);
+//        }
+//    }
+
+//    private void UpdateHand()
+//    {
+//        if (minuteHand != null)
+//            minuteHand.localRotation = Quaternion.Euler(0, 0, -currentAngle + handZeroOffset);
+//        if (hourHand != null)
+//            hourHand.localRotation = Quaternion.Euler(0, 0, -currentAngle / 12f + handZeroOffset);
+//    }
+
+//    private void UpdateShader()
+//    {
+//        if (targetMaterial != null)
+//            targetMaterial.SetFloat("_Angle", currentAngle);
+//    }
+//    private void CheckAndPlayTick(float oldAngle, float newAngle)
+//    {
+//        if (Mathf.Approximately(oldAngle, newAngle)) return;
+
+//        // 计算起始和结束所在的区间索引（从0开始，每个区间宽度 tickStep）
+//        int startIndex = Mathf.FloorToInt(oldAngle / tickStep);
+//        int endIndex = Mathf.FloorToInt(newAngle / tickStep);
+
+//        // 如果区间索引不同，说明跨越了至少一个 tickStep 边界
+//        if (endIndex > startIndex)
+//        {
+//            int tickCount = endIndex - startIndex;
+//            for (int i = 0; i < tickCount; i++)
+//            {
+//                AudioManager.Instance.PlayShortSound(handClip, 0.8f);
+//            }
+//        }
+//    }
+//    private void Complete()
+//    {
+//        if (isComplete) return;
+//        isComplete = true;
+
+//        // 停止自动旋转（已经不会再更新）
+//        // 确保材质角度为360
+//        if (targetMaterial != null)
+//            targetMaterial.SetFloat("_Angle", 360f);
+
+//        // 开始转场动画
+//        StartCoroutine(TransitionRoutine());
+//    }
+//    private IEnumerator TransitionRoutine()
+//    {
+//        // 同时淡出表盘 CanvasGroup 和指针 CanvasGroup
+//        float duration = 1f;
+
+//        // 使用 DOTween 并行播放动画
+//        if (clockCanvasGroup != null)
+//            clockCanvasGroup.DOFade(0f, duration);
+
+//        if (minuteHandCG != null)
+//            minuteHandCG.DOFade(0f, duration);
+
+//        if (hourHandCG != null)
+//            hourHandCG.DOFade(0f, duration);
+
+//        yield return new WaitForSeconds(duration);
+
+//        // 可选：彻底禁用指针交互（防止残留点击）
+//        if (minuteHandCG != null) minuteHandCG.interactable = false;
+//        if (hourHandCG != null) hourHandCG.interactable = false;
+//        if (clockCanvasGroup != null) clockCanvasGroup.interactable = false;
+
+//        // 加载场景
+//        LoadScene();
+//    }
+
+//    public void LoadScene()
+//    {
+//        if (!string.IsNullOrEmpty(nextSceneName))
+//        {
+//            UnityEngine.SceneManagement.SceneManager.LoadScene(nextSceneName);
+//        }
+//        else
+//        {
+//            Debug.LogWarning("Next scene name is not set!");
+//        }
+//    }
+//}
