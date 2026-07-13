@@ -1,6 +1,7 @@
 using DG.Tweening;
 using System.Collections;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 [RequireComponent(typeof(RectTransform))]
@@ -16,6 +17,7 @@ public class ClockController : MonoBehaviour
     public Transform minuteHand;
     public Transform hourHand;
     [SerializeField] private float startAngle = 360f;  // 改为起始角度 360°（逆时针）
+    [SerializeField] private float targetAngle = 0f;  //0;
     [SerializeField] private float handZeroOffset = 90f;
 
     [Header("中心偏移（像素）")]
@@ -48,7 +50,7 @@ public class ClockController : MonoBehaviour
         rectTransform = GetComponent<RectTransform>();
         canvas = GetComponentInParent<Canvas>();
         // 逆时针：起始角度 360°，逐渐减小到 0°
-        currentAngle = 360f;                // 强制从 360 开始
+        currentAngle = startAngle;                // 强制从 360 开始
         lastTickAngle = currentAngle;
 
         if (maskGraphic != null)
@@ -77,15 +79,15 @@ public class ClockController : MonoBehaviour
             // 自动旋转：角度递减（逆时针）
             float oldAngle = currentAngle;
             float newAngle = currentAngle - autoRotateSpeed * Time.deltaTime;
-            if (newAngle < 0f) newAngle = 0f;
+            if (newAngle < targetAngle) newAngle = targetAngle;
             CheckAndPlayTick(oldAngle, newAngle);
             currentAngle = newAngle;
         }
 
         // 完成条件：角度减到 0
-        if (currentAngle <= 0f)
+        if (currentAngle <= targetAngle)
         {
-            currentAngle = 0f;
+            currentAngle = targetAngle;
             Complete();
         }
 
@@ -115,7 +117,7 @@ public class ClockController : MonoBehaviour
         {
             float mouseAngle = GetAngleFromMouse();
             // 逆时针：只允许角度减小（鼠标角度必须 <= 当前角度）
-            if (mouseAngle <= currentAngle && mouseAngle >= 0f)
+            if (mouseAngle <= currentAngle && mouseAngle >= targetAngle)
             {
                 float oldAngle = currentAngle;
                 float newAngle = mouseAngle;
@@ -201,9 +203,9 @@ public class ClockController : MonoBehaviour
         isComplete = true;
 
         if (targetMaterial != null)
-            targetMaterial.SetFloat("_Angle", 0f);   // 最终角度为0
-
-        StartCoroutine(TransitionRoutine());
+            targetMaterial.SetFloat("_Angle", targetAngle);   // 最终角度为0
+        LoadScene();
+        //StartCoroutine(TransitionRoutine());
     }
 
     private IEnumerator TransitionRoutine()
@@ -225,12 +227,23 @@ public class ClockController : MonoBehaviour
 
         LoadScene();
     }
+    // 并行执行转场淡出和 BGM 淡出
 
     public void LoadScene()
     {
+        if (minuteHandCG != null) minuteHandCG.interactable = false;
+        if (hourHandCG != null) hourHandCG.interactable = false;
+        if (clockCanvasGroup != null) clockCanvasGroup.interactable = false;
+
         if (!string.IsNullOrEmpty(nextSceneName))
         {
-            UnityEngine.SceneManagement.SceneManager.LoadScene(nextSceneName);
+            TransitionManage.Instance.FadeOut(1f, Color.white, () =>
+            {
+                // 转场完成后加载新场景
+                SceneManager.LoadScene(nextSceneName);
+            });
+            //UnityEngine.SceneManagement.SceneManager.LoadScene(nextSceneName);
+
         }
         else
         {
