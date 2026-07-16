@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using System.Collections;
 using DG.Tweening;
+using System.Collections.Generic;
 
 public class MemorySceneManager : MonoBehaviour
 {
@@ -11,7 +12,10 @@ public class MemorySceneManager : MonoBehaviour
 
     [Header("Slides")]
     public SlideController[] slides;
-    
+
+    [Header("×ßÂ·ÒôÐ§")]
+    public List<AudioClip> walkClip;
+
     [Header("Scene Settings")]
     public string nextSceneName = "Scene7.3";
 
@@ -110,6 +114,9 @@ public class MemorySceneManager : MonoBehaviour
     {
         if (currentSlideIndex < memoryImages.Length)
         {
+            int index = Random.Range(0, walkClip.Count);
+            AudioManager.Instance.Play2DSound(walkClip[index], 1f);
+
             memoryImages[currentSlideIndex].gameObject.SetActive(true);
             memoryImages[currentSlideIndex].CrossFadeAlpha(1, fadeInDuration, false);
             yield return new WaitForSeconds(fadeInDuration + delayBetweenItems);

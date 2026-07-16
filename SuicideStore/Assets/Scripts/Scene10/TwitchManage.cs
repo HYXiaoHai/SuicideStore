@@ -1,38 +1,45 @@
 using DG.Tweening;
 using System.Collections;
-using System.Collections.Generic;
 using TMPro;
-using UnityEngine.SceneManagement;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class TwitchManage : MonoBehaviour
 {
-    public SpriteRenderer twitchTarget;//目标物体
-    public Slider twitchSlider;//slider
-    public float twitchMin = 0f;//最小值
-    public float twitchMax = 1f;//最大值
+    public SpriteRenderer twitchTarget;
+    public Slider twitchSlider;
+    public float twitchMin = 0f;
+    public float twitchMax = 1f;
     private Material twitchMaterial;
+
     [Header("第一阶段")]
     public CanvasGroup stage1Canvas;
     public TMP_Text twitchText1;
     public TMP_Text twitchText2;
     public TMP_Text twitchText3;
+
     [Header("第二阶段")]
     public CanvasGroup stage2Canvas;
     public TMP_Text twitchText4;
     public TMP_Text twitchText5;
     public TMP_Text twitchText6;
+
     [Header("第三阶段")]
     public CanvasGroup stage3Canvas;
     public TMP_Text twitchText7;
 
     [Header("关卡切换")]
-    public string nextScene;//第2关
-    public float changeDelay = 1f;//跳转延迟
-    private bool hasTriggeredSwitch = false; //防止重复触发
+    public string nextScene;
+    public float changeDelay = 1f;
+    private bool hasTriggeredSwitch = false;
 
-    // 用于管理所有活跃的动画，防止重叠冲突
+    // 卡槽节点设置（对应三个阶段的分界点）
+    private float[] snapPoints = { 1f / 3f, 2f / 3f };
+    private float snapThreshold = 0.025f;  // 吸附阈值，可调
+    private bool isSnapping = false;
+
+    // 动画管理
     private Tween activeTween_CG1;
     private Tween activeTween_CG2;
     private Tween activeTween_CG3;
@@ -41,10 +48,11 @@ public class TwitchManage : MonoBehaviour
     private Tween activeTween_Text3;
     private Tween activeTween_Text5;
     private Tween activeTween_Text6;
+
     void Start()
     {
         if (TransitionManage.Instance != null)
-            TransitionManage.Instance.FadeIn(0.5f,Color.white);
+            TransitionManage.Instance.FadeIn(0.5f, Color.white);
 
         if (twitchTarget != null)
             twitchMaterial = twitchTarget.material;
@@ -57,6 +65,7 @@ public class TwitchManage : MonoBehaviour
         }
         UpdateDisplay(0f);
     }
+
     void Update()
     {
         if (twitchSlider != null && twitchSlider.interactable == GameManage.Instance.isSetting)
@@ -64,38 +73,65 @@ public class TwitchManage : MonoBehaviour
             twitchSlider.interactable = !GameManage.Instance.isSetting;
         }
     }
+
     void OnSliderChanged(float value)
     {
         if (GameManage.Instance.isSetting) return;
+        if (isSnapping)
+        {
+            isSnapping = false;
+            return;
+        }
+
+        // 检查是否靠近某个卡槽节点（只处理中间两个节点，0和1不吸附）
+        float nearestSnap = -1f;
+        float minDiff = Mathf.Infinity;
+        foreach (var snap in snapPoints)
+        {
+            float diff = Mathf.Abs(value - snap);
+            if (diff < minDiff)
+            {
+                minDiff = diff;
+                nearestSnap = snap;
+            }
+        }
+
+        if (minDiff < snapThreshold && !Mathf.Approximately(value, nearestSnap))
+        {
+            // 吸附到最近的节点
+            isSnapping = true;
+            twitchSlider.value = nearestSnap;
+            // 直接更新UI（因为value变化会再次触发OnSliderChanged，但isSnapping会阻止循环）
+            UpdateDisplay(nearestSnap);
+            // 可在此添加轻微震动或音效
+            // AudioManager.Instance.PlayShortSound(snapClip, 0.5f);
+            return;
+        }
+
+        // 正常更新
         UpdateDisplay(value);
     }
+
     private void UpdateDisplay(float value)
     {
         float targetAlpha1, targetAlpha2, targetAlpha3;
         float threshold1 = 1f / 3f;
         float threshold2 = 2f / 3f;
 
-        // 阶段判定及整体 CanvasGroup 透明度目标
         if (value <= threshold1)
         {
             targetAlpha1 = 1f;
             targetAlpha2 = 0f;
             targetAlpha3 = 0f;
 
-            // 第一阶段内的子动画：滑块值超过 1/6 时淡入 twitchText2
-            //float subThreshold = threshold1 / 2f; // 0.16667
-            //bool shouldShowText2 = value >= subThreshold;
-            //AnimateAlpha(twitchText2, shouldShowText2 ? 1f : 0f, 0.2f, ref activeTween_Text2);
-            float sub1 = threshold1 / 3f;      // 0.111...
-            float sub2 = threshold1 * 2f / 3f; // 0.222...
-
+            float sub1 = threshold1 / 3f;
+            float sub2 = threshold1 * 2f / 3f;
             float alphaText2 = Mathf.Clamp01((value - sub1) / (sub2 - sub1));
             float alphaText3 = Mathf.Clamp01((value - sub2) / (threshold1 - sub2));
 
             AnimateAlpha(twitchText2, alphaText2, 0.2f, ref activeTween_Text2);
             AnimateAlpha(twitchText3, alphaText3, 0.2f, ref activeTween_Text3);
 
-            // text1 始终保持 1
             if (twitchText1 != null && twitchText1.color.a != 1f)
                 twitchText1.CrossFadeAlpha(1f, 0.1f, false);
         }
@@ -105,23 +141,14 @@ public class TwitchManage : MonoBehaviour
             targetAlpha2 = 1f;
             targetAlpha3 = 0f;
 
-            // 第二阶段内的子动画：滑块值超过 0.5 时淡入 twitchText4 和 twitchImage4
-            //float subThreshold = threshold1 + (threshold2 - threshold1) / 2f; // 0.5
-            //bool shouldShowText4 = value >= subThreshold;
-            //AnimateAlpha(twitchText4, shouldShowText4 ? 1f : 0f, 0.2f, ref activeTween_Text4);
-            //AnimateAlpha(twitchImage4, shouldShowText4 ? 1f : 0f, 0.2f, ref activeTween_Image4);
-            //// text1 始终保持 1
-            //if (twitchText1 != null && twitchText1.color.a != 1f)
-            //    twitchText1.CrossFadeAlpha(1f, 0.1f, false);
-            float stage2Start = threshold1;                // 0.333
-            float stage2End = threshold2;                  // 0.666
-            float sub1 = stage2Start + (stage2End - stage2Start) / 3f;   // 0.444
-            float sub2 = stage2Start + (stage2End - stage2Start) * 2f / 3f; // 0.555
+            float stage2Start = threshold1;
+            float stage2End = threshold2;
+            float sub1 = stage2Start + (stage2End - stage2Start) / 3f;
+            float sub2 = stage2Start + (stage2End - stage2Start) * 2f / 3f;
 
             float alphaText5 = Mathf.Clamp01((value - sub1) / (sub2 - sub1));
             float alphaText6 = Mathf.Clamp01((value - sub2) / (stage2End - sub2));
 
-            // text4 始终为 1
             if (twitchText4 != null && twitchText4.color.a != 1f)
                 twitchText4.CrossFadeAlpha(1f, 0.1f, false);
 
@@ -133,17 +160,14 @@ public class TwitchManage : MonoBehaviour
             targetAlpha1 = 0f;
             targetAlpha2 = 0f;
             targetAlpha3 = 1f;
-            // 第三阶段无额外子动画
         }
 
-        // 执行整体 CanvasGroup 渐变动画（安全托管）
         AnimateCanvasGroup(stage1Canvas, targetAlpha1, 0.2f, ref activeTween_CG1);
         AnimateCanvasGroup(stage2Canvas, targetAlpha2, 0.2f, ref activeTween_CG2);
         AnimateCanvasGroup(stage3Canvas, targetAlpha3, 0.2f, ref activeTween_CG3);
 
         UpdateMaterial(value);
 
-        // 检测完成条件（滑块拉满）
         if (!hasTriggeredSwitch && Mathf.Approximately(value, 1f))
         {
             hasTriggeredSwitch = true;
@@ -153,39 +177,27 @@ public class TwitchManage : MonoBehaviour
 
     private void UpdateMaterial(float value)
     {
-        //float mappedValue = value == 0f ? 0f : value * (twitchMax - twitchMin) + twitchMin;
-        float mappedValue = value *(twitchMax - twitchMin) + twitchMin;
-        // 移除频繁的 Debug.Log，避免性能损耗
-        // Debug.Log(mappedValue);
+        float mappedValue = value * (twitchMax - twitchMin) + twitchMin;
         if (twitchMaterial != null)
             twitchMaterial.SetFloat("_Frequency", mappedValue);
     }
 
-    /// <summary>
-    /// 安全的 CanvasGroup 透明度动画，自动中断旧动画
-    /// </summary>
     private void AnimateCanvasGroup(CanvasGroup cg, float targetAlpha, float duration, ref Tween activeTween)
     {
         if (cg == null) return;
-
         if (activeTween != null && activeTween.IsActive())
             activeTween.Kill();
-
         activeTween = cg.DOFade(targetAlpha, duration).SetEase(Ease.Linear);
     }
 
-    /// 通用的 Graphic（Text/Image）透明度动画，自动中断旧动画
     private void AnimateAlpha(Graphic graphic, float targetAlpha, float duration, ref Tween activeTween)
     {
         if (graphic == null) return;
-
         if (activeTween != null && activeTween.IsActive())
             activeTween.Kill();
-
         activeTween = graphic.DOFade(targetAlpha, duration).SetEase(Ease.Linear);
     }
 
-    /// 清理所有正在播放的动画
     private void KillAllTweens()
     {
         KillTween(ref activeTween_CG1);
@@ -204,28 +216,24 @@ public class TwitchManage : MonoBehaviour
             tween.Kill();
         tween = null;
     }
-    //进入下一关
+
     private IEnumerator OnGrowthComplete()
     {
-        //禁用滑块交互，防止再次拖动
         if (twitchSlider != null)
             twitchSlider.interactable = false;
 
         Debug.Log("成长完成，切换至下一关卡");
         yield return new WaitForSeconds(changeDelay);
-        // 并行执行转场淡出和 BGM 淡出
         TransitionManage.Instance.FadeOut(1f, Color.black, () =>
         {
-            // 转场完成后加载新场景
             SceneManager.LoadScene(nextScene);
         });
     }
+
     private void OnDestroy()
     {
-        // 清理所有动画，防止内存泄漏或跨场景残留
         KillAllTweens();
         if (twitchSlider != null)
             twitchSlider.onValueChanged.RemoveListener(OnSliderChanged);
     }
-
 }
