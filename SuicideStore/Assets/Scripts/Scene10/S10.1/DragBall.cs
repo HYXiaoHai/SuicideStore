@@ -8,18 +8,24 @@ public class DragBall : MonoBehaviour
     public int id;
     public TMP_Text dragBallText;
 
+    [Header("拖拽位置提醒")]
+    public SpriteRenderer dragBallTargetSprite; // 目标位置提示
+
     [Header("拖拽粒子效果")]
     public ParticleFollower[] particles;
 
     private Vector3 startPos;
     private Vector3 offset;
-    private bool isCollected = false;      // 是否已收集（成功）
+    private bool isCollected = false;
     private bool isDragging = false;
-    private bool isReturning = false;      // 是否正在回到起点（移动动画中）
+    private bool isReturning = false;
     private bool isInBoundary = false;
 
     private Collider2D mycollider;
     private SpriteRenderer spriteRenderer;
+
+    // 脉冲动画相关
+    private Tween pulseTween;
 
     void Start()
     {
@@ -44,6 +50,15 @@ public class DragBall : MonoBehaviour
                 if (p != null) p.gameObject.SetActive(false);
             }
         }
+
+        // 初始化引导 Sprite：透明，隐藏
+        if (dragBallTargetSprite != null)
+        {
+            Color c = dragBallTargetSprite.color;
+            c.a = 0f;
+            dragBallTargetSprite.color = c;
+            dragBallTargetSprite.gameObject.SetActive(false);
+        }
     }
 
     private void ShowParticles()
@@ -57,8 +72,52 @@ public class DragBall : MonoBehaviour
     {
         if (particles == null) return;
         foreach (var p in particles)
-            p.StartGatherSequence(); // 立即聚集
+            p.StartGatherSequence();
     }
+
+    // ------------------- 引导 Sprite 控制 -------------------
+    private void ShowTargetGuide()
+    {
+        if (dragBallTargetSprite == null) return;
+        // 停止旧动画
+        if (pulseTween != null && pulseTween.IsActive())
+            pulseTween.Kill();
+
+        dragBallTargetSprite.gameObject.SetActive(true);
+        Color c = dragBallTargetSprite.color;
+        c.a = 0f;
+        dragBallTargetSprite.color = c;
+        // 渐显
+        DOTween.To(() => dragBallTargetSprite.color.a,
+                   x => { Color cc = dragBallTargetSprite.color; cc.a = x; dragBallTargetSprite.color = cc; },
+                   0.6f, 0.2f).SetEase(Ease.OutQuad);
+
+        // 循环脉冲：在 0.2 ~ 0.47 之间来回闪烁（周期 0.6s）
+        pulseTween = DOTween.To(() => dragBallTargetSprite.color.a,
+                               x => { Color cc = dragBallTargetSprite.color; cc.a = x; dragBallTargetSprite.color = cc; },
+                               0.5f, 0.6f)
+                     .SetLoops(-1, LoopType.Yoyo)
+                     .SetEase(Ease.InOutSine);
+    }
+
+    private void HideTargetGuide()
+    {
+        if (dragBallTargetSprite == null) return;
+        // 停止脉冲
+        if (pulseTween != null && pulseTween.IsActive())
+            pulseTween.Kill();
+        pulseTween = null;
+        // 渐隐
+        DOTween.To(() => dragBallTargetSprite.color.a,
+                   x => { Color cc = dragBallTargetSprite.color; cc.a = x; dragBallTargetSprite.color = cc; },
+                   0f, 0.2f).SetEase(Ease.OutQuad)
+               .OnComplete(() =>
+               {
+                   if (dragBallTargetSprite != null)
+                       dragBallTargetSprite.gameObject.SetActive(false);
+               });
+    }
+    // -------------------------------------------------
 
     void OnMouseDown()
     {
@@ -72,6 +131,7 @@ public class DragBall : MonoBehaviour
             dragBallText.DOFade(0f, 0.2f);
 
         ShowParticles();
+        ShowTargetGuide(); // 拖拽开始时显示引导
     }
 
     void OnMouseDrag()
@@ -86,6 +146,9 @@ public class DragBall : MonoBehaviour
     {
         if (isCollected || isReturning) return;
         isDragging = false;
+
+        // 隐藏引导（无论成功还是失败）
+        HideTargetGuide();
 
         if (isInBoundary)
         {
@@ -107,7 +170,6 @@ public class DragBall : MonoBehaviour
         if (other.CompareTag("Boundary")) isInBoundary = false;
     }
 
-    // 成功收集
     private void Collect()
     {
         if (isCollected) return;
@@ -132,36 +194,29 @@ public class DragBall : MonoBehaviour
             StartCoroutine(StartParticleGatherSequence(() => Destroy(gameObject)));
         });
 
-        this.enabled = false;  // 成功后禁用，因为小球会被销毁
+        this.enabled = false;
     }
 
-    // 未成功：回到起点，文字恢复，粒子聚集消失（但小球不销毁）
     private void ReturnToStart()
     {
         if (isReturning) return;
         isReturning = true;
         isDragging = false;
 
-        // 禁用碰撞体避免干扰
         if (mycollider != null) mycollider.enabled = false;
         Rigidbody2D rb = GetComponent<Rigidbody2D>();
         if (rb != null) rb.velocity = Vector2.zero;
 
-        // 移动小球回起点
         transform.DOMove(startPos, 0.3f).SetEase(Ease.OutQuad).OnComplete(() =>
         {
-            // 恢复文字渐显
             if (dragBallText != null && !dragBallText.gameObject.activeSelf)
                 dragBallText.gameObject.SetActive(true);
             if (dragBallText != null)
                 dragBallText.DOFade(1f, 0.3f);
-            // 重新启用碰撞体
             if (mycollider != null) mycollider.enabled = true;
-            // 重置状态标志
             isReturning = false;
         });
 
-        // 粒子和渐隐逻辑：先聚集消失，但小球不销毁
         StartCoroutine(StartParticleGatherSequence(null));
     }
 
