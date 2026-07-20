@@ -24,9 +24,9 @@ public class FaceGameManager : MonoBehaviour
     public float initialProgress = 0.5f;
 
     [Header("收获效果 -- 气泡")]
-    public Image bubbleImage;
-    public Sprite normalBubble;
-    public Sprite seccesBubble;
+    public ChangeBubble bubbleImage;
+    //public Sprite normalBubble;
+    //public Sprite seccesBubble;
     public float harvestDelay = 1f;
     [Header("引导")]
     public Image outerframe;//外框
@@ -63,7 +63,6 @@ public class FaceGameManager : MonoBehaviour
         if (faceTarget != null) faceHalfWidth = faceTarget.sizeDelta.x / 2;
         
         successText.SetActive(false);
-        bubbleImage.gameObject.SetActive(false);
 
         currentProgress = initialProgress;
         if (progressFill != null) progressFill.fillAmount = currentProgress;
@@ -90,7 +89,7 @@ public class FaceGameManager : MonoBehaviour
     void GameStart()
     {
         outerframe.sprite = normalSprite;
-        bubbleImage.gameObject.SetActive(true);
+        bubbleImage.StartGame();
         isBegin = true;
     }
 
@@ -145,12 +144,14 @@ public class FaceGameManager : MonoBehaviour
     void GameWin()
     {
         isGameActive = false;
-        bubbleImage.DOFade(0f, 0.5f).OnComplete(() => {
-            bubbleImage.sprite = seccesBubble;
-            bubbleImage.DOFade(1f, 0.5f).OnComplete(() => {
-                AudioManager.Instance.PlayShortSound(tackPictureAudioClip, 0.8f);
-                StartCoroutine(PlayHarvestEffectAndCloseUI()); });
-        });
+        bubbleImage.GameWin();
+        AudioManager.Instance.PlayShortSound(tackPictureAudioClip, 0.8f);
+        StartCoroutine(PlayHarvestEffectAndCloseUI());
+        //bubbleImage.DOFade(0f, 0.5f).OnComplete(() => {
+        //    bubbleImage.sprite = seccesBubble;
+        //    bubbleImage.DOFade(1f, 0.5f).OnComplete(() => {
+        //        });
+        //});
         Debug.Log("钓鱼成功！");
     }
 
