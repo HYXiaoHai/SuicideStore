@@ -1,6 +1,9 @@
 using Cinemachine;
 using DG.Tweening;
+using System;
 using System.Collections;
+using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -23,6 +26,21 @@ public class Scene9Maneg : MonoBehaviour
     public Transform steamEndPos;                       // steam 结束位置
     private int clickCount = 0;
     private bool isFootCompleted = false;
+
+    [Header("穿插剧情")]
+    public CanvasGroup storyCanvasGroup;               //剧情CanvasGroup
+    public TextMeshProUGUI dialogueText;   //对话文字
+    public GameObject continueTip;         // 继续提示（可选）
+    private bool isStoryStart = false;
+    private bool isStoryEnd = false;
+    public float typeSpeed = 0.12f;
+    private List<string> lines = new List<string>()
+    {
+        "我：你先休息一下，我看看发生了什么",
+        "我：或许..前任列车长的记录里，会有答案..."
+    };
+    private int index = 0;
+    private bool isTyping = false;
 
     [Header("第二关 - 拼图")]
     public bool isPuzzleViewOpen = false;//是否处于拼图自由视角
@@ -61,6 +79,8 @@ public class Scene9Maneg : MonoBehaviour
         clickCount = 0;
         currentLevel = 1;
         isFootCompleted = false;
+        //初始化举起
+        storyCanvasGroup.alpha = 0f;//开启剧情
 
         puzzleButton.onClick.AddListener(EnterPuzzleView);
         puzzleButton.gameObject.SetActive(false);
@@ -91,7 +111,25 @@ public class Scene9Maneg : MonoBehaviour
             clickCount++;
             ShowFootprint(clickCount - 1);
         }
-
+        //第二关：点击鼠标左键继续
+        if (currentLevel == 2&& isStoryStart&& !isStoryEnd && Input.GetMouseButtonDown(0))
+        {
+            if (isTyping)
+            {
+                // 正在打字时点击：直接显示完整句子
+                StopAllCoroutines();
+                if (index < lines.Count)
+                    dialogueText.text = lines[index];
+                isTyping = false;
+                ShowContinue(true);
+            }
+            else
+            {
+                // 打完一句，点击进入下一句
+                if (index < lines.Count)
+                    NextLine();
+            }
+        }
         //// 第二关：ESC 退出拼图视角
         //if (Input.GetKeyDown(KeyCode.Escape) && isPuzzleViewOpen)
         //{
@@ -129,13 +167,18 @@ public class Scene9Maneg : MonoBehaviour
         yield return steamTween.WaitForCompletion();
 
         //// 2. 平移第一关整体（父物体）
-        //Tween moveTween = footParent.transform.DOMove(footEndPosition.position, 1f).SetEase(Ease.InOutSine);
         footParent.gameObject.SetActive(false);
 
         StartLevel2FadeIn();
 
         yield return new WaitForSeconds(1f);
-        steamImage.transform.DOMove(steamStartPos.position, 1f).SetEase(Ease.OutCubic);
+        steamImage.transform.DOMove(steamStartPos.position, 1f).SetEase(Ease.OutCubic).OnComplete(() =>{
+            storyCanvasGroup.DOFade(1f, 0.5f).OnComplete(() => {
+                isStoryStart = true;
+                DOVirtual.DelayedCall(0.5f, () => StartType());
+            });
+
+        });
     }
 
     private void StartLevel2FadeIn()
@@ -147,13 +190,79 @@ public class Scene9Maneg : MonoBehaviour
         {
             fadeSeq.Join(sr.DOFade(1f, puzzleFadeDuration));
         }
-        //淡入完成后激活拼图按钮并启动拼图管理器
-        fadeSeq.OnComplete(() =>
+        ////淡入完成后激活拼图按钮并启动拼图管理器
+        //fadeSeq.OnComplete(() =>
+        //{
+        //    //puzzleButton.gameObject.SetActive(true);
+        //    //PathPuzzleManage.Instance.StartGame();
+        //});
+        fadeSeq.Play();
+    }
+    // ----------- 剧情系统 -----------
+    void StartType()
+    {
+        if (index >= lines.Count)
         {
+            EndDialogue();
+            return;
+        }
+        isTyping = true;
+        ShowContinue(false);
+        StartCoroutine(ShowText());
+    }
+
+    IEnumerator ShowText()
+    {
+        if (index >= lines.Count) yield break;
+        dialogueText.text = "";
+        foreach (char c in lines[index])
+        {
+            dialogueText.text += c;
+            yield return new WaitForSeconds(typeSpeed);
+        }
+
+        isTyping = false;
+        ShowContinue(true);
+    }
+
+    void NextLine()
+    {
+        // 确保 index 合法
+        if (index >= lines.Count)
+        {
+            EndDialogue();
+            return;
+        }
+        index++;
+        if (index >= lines.Count)
+        {
+            // 所有对话打完，只显示结束提示，不跳转
+            EndDialogue();
+            return;
+        }
+
+        StartType();
+    }
+
+    void ShowContinue(bool show)
+    {
+        if (continueTip != null)
+            continueTip.SetActive(show);
+    }
+
+    void EndDialogue()
+    {
+        isStoryEnd = true;
+        // 对话结束：隐藏继续提示，或者你可以在这里加自己的收尾逻辑
+        storyCanvasGroup.DOFade(0f, 0.5f).OnComplete(() => {
             puzzleButton.gameObject.SetActive(true);
             PathPuzzleManage.Instance.StartGame();
+            storyCanvasGroup.gameObject.SetActive(false);
         });
-        fadeSeq.Play();
+        Debug.Log("对话已全部结束！");
+        ///对话结束后激活拼图按钮并启动拼图管理器
+      
+        // 这里什么都不写，对话结束就停在原地，不影响场景
     }
 
     // ---------- 第二关逻辑 ----------

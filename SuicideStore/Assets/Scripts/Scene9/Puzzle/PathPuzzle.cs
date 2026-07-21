@@ -9,12 +9,12 @@ public class PathPuzzle : MonoBehaviour
     public int currentIndex;
     public SpriteRenderer spriteRenderer;
 
-    private Vector3 offset;
+    public Vector3 offset;
     private Camera mainCamera;
     private Rigidbody2D rb;
     private Collider2D itemCollider;
     private Vector3 originalPosition;
-    private bool isMoving = false;
+    public bool isMoving = false;
     private Vector3 originalScale;
     private Tween scaleTween;
 
@@ -73,13 +73,32 @@ public class PathPuzzle : MonoBehaviour
 
     void OnMouseDown()
     {
-        if (GameManage.Instance.isSetting) return;
-        if (!PathPuzzleManage.Instance.isGameStarted || isMoving) return;
-        if (!Scene9Maneg.Instance.isPuzzleViewOpen) return;
-        if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject()) return;
+        isDragging = false;
 
+
+        if (GameManage.Instance.isSetting)
+        {
+            Debug.Log("OnMouseDown" + "游戏暂停");
+            return;
+        }
+        if (!PathPuzzleManage.Instance.isGameStarted || isMoving)
+        {
+            Debug.Log("OnMouseDown" + "游戏没开始或正在移动");
+            return;
+        }
+        if (!Scene9Maneg.Instance.isPuzzleViewOpen)
+        {
+            Debug.Log("OnMouseDown" + "游戏没进入视角");
+            return;
+        }
+        if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
+        {
+            Debug.Log("OnMouseDown" + "没摁到");
+            return;
+        }
+        Debug.Log("OnMouseDown进入");
         AudioManager.Instance.Play2DSound(clickClip, 0.8f);
-
+        StopAllTweens();
         if (currentShakeTween != null && currentShakeTween.IsActive())
         {
             currentShakeTween.Kill();
@@ -97,10 +116,13 @@ public class PathPuzzle : MonoBehaviour
 
     void OnMouseDrag()
     {
+        Debug.Log("OnMouseDown" + isDragging);
         if (GameManage.Instance.isSetting) return;
         if (isMoving) return;
+        if (!isDragging) return;
         if (!PathPuzzleManage.Instance.isGameStarted) return;
         if (!Scene9Maneg.Instance.isPuzzleViewOpen) return;
+        Debug.Log("OnMouseDown");
 
         transform.position = GetMouseWorldPos() + offset;
         spriteRenderer.sortingOrder = 3;
