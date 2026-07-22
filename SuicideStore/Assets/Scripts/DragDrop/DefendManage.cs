@@ -228,6 +228,7 @@ public class DefendManage : MonoBehaviour
         if (specialDefendButton == null) return;
         specialDefendButton.gameObject.SetActive(true);
         specialDefendButton.interactable = true;
+        specialDefendButton.image.DOKill();
         specialDefendButton.image.DOFade(1f, 0.3f);
     }
 
@@ -316,6 +317,8 @@ public class DefendManage : MonoBehaviour
         {
             p.enabled = false; // ½ûÓÃ½Å±¾£¬×èÖ¹ÍÏ×§
         }
+        defendCanvasGroup.DOKill();
+
         defendCanvasGroup.DOFade(0f, 3.5f).SetEase(Ease.InExpo).OnComplete(() => {
             if (FloatingBubbleManager.Instance != null)
                 FloatingBubbleManager.Instance.ClearAllBubbles();
@@ -383,8 +386,8 @@ public class DefendManage : MonoBehaviour
             DialogueBubble bubble = child.GetComponent<DialogueBubble>();
             if (bubble != null)
             {
+                child.DOKill();
                 bubble.DestroyBubble();
-
                 //Destroy(child.gameObject);
             }
         }

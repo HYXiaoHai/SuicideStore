@@ -282,4 +282,8 @@ public class Puzzle : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
             StartFloating();
         }
     }
+    private void OnDestroy()
+    {
+        DOTween.Kill(gameObject);
+    }
 }

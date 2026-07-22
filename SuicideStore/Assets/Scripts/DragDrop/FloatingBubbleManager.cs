@@ -1,5 +1,7 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using System.Collections.Generic;
+using DG.Tweening;
+
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -8,24 +10,24 @@ public class FloatingBubbleManager : MonoBehaviour
 {
     public static FloatingBubbleManager Instance;
 
-    [Header("Æ¯¸¡ÆøÅİÔ¤ÖÆÌå")]
+    [Header("æ¼‚æµ®æ°”æ³¡é¢„åˆ¶ä½“")]
     public GameObject[] floatingBubblePrefabs;
-    [Header("Æ¯¸¡ÆøÅİ¸¸ÎïÌå")]
+    [Header("æ¼‚æµ®æ°”æ³¡çˆ¶ç‰©ä½“")]
     public Transform floatingBubbleFather;
 
-    [Header("Æ¯¸¡ÆøÅİÉú³É±ß½ç£¨Ïà¶ÔÓÚ¸¸½Úµã¾Ö²¿×ø±ê£©")]
+    [Header("æ¼‚æµ®æ°”æ³¡ç”Ÿæˆè¾¹ç•Œï¼ˆç›¸å¯¹äºçˆ¶èŠ‚ç‚¹å±€éƒ¨åæ ‡ï¼‰")]
     public float dragLeft = -500f;
     public float dragRight = 500f;
     public float dragBottom = -300f;
     public float dragTop = 300f;
 
-    [Header("¿ÉÊÓ»¯²Î¿¼£¨ÓÃÓÚSceneÊÓÍ¼ÏÔÊ¾±ß½ç£©")]
+    [Header("å¯è§†åŒ–å‚è€ƒï¼ˆç”¨äºSceneè§†å›¾æ˜¾ç¤ºè¾¹ç•Œï¼‰")]
     public RectTransform visualizationParent;
 
     private int currentRound = 0;
-    private int maxBubbleCount = 5;      // ÆÕÍ¨ÆøÅİ×î´óÊıÁ¿
-    private int currentBubbleCount = 0;  // µ±Ç°ÆÕÍ¨ÆøÅİÊıÁ¿£¨ÌØÊâÆøÅİ²»¼ÆÊı£©
-    private int specialBubbleCount = 0;      // µ±Ç°ÌØÊâÆøÅİÊıÁ¿£¨½öÍ³¼Æ£¬²»ÏŞÖÆ£©
+    private int maxBubbleCount = 5;      // æ™®é€šæ°”æ³¡æœ€å¤§æ•°é‡
+    private int currentBubbleCount = 0;  // å½“å‰æ™®é€šæ°”æ³¡æ•°é‡ï¼ˆç‰¹æ®Šæ°”æ³¡ä¸è®¡æ•°ï¼‰
+    private int specialBubbleCount = 0;      // å½“å‰ç‰¹æ®Šæ°”æ³¡æ•°é‡ï¼ˆä»…ç»Ÿè®¡ï¼Œä¸é™åˆ¶ï¼‰
     private List<GameObject> activeBubbles = new List<GameObject>();
 
     private void Awake()
@@ -64,16 +66,16 @@ public class FloatingBubbleManager : MonoBehaviour
 
     public bool TryAddFloatingBubble(string content, bool isSpecial)
     {
-        // ÆÕÍ¨ÆøÅİ£º¼ì²éÊıÁ¿ÉÏÏŞ
+        // æ™®é€šæ°”æ³¡ï¼šæ£€æŸ¥æ•°é‡ä¸Šé™
         if (!isSpecial && currentBubbleCount >= maxBubbleCount)
         {
-            Debug.Log($"±¾ÂÖÆÕÍ¨ÆøÅİÒÑ´ïÉÏÏŞ {maxBubbleCount}£¬ÎŞ·¨Éú³ÉĞÂÆøÅİ");
+            Debug.Log($"æœ¬è½®æ™®é€šæ°”æ³¡å·²è¾¾ä¸Šé™ {maxBubbleCount}ï¼Œæ— æ³•ç”Ÿæˆæ–°æ°”æ³¡");
             return false;
         }
 
         if (floatingBubblePrefabs == null)
         {
-            Debug.LogError("FloatingBubbleManager: floatingBubblePrefab Î´¸³Öµ");
+            Debug.LogError("FloatingBubbleManager: floatingBubblePrefab æœªèµ‹å€¼");
             return false;
         }
         Transform parent = floatingBubbleFather != null ? floatingBubbleFather : transform;
@@ -82,7 +84,7 @@ public class FloatingBubbleManager : MonoBehaviour
         FloatingBubble bubble = bubbleObj.GetComponent<FloatingBubble>();
         if (bubble == null)
         {
-            Debug.LogError("Æ¯¸¡ÆøÅİÔ¤ÖÆÌåÈ±ÉÙ FloatingBubble ×é¼ş");
+            Debug.LogError("æ¼‚æµ®æ°”æ³¡é¢„åˆ¶ä½“ç¼ºå°‘ FloatingBubble ç»„ä»¶");
             Destroy(bubbleObj);
             return false;
         }
@@ -113,7 +115,14 @@ public class FloatingBubbleManager : MonoBehaviour
     {
         foreach (var bubble in activeBubbles)
         {
-            if (bubble != null) Destroy(bubble);
+            if (bubble != null)
+            {
+                bubble.transform.DOKill();
+                CanvasGroup cg = bubble.GetComponent<CanvasGroup>();
+                if (cg != null) cg.DOKill();
+                DOTween.Kill(bubble);
+                Destroy(bubble);
+            }
         }
         activeBubbles.Clear();
         currentBubbleCount = 0;

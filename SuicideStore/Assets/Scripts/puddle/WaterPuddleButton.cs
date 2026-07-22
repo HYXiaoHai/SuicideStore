@@ -35,9 +35,7 @@ public class WaterPuddleButton : MonoBehaviour, IPointerEnterHandler, IPointerEx
         transform.DOScale(originalScale, animationDuration);
     }
 
-    /// <summary>
     /// 播放一次性的 Animator 动画
-    /// </summary>
     public void PlayAnimation()
     {
         if (animator != null && !string.IsNullOrEmpty(animationName))

@@ -1,57 +1,62 @@
-using DG.Tweening;
+ï»¿using DG.Tweening;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.Playables;
-using UnityEngine.Rendering.Universal;  // ÓÃÓÚĞ­³Ì
 using UnityEngine.UI;
 
 public class SimpleWaterPuddleManager : MonoBehaviour
 {
-    public CanvasGroup canvasGroup;//ÓÃÓÚ¿ª¾ÖµÄ×ª³¡
-
-    [Header("Ë®Íİ°´Å¥£¨°´Ë³ĞòË÷Òı0,1,2£©")]
+    [Header("æ°´æ´¼æŒ‰é’®ï¼ˆæŒ‰é¡ºåºç´¢å¼•0,1,2ï¼‰")]
     [SerializeField] private Button[] puddles = new Button[3];
 
-    [Header("½ÅÓ¡£¨°´ÏÔÊ¾Ë³Ğò£©")]
+    [Header("è„šå°ï¼ˆæŒ‰æ˜¾ç¤ºé¡ºåºï¼‰")]
     public Image footprint1;
     public Image footprint2;
     public Image footprint3;
     public Image footprint4;
 
-    [Header("Í¸Ã÷¶È¶¯»­Ê±³¤")]
+    [Header("é€æ˜åº¦åŠ¨ç”»æ—¶é•¿")]
     [SerializeField] private float fadeDuration = 1f;
 
-    [Header("Æô¶¯TimelineµÄ°´Å¥")]
+    [Header("ä¹ä¹è·³è·ƒåŠ¨ç”»")]
+    public Image leleAniImage;          // ä¹ä¹æœ¬ä½“
+    public Image leleREAniImage;        // ä¹ä¹å€’å½±
+    public Sprite[] leleJumpSprites1;    // 1â†’2 è·³è·ƒå¸§ï¼ˆæœ¬ä½“ï¼‰
+    public Sprite[] leleJumpSprites2;    // 2â†’3 è·³è·ƒå¸§ï¼ˆæœ¬ä½“ï¼‰
+    public Sprite[] leleREJumpSprites1;  // 1â†’2 è·³è·ƒå¸§ï¼ˆå€’å½±ï¼‰
+    public Sprite[] leleREJumpSprites2;  // 2â†’3 è·³è·ƒå¸§ï¼ˆå€’å½±ï¼‰
+    [SerializeField] private float frameInterval = 0.08f;
+    [SerializeField] private float jumpToPuddleDelay = 0.2f;
+
+    [Header("å¯åŠ¨Timelineçš„æŒ‰é’®")]
     public Button switchButton;
-    public float switchButtonTargetScale = 1.7542f;  // Ä¿±êËõ·ÅÖµ
-    public float switchButtonAnimDuration = 0.5f;    // ¶¯»­Ê±³¤
+    public float switchButtonTargetScale = 1.7542f;
+    public float switchButtonAnimDuration = 0.5f;
     public PlayableDirector timeline;
 
-    [Header("ÒôĞ§")]
+    [Header("éŸ³æ•ˆ")]
     public AudioClip puddles1Clip;
     public AudioClip puddles2Clip;
     public AudioClip puddles3Clip;
-    [Header("BGM")]
-    public AudioClip BGM1Clip;//µ±Ç°¹ØBGM
-    public AudioClip BGM2Clip;//ÏÂÒ»¹ØµÄBGM
-    [SerializeField] private float bgmFadeDuration = 1f;  // BGM µ­Èëµ­³öÊ±³¤
 
-    private int currentIndex = 0;      // µ±Ç°µÈ´ı±»µã»÷µÄË®ÍİË÷Òı
-    private bool isComplete = false;    // ÊÇ·ñÒÑÍê³ÉËùÓĞ½»»¥
-    private float originalBGMVolume;             // ¼ÇÂ¼Ô­Ê¼ BGM ÒôÁ¿
+    [Header("BGM")]
+    public AudioClip BGM1Clip;
+    public AudioClip BGM2Clip;
+    [SerializeField] private float bgmFadeDuration = 1f;
+
+    private int currentIndex = 0;
+    private bool isComplete = false;
+    private bool isAnimating = false;
 
     void Start()
     {
-        if(TransitionManage.Instance!=null)
-        {
+        if (TransitionManage.Instance != null)
             TransitionManage.Instance.FadeIn(1f, Color.white);
-        }
 
-        // Ô¤¼ÓÔØËùÓĞ BGM Clip£¬±ÜÃâÇĞ»»Ê±¿¨¶Ù
         if (BGM1Clip != null) BGM1Clip.LoadAudioData();
         if (BGM2Clip != null) BGM2Clip.LoadAudioData();
 
-        // ³õÊ¼½ûÓÃËùÓĞË®Íİ½»»¥£¬Í¸Ã÷¶ÈÉèÎª0
+        // åˆå§‹åŒ–æ°´æ´¼
         foreach (var btn in puddles)
         {
             if (btn != null)
@@ -67,58 +72,185 @@ public class SimpleWaterPuddleManager : MonoBehaviour
             }
         }
 
-        // Ìí¼Óµã»÷¼àÌı
         for (int i = 0; i < puddles.Length; i++)
         {
             int index = i;
             puddles[i].onClick.AddListener(() => OnPuddleClicked(index));
         }
 
-        // ³õÊ¼Òş²ØËùÓĞ½ÅÓ¡£¨Í¸Ã÷¶È0£©
         SetFootprintAlpha(footprint1, 0f);
         SetFootprintAlpha(footprint2, 0f);
         SetFootprintAlpha(footprint3, 0f);
         SetFootprintAlpha(footprint4, 0f);
 
-        // Òş²ØÇĞ»»°´Å¥
+        // ä¹ä¹æœ¬ä½“åˆå§‹éšè—
+        if (leleAniImage != null)
+        {
+            leleAniImage.gameObject.SetActive(false);
+            leleAniImage.color = new Color(leleAniImage.color.r, leleAniImage.color.g, leleAniImage.color.b, 0f);
+        }
+
+        // ğŸ”´ æ–°å¢ï¼šä¹ä¹å€’å½±åˆå§‹éšè—
+        if (leleREAniImage != null)
+        {
+            leleREAniImage.gameObject.SetActive(false);
+            leleREAniImage.color = new Color(leleREAniImage.color.r, leleREAniImage.color.g, leleREAniImage.color.b, 0f);
+        }
+
         if (switchButton != null)
         {
             switchButton.transform.localScale = Vector3.zero;
             switchButton.gameObject.SetActive(false);
         }
 
-        // ¿ªÊ¼Ö»ÏÔÊ¾µÚÒ»¸öË®Íİ
         SetPuddleActive(0, true);
         for (int i = 1; i < puddles.Length; i++)
-        {
             SetPuddleActive(i, false);
+    }
+
+    // ---------- è·³è·ƒåŠ¨ç”»ï¼ˆåŒæ­¥æ’­æ”¾æœ¬ä½“+å€’å½±ï¼‰ ----------
+    private IEnumerator PlayLeLeJumpCoroutine(Sprite[] jumpSprites, Sprite[] reJumpSprites)
+    {
+        if (jumpSprites == null || jumpSprites.Length == 0)
+            yield break;
+
+        // æ£€æŸ¥å€’å½±æ•°ç»„æ˜¯å¦æœ‰æ•ˆä¸”é•¿åº¦ä¸€è‡´
+        bool hasRe = reJumpSprites != null && reJumpSprites.Length == jumpSprites.Length;
+
+        for (int i = 0; i < jumpSprites.Length; i++)
+        {
+            // è®¾ç½®æœ¬ä½“
+            leleAniImage.sprite = jumpSprites[i];
+            // å¦‚æœæœ‰å¯¹åº”çš„å€’å½±å¸§ï¼ŒåŒæ­¥è®¾ç½®
+            if (hasRe)
+                leleREAniImage.sprite = reJumpSprites[i];
+
+            yield return new WaitForSeconds(frameInterval);
         }
     }
 
+    // ---------- æ’­æ”¾æ°´æ´¼åŠ¨ç”»ï¼ˆå°è£…ï¼‰ ----------
+    private void PlayPuddleAnimation(int index)
+    {
+        WaterPuddleButton btnCtrl = puddles[index].GetComponent<WaterPuddleButton>();
+        if (btnCtrl != null)
+        {
+            btnCtrl.PlayAnimation();
+            btnCtrl.IsClick();
+        }
+    }
+
+    // ---------- æ ¸å¿ƒç‚¹å‡»é€»è¾‘ ----------
+    private void OnPuddleClicked(int clickedIndex)
+    {
+        if (isComplete || clickedIndex != currentIndex || isAnimating)
+            return;
+
+        puddles[clickedIndex].interactable = false;
+
+        isAnimating = true;
+        StartCoroutine(HandleClickSequence(clickedIndex));
+    }
+
     /// <summary>
-    /// ÉèÖÃË®ÍİµÄ¿É¼ûĞÔºÍ½»»¥ĞÔ£¨Í¸Ã÷¶È¶¯»­£©
+    /// æŒ‰é¡ºåºå¤„ç†ç‚¹å‡»åçš„æ‰€æœ‰åŠ¨ç”»å’Œé€»è¾‘
     /// </summary>
+    private IEnumerator HandleClickSequence(int index)
+    {
+        // ----- æ°´æ´¼1ï¼šæ’­æ”¾æ°´æ´¼åŠ¨ç”»ï¼ŒåŒæ—¶æ¸æ˜¾æœ¬ä½“å’Œå€’å½± -----
+        if (index == 0)
+        {
+            PlayPuddleAnimation(index);
+            yield return new WaitForSeconds(jumpToPuddleDelay);
+
+            // æ¸æ˜¾æœ¬ä½“
+            if (leleAniImage != null && !leleAniImage.gameObject.activeSelf)
+            {
+                leleAniImage.gameObject.SetActive(true);
+                leleAniImage.DOFade(1f, 1f).SetEase(Ease.OutQuad);
+            }
+            // æ¸æ˜¾å€’å½±
+            if (leleREAniImage != null && !leleREAniImage.gameObject.activeSelf)
+            {
+                leleREAniImage.gameObject.SetActive(true);
+                leleREAniImage.DOFade(1f, 1f).SetEase(Ease.OutQuad);
+            }
+        }
+        // ----- æ°´æ´¼2ï¼šè·³è·ƒåŠ¨ç”»1ï¼ˆæœ¬ä½“+å€’å½±ï¼‰ â†’ æ°´æ´¼åŠ¨ç”» -----
+        else if (index == 1)
+        {
+            if (leleJumpSprites1 != null && leleJumpSprites1.Length > 0)
+                yield return StartCoroutine(PlayLeLeJumpCoroutine(leleJumpSprites1, leleREJumpSprites1));
+            else
+                Debug.LogWarning("è·³è·ƒåŠ¨ç”»1 å¸§æ•°ç»„ä¸ºç©º");
+
+            PlayPuddleAnimation(index);
+        }
+        // ----- æ°´æ´¼3ï¼šè·³è·ƒåŠ¨ç”»2ï¼ˆæœ¬ä½“+å€’å½±ï¼‰ â†’ æ°´æ´¼åŠ¨ç”» -----
+        else if (index == 2)
+        {
+            if (leleJumpSprites2 != null && leleJumpSprites2.Length > 0)
+                yield return StartCoroutine(PlayLeLeJumpCoroutine(leleJumpSprites2, leleREJumpSprites2));
+            else
+                Debug.LogWarning("è·³è·ƒåŠ¨ç”»2 å¸§æ•°ç»„ä¸ºç©º");
+
+            PlayPuddleAnimation(index);
+        }
+
+        ProcessClick(index);
+        isAnimating = false;
+    }
+
+    /// <summary>
+    /// å¤„ç†ç‚¹å‡»åçš„å›ºå®šé€»è¾‘ï¼šæ˜¾ç¤ºè„šå°ã€æ’­æ”¾éŸ³æ•ˆã€æ¿€æ´»ä¸‹ä¸€æ°´æ´¼
+    /// </summary>
+    private void ProcessClick(int index)
+    {
+        switch (index)
+        {
+            case 0:
+                ShowFootprint(footprint1);
+                AudioManager.Instance.PlayShortSound(puddles1Clip, 0.8f);
+                StartCoroutine(DelayedShowFootprint(footprint2, 0.2f));
+                break;
+            case 1:
+                AudioManager.Instance.PlayShortSound(puddles2Clip, 0.8f);
+                ShowFootprint(footprint3);
+                break;
+            case 2:
+                AudioManager.Instance.PlayShortSound(puddles3Clip, 0.8f);
+                ShowFootprint(footprint4);
+                StartCoroutine(ShowSwitchButtonAfterDelay(0.5f));
+                break;
+        }
+
+        if (index + 1 < puddles.Length)
+        {
+            currentIndex = index + 1;
+            SetPuddleActive(currentIndex, true);
+        }
+        else
+        {
+            isComplete = true;
+        }
+    }
+
+    // ---------- è¾…åŠ©æ–¹æ³• ----------
     private void SetPuddleActive(int index, bool active)
     {
         if (puddles[index] == null) return;
-
         Button btn = puddles[index];
         Image img = btn.GetComponent<Image>();
         if (img == null)
         {
-            Debug.LogError($"Ë®Íİ {index} È±ÉÙ Image ×é¼ş£¡");
+            Debug.LogError($"æ°´æ´¼ {index} ç¼ºå°‘ Image ç»„ä»¶ï¼");
             return;
         }
-
         btn.interactable = active;
         float targetAlpha = active ? 1f : 0f;
         img.DOFade(targetAlpha, fadeDuration).SetEase(Ease.OutQuad);
-
     }
 
-    /// <summary>
-    /// ÉèÖÃµ¥¸ö½ÅÓ¡µÄÍ¸Ã÷¶È£¨ÎŞ¶¯»­£¬ÓÃÓÚ³õÊ¼£©
-    /// </summary>
     private void SetFootprintAlpha(Image footprint, float alpha)
     {
         if (footprint != null)
@@ -129,66 +261,10 @@ public class SimpleWaterPuddleManager : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// ½¥ÏÔÒ»¸ö½ÅÓ¡
-    /// </summary>
     private void ShowFootprint(Image footprint, float duration = 0.5f)
     {
         if (footprint != null)
-        {
             footprint.DOFade(1f, duration).SetEase(Ease.OutQuad);
-        }
-    }
-
-    /// <summary>
-    /// µã»÷Ë®ÍİµÄ´¦Àí
-    /// </summary>
-    private void OnPuddleClicked(int clickedIndex)
-    {
-        if (isComplete || clickedIndex != currentIndex) return;
-
-        // 1. ²¥·ÅË®¿Ó¶¯»­£¨Ò»´ÎĞÔ£©
-        WaterPuddleButton btnCtrl = puddles[clickedIndex].GetComponent<WaterPuddleButton>();
-        if (btnCtrl != null)
-        {
-            btnCtrl.PlayAnimation();   // ²¥·Å Animator ¶¯»­
-            btnCtrl.IsClick();         // ±ê¼ÇÒÑµã»÷£¬½ûÓÃĞüÍ£Ëõ·Å
-        }
-
-        // 2. µ±Ç°Ë®Íİµ­³öÏûÊ§
-        //SetPuddleActive(currentIndex, false);
-
-        // 3. ¸ù¾İµã»÷µÄÊÇµÚ¼¸¸öË®Íİ£¬ÏÔÊ¾¶ÔÓ¦µÄ½ÅÓ¡
-        switch (currentIndex)
-        {
-            case 0: // µã»÷µÚÒ»¸öË®¿Ó ¡ú ÏÔÊ¾½ÅÓ¡1ºÍ½ÅÓ¡2£¨ÒÀ´Î£©
-                ShowFootprint(footprint1);
-                AudioManager.Instance.PlayShortSound(puddles1Clip, 0.8f);
-                // ÑÓ³Ù0.2ÃëÏÔÊ¾µÚ¶ş¸ö½ÅÓ¡£¬Ôö¼ÓË³Ğò¸Ğ
-                StartCoroutine(DelayedShowFootprint(footprint2, 0.2f));
-                break;
-            case 1: // µã»÷µÚ¶ş¸öË®¿Ó ¡ú ÏÔÊ¾½ÅÓ¡3
-                AudioManager.Instance.PlayShortSound(puddles2Clip, 0.8f);
-                ShowFootprint(footprint3);
-                break;
-            case 2: // µã»÷µÚÈı¸öË®¿Ó ¡ú ÏÔÊ¾½ÅÓ¡4£¬Ö®ºóÏÔÊ¾ÇĞ»»°´Å¥
-                AudioManager.Instance.PlayShortSound(puddles3Clip, 0.8f);
-                ShowFootprint(footprint4);
-                StartCoroutine(ShowSwitchButtonAfterDelay(0.5f));
-                break;
-        }
-
-        // 4. ¼¤»îÏÂÒ»¸öË®Íİ£¨Èç¹û»¹ÓĞ£©
-        if (currentIndex + 1 < puddles.Length)
-        {
-            currentIndex++;
-            SetPuddleActive(currentIndex, true);
-        }
-        else
-        {
-            // ËùÓĞË®ÍİÒÑµã»÷Íê³É£¨µ«µÚÈı¸öË®¿ÓµÄºóĞø´¦ÀíÒÑÔÚcaseÖĞÖ´ĞĞ£©
-            isComplete = true;
-        }
     }
 
     private IEnumerator DelayedShowFootprint(Image footprint, float delay)
@@ -197,40 +273,37 @@ public class SimpleWaterPuddleManager : MonoBehaviour
         ShowFootprint(footprint);
     }
 
-    //
     private IEnumerator ShowSwitchButtonAfterDelay(float delay)
     {
         yield return new WaitForSeconds(delay);
+        leleAniImage.DOFade(0f, 1f);
+        leleREAniImage.DOFade(0f, 1f);
+
         if (switchButton != null)
         {
             switchButton.gameObject.SetActive(true);
-            // ÉèÖÃ³õÊ¼Ëõ·ÅÎª 0£¨¶¯»­Æğµã£©
             switchButton.transform.localScale = Vector3.zero;
-            // ÉèÖÃ³õÊ¼Ëõ·ÅÎª0£¬È»ºó²¥·Å·Å´ó¶¯»­
             switchButton.transform.DOScale(switchButtonTargetScale, switchButtonAnimDuration)
-                .SetEase(Ease.OutBack);  // Ê¹ÓÃµ¯ĞÔ»º¶¯£¬¸üÓĞ»îÁ¦
-
-            switchButton.onClick.RemoveAllListeners(); // ±ÜÃâÖØ¸´Ìí¼Ó
+                .SetEase(Ease.OutBack);
+            switchButton.onClick.RemoveAllListeners();
             switchButton.onClick.AddListener(OnSwitchButtonClick);
         }
     }
-    //ÇĞ»»ÏÂÒ»¹ØµÄ°´Å¥
+
     private void OnSwitchButtonClick()
     {
         switchButton.gameObject.SetActive(false);
-
         if (timeline != null)
         {
             timeline.stopped += OnTimelineStopped;
             timeline.Play();
         }
-        //ÇĞ»»BGM
         AudioManager.Instance.SwitchBGM(BGM2Clip, 1f);
     }
 
     private void OnTimelineStopped(PlayableDirector director)
     {
         director.stopped -= OnTimelineStopped;
-        DefendManage.Instance.StartScene2Dialogue();  // ÄãµÄÔ­ÓĞÂß¼­
+        DefendManage.Instance.StartScene2Dialogue();
     }
 }

@@ -109,5 +109,8 @@ public class FloatingBubble : MonoBehaviour, IPointerClickHandler
     {
         rectTransform.anchoredPosition = anchoredPos;
     }
-    
+    private void OnDestroy()
+    {
+        DOTween.Kill(gameObject);
+    }
 }
