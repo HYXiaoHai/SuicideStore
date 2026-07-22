@@ -90,7 +90,7 @@ public class SimpleWaterPuddleManager : MonoBehaviour
             leleAniImage.color = new Color(leleAniImage.color.r, leleAniImage.color.g, leleAniImage.color.b, 0f);
         }
 
-        // 🔴 新增：乐乐倒影初始隐藏
+        //新增：乐乐倒影初始隐藏
         if (leleREAniImage != null)
         {
             leleREAniImage.gameObject.SetActive(false);
@@ -276,8 +276,7 @@ public class SimpleWaterPuddleManager : MonoBehaviour
     private IEnumerator ShowSwitchButtonAfterDelay(float delay)
     {
         yield return new WaitForSeconds(delay);
-        leleAniImage.DOFade(0f, 1f);
-        leleREAniImage.DOFade(0f, 1f);
+
 
         if (switchButton != null)
         {
@@ -288,8 +287,23 @@ public class SimpleWaterPuddleManager : MonoBehaviour
             switchButton.onClick.RemoveAllListeners();
             switchButton.onClick.AddListener(OnSwitchButtonClick);
         }
+        yield return new WaitForSeconds(1f);
+        SwitchButtonMoveAniPlay();
+        leleAniImage.DOFade(0f, 1f);
+        leleREAniImage.DOFade(0f, 1f);
     }
-
+    public void SwitchButtonMoveAniPlay()
+    {
+        //泡泡上下浮动的动画
+        if (switchButton != null)
+        {
+            float moveDistance = 10f; //上下移动的距离
+            float moveDuration = 1f; //移动的时间
+            switchButton.transform.DOLocalMoveY(switchButton.transform.localPosition.y + moveDistance, moveDuration)
+                .SetLoops(-1, LoopType.Yoyo)
+                .SetEase(Ease.InOutSine);
+        }
+    }
     private void OnSwitchButtonClick()
     {
         switchButton.gameObject.SetActive(false);

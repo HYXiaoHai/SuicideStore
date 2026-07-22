@@ -1,6 +1,7 @@
 using DG.Tweening;
 using System.Collections;
 using UnityEngine;
+using UnityEngine.Analytics;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
@@ -15,10 +16,12 @@ public class ClockController : MonoBehaviour
 
     [Header("指针")]
     public Transform minuteHand;
+    public Image minuteHandImage;//用来做呼吸动画
     public Transform hourHand;
     [SerializeField] private float startAngle = 360f;  // 改为起始角度 360°（逆时针）
     [SerializeField] private float targetAngle = 0f;  //0;
     [SerializeField] private float handZeroOffset = 90f;
+    private Sequence minuteHandSeq; // 存储呼吸动画序列
 
     [Header("中心偏移（像素）")]
     public Vector2 handCenterOffset = Vector2.zero;
@@ -65,6 +68,8 @@ public class ClockController : MonoBehaviour
         UpdateHandPosition();
         UpdateHand();
         UpdateShader();
+
+        PlayMinuteHandAni();
     }
 
     void Update()
@@ -110,6 +115,10 @@ public class ClockController : MonoBehaviour
             if (IsMouseOverMinuteHand())
             {
                 isDragging = true;
+                if (minuteHandSeq != null && minuteHandSeq.IsPlaying())
+                {
+                    StopMinuteHandAni();
+                }
             }
         }
 
@@ -130,6 +139,10 @@ public class ClockController : MonoBehaviour
 
         if (Input.GetMouseButtonUp(0))
         {
+            if (isDragging)
+            {
+                PlayMinuteHandAni();
+            }
             isDragging = false;
         }
     }
@@ -204,10 +217,44 @@ public class ClockController : MonoBehaviour
 
         if (targetMaterial != null)
             targetMaterial.SetFloat("_Angle", targetAngle);   // 最终角度为0
+        StopMinuteHandAni();
         LoadScene();
         //StartCoroutine(TransitionRoutine());
     }
+    public void PlayMinuteHandAni()
+    {
+        if (minuteHandImage == null) return;
+        // 清除所有残留动画（包括独立 DOFade）
+        minuteHandImage.DOKill();
+        // 如果已有序列则先杀掉，避免重复创建
+        if (minuteHandSeq != null)
+        {
+            minuteHandSeq.Kill();
+            minuteHandSeq = null;
+        }
+        // 创建新序列
+        minuteHandSeq = DOTween.Sequence();
+        minuteHandSeq.Append(minuteHandImage.DOFade(1f, 0.5f).SetEase(Ease.InOutSine));
+        minuteHandSeq.Append(minuteHandImage.DOFade(0f, 0.5f).SetEase(Ease.InOutSine));
+        minuteHandSeq.Append(minuteHandImage.DOFade(1f, 0.5f).SetEase(Ease.InOutSine));
+        minuteHandSeq.SetLoops(-1);
+        minuteHandSeq.Play();
+    }
 
+    public void StopMinuteHandAni()
+    {
+        if (minuteHandSeq != null)
+        {
+            minuteHandSeq.Kill();
+            minuteHandSeq = null;
+        }
+        if (minuteHandImage != null)
+        {
+            // 执行淡出动画，结束后隐藏
+            minuteHandImage.DOKill(); // 防止残留动画
+            minuteHandImage.DOFade(0f, 0.5f).SetEase(Ease.InOutQuad);
+        }
+    }
     private IEnumerator TransitionRoutine()
     {
         float duration = 1f;
@@ -234,7 +281,6 @@ public class ClockController : MonoBehaviour
         if (minuteHandCG != null) minuteHandCG.interactable = false;
         if (hourHandCG != null) hourHandCG.interactable = false;
         if (clockCanvasGroup != null) clockCanvasGroup.interactable = false;
-
         if (!string.IsNullOrEmpty(nextSceneName))
         {
             TransitionManage.Instance.FadeOut(1f, Color.white, () =>
