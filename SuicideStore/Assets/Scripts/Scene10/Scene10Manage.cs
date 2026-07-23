@@ -21,16 +21,19 @@ public class Scene10Manage : MonoBehaviour
     public GameObject rightLevel2Father;//第二关右父物体
     public GameObject leftLevel2Father;//第二关左父物体
     public SpriteRenderer level2BG;//交互背景
+    public SpriteRenderer level2BGTMP;//交互背景 动画辅助
     public Sprite bg_sprit1;//背景图片
     public Sprite bg_sprit2;//背景图片
     public SpriteRenderer mother;//妈妈
     public SpriteRenderer father;//爸爸
     public SpriteRenderer son;//儿子 乐乐
+    public SpriteRenderer sonTmp;//儿子 乐乐(动画辅助)
     public SpriteRenderer pencil;//铅笔
     public SpriteRenderer eraser;//橡皮
     public SpriteRenderer l2Bubble1;//第二关 左侧气泡1
     public SpriteRenderer l2Bubble2;//气泡2
     public SpriteRenderer l2Bubble3;//气泡3
+    public SpriteRenderer l2Bubble4;//气泡3
     public SpriteRenderer[] level2Renderers;
     public Sprite image1;//切换图片1
     public Sprite image2;//切换图片1
@@ -39,6 +42,8 @@ public class Scene10Manage : MonoBehaviour
     public CanvasGroup transitionCanvas;//转场canvas
     public Transform sonPositon1;//切换位置1
     public Transform sonPositon2;//切换位置2
+    public TMP_Text level2Text;//通关后的提示
+    public bool needInputSpace = false;//是否需要按下空格键继续
     [Header("level3")]
     public GameObject level3Father;//关卡3的背景
     public CanvasGroup level3GameCanvas;
@@ -65,7 +70,17 @@ public class Scene10Manage : MonoBehaviour
         //button2.onClick.AddListener(OnButton2Click);
         //StartLevel1();
         StartLevel2();
+        needInputSpace = false;
     }
+    private void Update()
+    {
+        if(needInputSpace&&Input.GetKeyDown(KeyCode.Space))
+        {
+            needInputSpace = false;
+            Level2Complete();
+        }
+    }
+
     //开启第二关
     public void StartLevel2()
     {
@@ -85,23 +100,43 @@ public class Scene10Manage : MonoBehaviour
             case 0://第一阶段
                 son.sprite = image1;
                 son.transform.position = sonPositon1.position;
+                sonTmp.sprite = image2;
+                sonTmp.transform.position = sonPositon2.position;
                 level2BG.sprite = bg_sprit1;
+                level2BGTMP.sprite = bg_sprit2;
                 l2Bubble2.DOFade(0f, 1f);//隐藏对话2
                 l2Bubble3.DOFade(0f, 1f);//隐藏对话3
+                l2Bubble4.DOFade(0f, 1f);//隐藏对话3
                 break;
             case 1://第二阶段
-                son.sprite = image2;
-                son.transform.position = sonPositon2.position;
+                son.DOFade(0f, 0.5f).OnComplete(() => {
+                    son.sprite = image3;
+                    son.transform.position = sonPositon2.position;
+                });
+                sonTmp.DOFade(1f, 0.5f);
+
                 l2Bubble2.DOFade(1f, 1f);//显示对话2
                 l2Bubble3.DOFade(0f, 1f);//隐藏对话3
+                l2Bubble4.DOFade(0f, 1f);//隐藏对话3
                 break;
             case 2://第三阶段
-                son.sprite = image3;
-                level2BG.sprite = bg_sprit2;
+                son.DOFade(1f, 0.5f);
+                sonTmp.DOFade(0f, 0.5f);
+                //level2BG.sprite = bg_sprit2;
+                level2BGTMP.DOFade(1f, 1f);
                 l2Bubble3.DOFade(1f, 1f);//显示对话3
-                Level2Complete();
+                l2Bubble4.DOFade(1f, 1f);//显示对话3
+
+                //Level2Complete();
+                WaitInputSpace();
                 break;
         }
+    }
+    public void WaitInputSpace()
+    {
+        //等待玩家按下空格键继续
+        level2Text.DOFade(1f, 0.5f);
+        needInputSpace = true;
     }
     public void Level2Complete()
     {
@@ -112,6 +147,7 @@ public class Scene10Manage : MonoBehaviour
             rightLevel2Father.SetActive(false);
             rightRoundFather.SetActive(false);
             leftRoundFather.SetActive(false);
+            level2Text.transform.parent.gameObject.SetActive(false);
             Leve3Start();
         });
     }
