@@ -30,6 +30,9 @@ public class TwitchManage : MonoBehaviour
     public TMP_Text twitchText7;
 
     [Header("关卡切换")]
+    public TMP_Text changeText;//切换关卡提示文本
+    private bool needInputSpace = false;//需要按下空格键继续
+    private bool isLoading = false;//正在切换场景
     public string nextScene;
     public float changeDelay = 1f;
     private bool hasTriggeredSwitch = false;
@@ -64,6 +67,8 @@ public class TwitchManage : MonoBehaviour
             twitchSlider.interactable = !GameManage.Instance.isSetting;
         }
         UpdateDisplay(0f);
+        isLoading = false;
+        needInputSpace = false;
     }
 
     void Update()
@@ -71,6 +76,11 @@ public class TwitchManage : MonoBehaviour
         if (twitchSlider != null && twitchSlider.interactable == GameManage.Instance.isSetting)
         {
             twitchSlider.interactable = !GameManage.Instance.isSetting;
+        }
+        if (needInputSpace && Input.GetKeyDown(KeyCode.Space))
+        {
+            needInputSpace = false;
+            StartCoroutine(OnGrowthComplete());
         }
     }
 
@@ -171,7 +181,8 @@ public class TwitchManage : MonoBehaviour
         if (!hasTriggeredSwitch && Mathf.Approximately(value, 1f))
         {
             hasTriggeredSwitch = true;
-            StartCoroutine(OnGrowthComplete());
+            OpenNeedInputSpace();
+            //StartCoroutine(OnGrowthComplete());
         }
     }
 
@@ -216,12 +227,21 @@ public class TwitchManage : MonoBehaviour
             tween.Kill();
         tween = null;
     }
+    private void OpenNeedInputSpace()
+    {
+        if (needInputSpace || isLoading)
+            return; 
 
+        // 显示提示文本
+        if (changeText != null)
+            changeText.DOFade(1f, 0.5f);
+        needInputSpace = true;
+    }
     private IEnumerator OnGrowthComplete()
     {
         if (twitchSlider != null)
             twitchSlider.interactable = false;
-
+        isLoading = true;
         Debug.Log("成长完成，切换至下一关卡");
         yield return new WaitForSeconds(changeDelay);
         TransitionManage.Instance.FadeOut(1f, Color.black, () =>

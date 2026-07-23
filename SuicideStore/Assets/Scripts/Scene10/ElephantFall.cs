@@ -1,4 +1,5 @@
 using DG.Tweening;
+using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -13,6 +14,10 @@ public class ElephantFall : MonoBehaviour
     public SpriteRenderer balloonSprite;
     public float balloonUpwardDistance = 3f;
     public float balloonMoveDuration = 0.5f;
+
+    [Header("文案")]
+    public TMP_Text text1;
+    public TMP_Text text2;
 
     [Header("音效")]
     public AudioClip balloonSound;
@@ -97,7 +102,8 @@ public class ElephantFall : MonoBehaviour
         {
             Debug.Log("气球被点击，气球上升，小象开始下落");
         }
-
+        text1.DOFade(0f, 0.5f);
+        text2.DOFade(1f, 0.5f);
         // 气球上升动画 保留
         if (balloonSprite != null)
         {
