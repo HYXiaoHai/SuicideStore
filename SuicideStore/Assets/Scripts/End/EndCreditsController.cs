@@ -40,9 +40,9 @@ public class CreditsController : MonoBehaviour
 
     void Start()
     {
-        if (TransitionManage.Instance != null)
-            TransitionManage.Instance.FadeIn(1f, Color.black);
-
+        //if (TransitionManage.Instance != null)
+        //    TransitionManage.Instance.FadeIn(1.5f, Color.black);
+        StartCoroutine(SceneStart());
         // ³õÊ¼Í¸Ã÷
         if (endLabel != null) endLabel.alpha = 0;
         if (gameTitle != null) gameTitle.alpha = 0;
@@ -78,6 +78,12 @@ public class CreditsController : MonoBehaviour
         {
             SkipCredits();
         }
+    }
+    IEnumerator SceneStart()
+    {
+        yield return new WaitForSeconds(1f);
+        if (TransitionManage.Instance != null)
+            TransitionManage.Instance.FadeIn(1f, Color.black);
     }
 
     IEnumerator PlayVideoThenCredits()

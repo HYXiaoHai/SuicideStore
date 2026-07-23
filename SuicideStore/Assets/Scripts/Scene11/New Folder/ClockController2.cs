@@ -236,7 +236,8 @@ public class ClockController_reverse : MonoBehaviour
         if (targetMaterial != null)
             targetMaterial.SetFloat("_Angle", 0f);
 
-        StartCoroutine(TransitionRoutine());
+        LoadScene();
+        //StartCoroutine(TransitionRoutine());
     }
 
     private IEnumerator TransitionRoutine()
