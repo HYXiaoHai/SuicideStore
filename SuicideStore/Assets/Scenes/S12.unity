@@ -1874,7 +1874,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 0}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -6692,9 +6692,9 @@ MonoBehaviour:
   firstImage: {fileID: 202299779}
   secondImage: {fileID: 711821328}
   globalVolume: {fileID: 2060233368}
-  bloomStep1: 0.3
-  bloomStep2: 0.7
-  bloomStep3: 10
+  bloomStep1: 0
+  bloomStep2: 0
+  bloomStep3: 16
   bloomFadeDuration: 2
   fadeDuration: 1
   nextSceneName: End
