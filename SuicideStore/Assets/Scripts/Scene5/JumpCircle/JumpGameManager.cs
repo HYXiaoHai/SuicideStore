@@ -31,6 +31,9 @@ public class JumpGameManager : MonoBehaviour
     [Header("UI")]
     public TextMeshProUGUI countdownText;   // ����ʱ��ʾ���ı���3,2,1,GO��
 
+    [Header("跳圈SpriteRender")]
+    public GameObject jumpGameFather;
+
     private JumpCircle currentCircle;
     private int currentIndex = 0;           // ��ǰ���ڽ��е�Ȧ������0��ѧ��1,2,3��ʽ��
     private bool isGameActive = false;      // ����ʱ������Ϊtrue����ʾ��ʽ��Ϸ������
@@ -209,15 +212,25 @@ public class JumpGameManager : MonoBehaviour
         Debug.Log("全部圆圈通过");
         playerJump.SetCanJump(false);
         gameCompleted = true;
-
+        sprite3.DOFade(0f, 0.5f);
         // 直接显示UI
         if (finishUI != null)
         {
             finishUI.gameObject.SetActive(true);
-            finishUI.DOFade(1f,0.5f);
+            finishUI.DOFade(1f, 0.5f);
         }
 
-        // 立刻执行下一个流程
-        BagPackingManager.Instance.StartGame();
+        Sequence seq = DOTween.Sequence();
+        SpriteRenderer[] spriteRenderers = jumpGameFather.GetComponentsInChildren<SpriteRenderer>();
+        foreach (SpriteRenderer sr in spriteRenderers)
+        {
+            seq.Join(sr.DOFade(0f, 0.5f));
+        }
+        seq.OnComplete(() =>
+        {
+            //执行下一个流程
+            BagPackingManager.Instance.StartGame();
+        });
+        seq.Play();
     }
 }

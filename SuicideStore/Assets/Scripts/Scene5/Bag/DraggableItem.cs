@@ -1,10 +1,12 @@
 using DG.Tweening;
+using DG.Tweening.Core.Easing;
 using UnityEngine;
 
 public class DraggableItem : MonoBehaviour
 {
-    [Header("用于显示UI的Index")]
-    public int id;//-1标识外部物品
+    [Header("物品ID")]
+    public int itemId = -1;  // -1 表示不触发UI逻辑
+
     [Header("拖拽缩放")]
     public float hoverScale = 1.2f;
     public float scaleDuration = 0.1f;
@@ -12,53 +14,71 @@ public class DraggableItem : MonoBehaviour
     [Header("音效")]
     public AudioClip dragClip;
 
+    //引用包内对应图片（由点击时设置）
+    public SpriteRenderer bagItemSprite;
+
     private Vector3 offset;
     private Camera mainCamera;
     private Collider2D itemCollider;
 
     private Vector3 originalPosition;
     private Vector3 startPosition;
-    private bool wasInsideBagAtDragStart;
     private bool isMoving = false;
-    private Vector3 originalScale;
+    public Vector3 originalScale;
     private Tween scaleTween;
     private readonly float zOffset = -0.04f;
-
+    private Vector3 startDragPosition; //记录拖拽开始时的位置
     // 状态标记
     public bool isInsideBag;
-    public bool isOutsideSlot;
-    public bool initialInside;
-    public bool isProcessed = false; // 标记是否已执行消失逻辑
+    public bool isInExternalArea;   // 是否在合法外部区域
+    public bool initialInside;      // 是否初始在包内
+    public bool isProcessed = false;
 
-    //拖拽标记和暂停状态
+    // 程序化拖拽标志
     private bool isDragging = false;
-    private bool lastSettingState = false;
 
     void Start()
     {
         mainCamera = Camera.main;
         itemCollider = GetComponent<Collider2D>();
-
         startPosition = transform.position;
         originalPosition = startPosition;
         originalScale = transform.localScale;
         SetZOffset();
+        gameObject.SetActive(false);
     }
+
     void Update()
     {
-        bool isSetting = GameManage.Instance.isSetting;
-        if (isSetting != lastSettingState)
+        if (GameManage.Instance.isSetting)
         {
-            if (isSetting && isDragging)
-            {
-                ForceReset();
-            }
-            else if (!isSetting && isDragging)
-            {
-                ForceReset();   // 防止状态残留
-            }
-            lastSettingState = isSetting;
+            if (isDragging) ForceReset();
+            return;
         }
+
+        if (isDragging && Input.GetMouseButton(0))
+        {
+            // 跟随鼠标移动
+            Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            transform.position = new Vector3(mousePos.x + offset.x, mousePos.y + offset.y, transform.position.z);
+            SetZOffset();
+        }
+
+        if (isDragging && Input.GetMouseButtonUp(0))
+        {
+            EndDrag();
+        }
+    }
+    void OnMouseDown()
+    {
+        if (GameManage.Instance.isSetting) return;
+        if (BagPackingManager.Instance == null || !BagPackingManager.Instance.isGameStarted || BagPackingManager.Instance.gameCompleted) return;
+        if (isDragging) return;
+        if (itemId >= 0) return; // 正ID不允许外部点击
+
+        Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        mousePos.z = 0;
+        StartDrag(mousePos, false);
     }
     private void SetZOffset()
     {
@@ -67,100 +87,164 @@ public class DraggableItem : MonoBehaviour
         transform.position = pos;
     }
 
-    void OnMouseDown()
+    // 程序化开始拖拽（由点击包内图片触发）
+    public void StartDrag(Vector3 mouseWorldPos, bool fromBag = true)
     {
-        if (GameManage.Instance.isSetting) return;
-        if (isMoving || isProcessed) return;
-        if (BagPackingManager.Instance == null ||
-            !BagPackingManager.Instance.isGameStarted ||
-            BagPackingManager.Instance.gameCompleted)
-            return;
+        if (isDragging) return;
+        isDragging = true;
+        offset = transform.position - mouseWorldPos;
+        initialInside = fromBag;
+        startDragPosition = transform.position; // 记录拖拽开始位置
 
+        // 放大效果
         scaleTween?.Kill();
         scaleTween = transform.DOScale(originalScale * hoverScale, scaleDuration).SetEase(Ease.OutBack);
 
-        originalPosition = transform.position;
-        wasInsideBagAtDragStart = isInsideBag;
-        offset = transform.position - GetMouseWorldPos();
+        // 播放音效
+        if (dragClip != null)
+            AudioManager.Instance.Play2DSound(dragClip, 0.8f);
+
+        // 更新状态（初始位置在包内？不，此时是包外物体）
+        // 由点击产生，视为从包内拿出
+        UpdateStatus();
     }
 
-    void OnMouseDrag()
-    {
-        if (GameManage.Instance.isSetting) return;
-        if (isMoving || isProcessed) return;
-        if (BagPackingManager.Instance == null ||
-            !BagPackingManager.Instance.isGameStarted ||
-            BagPackingManager.Instance.gameCompleted)
-            return;
+    // 结束拖拽（鼠标释放）
+    //private void EndDrag()
+    //{
+    //    if (!isDragging) return;
+    //    isDragging = false;
 
-        transform.position = GetMouseWorldPos() + offset;
-        SetZOffset();
-    }
+    //    scaleTween?.Kill();
+    //    scaleTween = transform.DOScale(originalScale, scaleDuration).SetEase(Ease.OutQuad);
 
-    void OnMouseUp()
+    //    // 检测当前位置
+    //    bool inBag = BagPackingManager.Instance.IsInBagArea(transform.position);
+    //    bool inExternal = BagPackingManager.Instance.IsInExternalArea(transform.position);
+
+    //    if (inBag)
+    //    {
+    //        // 放回书包：隐藏物品，恢复包内图片
+    //        gameObject.SetActive(false);
+    //        if (bagItemSprite != null)
+    //        {
+    //            bagItemSprite.gameObject.SetActive(true);
+    //            bagItemSprite.DOKill();
+    //            bagItemSprite.DOFade(1f, 0.2f);
+    //        }
+    //        // 通知管理器（计数器减少）
+    //        BagPackingManager.Instance.OnItemReturnToBag(this);
+    //    }
+    //    else if (inExternal)
+    //    {
+    //        //放到合法外部区域：固定位置（不再移动），并标记为已放置
+    //        transform.position = new Vector3(transform.position.x, transform.position.y, zOffset);
+    //        //通知管理器（计数器增加）
+    //        BagPackingManager.Instance.OnItemPlacedOutside(this);
+    //    }
+    //    else
+    //    {
+    //        // 无效区域：取消放置，隐藏物品，恢复包内图片
+    //        gameObject.SetActive(false);
+    //        if (bagItemSprite != null)
+    //        {
+    //            bagItemSprite.gameObject.SetActive(true);
+    //            bagItemSprite.DOKill();
+    //            bagItemSprite.DOFade(1f, 0.2f);
+    //        }
+    //        // 不计入任何计数
+    //    }
+
+    //    // 重置标记
+    //    isDragging = false;
+    //}
+
+    private void EndDrag()
     {
-        if (isMoving || isProcessed) return;
+        if (!isDragging) return;
+        isDragging = false;
 
         scaleTween?.Kill();
         scaleTween = transform.DOScale(originalScale, scaleDuration).SetEase(Ease.OutQuad);
 
         bool inBag = BagPackingManager.Instance.IsInBagArea(transform.position);
-        Collider2D targetSlot = BagPackingManager.Instance.GetSlotContainingPosition(transform.position);
+        bool inExternal = BagPackingManager.Instance.IsInExternalArea(transform.position);
 
-        if (targetSlot != null)
+        if (inBag)
         {
-            Vector3 targetPos = targetSlot.transform.position;
-            targetPos.z = zOffset;
-            MoveToTarget(targetPos);
-            AudioManager.Instance.Play2DSound(dragClip, 0.8f);
+            // 放入书包：隐藏外部物体，恢复包内图片
+            Debug.Log("松开 放入书包");
+            gameObject.SetActive(false);
+            if (bagItemSprite != null)
+            {
+                bagItemSprite.gameObject.SetActive(true);
+                bagItemSprite.DOKill();
+                bagItemSprite.DOFade(1f, 0.2f);
+            }
+            BagPackingManager.Instance.OnItemReturnToBag(this);
         }
-        else if (inBag)
+        else if (inExternal)
         {
-            AudioManager.Instance.Play2DSound(dragClip, 0.8f);
-            SetZOffset();
-            BagPackingManager.Instance.CheckItemPlacement(this);
+            // 放到外部区域：保持外部物体显示（位置固定）
+            transform.position = new Vector3(transform.position.x, transform.position.y, zOffset);
+            BagPackingManager.Instance.OnItemPlacedOutside(this);
         }
         else
         {
-            MoveToTarget(originalPosition);
-        }
-    }
-
-    private void MoveToTarget(Vector3 targetPos)
-    {
-        isMoving = true;
-        transform.DOMove(targetPos, 0.2f)
-            .SetEase(Ease.OutQuad)
-            .OnComplete(() =>
+            // 无效区域
+            if (isInsideBag) //从书包拿出来的
             {
-                SetZOffset();
-                isMoving = false;
-                // 移动结束后，通知管理器检查是否需要触发消失逻辑
-                BagPackingManager.Instance.CheckItemPlacement(this);
-            });
+                // 回到书包
+                gameObject.SetActive(false);
+                Debug.Log("松开 无效区域回到书包");
+                if (bagItemSprite != null)
+                {
+                    bagItemSprite.gameObject.SetActive(true);
+                    bagItemSprite.DOKill();
+                    bagItemSprite.DOFade(1f, 0.2f);
+                }
+            }
+            else //从外部拖拽的（例如负ID物品从外部拖拽）
+            {
+                transform.position = startDragPosition;
+            }
+        }
+
+        isDragging = false;
     }
 
-    private Vector3 GetMouseWorldPos()
+
+    private void UpdateStatus()
     {
-        Vector3 mousePoint = Input.mousePosition;
-        mousePoint.z = -mainCamera.transform.position.z;
-        return mainCamera.ScreenToWorldPoint(mousePoint);
+        // 更新当前状态（用于管理器）
+        isInsideBag = BagPackingManager.Instance.IsInBagArea(transform.position);
+        isInExternalArea = BagPackingManager.Instance.IsInExternalArea(transform.position);
     }
 
-    public void SetOriginalPosition(Vector3 pos)
-    {
-        pos.z = zOffset;
-        originalPosition = pos;
-        transform.position = pos;
-    }
+    // 强制复位（暂停时调用）
     private void ForceReset()
     {
-        if (isMoving) return;
+        if (!isDragging) return;
         isDragging = false;
-        transform.DOKill();               // 停止所有动画
-        transform.position = originalPosition; // 归位到拖拽前的位置
-        SetZOffset();
-        transform.localScale = originalScale;
+
+        transform.DOKill();
         scaleTween?.Kill();
+
+        if (initialInside) // 从书包拿出来的（正ID或负ID初始在包内）
+        {
+            gameObject.SetActive(false);
+            if (bagItemSprite != null)
+            {
+                bagItemSprite.gameObject.SetActive(true);
+                bagItemSprite.DOKill();
+                bagItemSprite.DOFade(1f, 0.2f);
+            }
+        }
+        else // 从外部拖拽的（负ID物品初始在外部）
+        {
+            transform.position = startDragPosition;
+            SetZOffset();
+            transform.localScale = originalScale;
+        }
     }
 }
