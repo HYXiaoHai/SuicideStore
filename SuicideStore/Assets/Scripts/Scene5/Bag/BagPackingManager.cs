@@ -11,8 +11,8 @@ public class BagPackingManager : MonoBehaviour
     [Header("游戏开始淡入")]
     public float startDuration;
     public GameObject bagPackingFather;
-    public Image bagText1;
-    public Image bagText2;
+    //public Image bagText1;
+    //public Image bagText2;
 
     [Header("物品对应UI图片(顺序:item0/item1/item2)")]
     public Image[] itemUIs;
@@ -46,8 +46,8 @@ public class BagPackingManager : MonoBehaviour
 
     void Start()
     {
-        bagText1.transform.localScale = Vector3.zero;
-        bagText2.transform.localScale = Vector3.zero;
+        //bagText1.transform.localScale = Vector3.zero;
+        //bagText2.transform.localScale = Vector3.zero;
 
         itemsFromInsideToOutside = 0;
         itemsFromOutsideToInside = 3;
@@ -194,8 +194,8 @@ public class BagPackingManager : MonoBehaviour
     {
         gameCompleted = true;
         Sequence seq = DOTween.Sequence();
-        seq.Join(bagText1.transform.DOScale(0f, startDuration).SetEase(Ease.OutExpo));
-        seq.Join(bagText2.transform.DOScale(1f, startDuration).SetEase(Ease.OutExpo));
+        //seq.Join(bagText1.transform.DOScale(0f, startDuration).SetEase(Ease.OutExpo));
+        //seq.Join(bagText2.transform.DOScale(1f, startDuration).SetEase(Ease.OutExpo));
 
         //下一关
         OnGrowthComplete();

@@ -6873,7 +6873,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &603457385
 RectTransform:
   m_ObjectHideFlags: 0
@@ -6890,7 +6890,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0.03, y: -7}
+  m_AnchoredPosition: {x: -0.63, y: -6.94}
   m_SizeDelta: {x: 5.243, y: 2.9287}
   m_Pivot: {x: 1, y: 0}
 --- !u!114 &603457386
@@ -19926,7 +19926,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1808823991
 RectTransform:
   m_ObjectHideFlags: 0
@@ -19943,7 +19943,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -23.28, y: -7.05}
+  m_AnchoredPosition: {x: -21.28, y: -7.15}
   m_SizeDelta: {x: 5.243, y: 2.9287}
   m_Pivot: {x: 0, y: 0}
 --- !u!114 &1808823992
@@ -22027,8 +22027,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   startDuration: 1.5
   bagPackingFather: {fileID: 1589307485}
-  bagText1: {fileID: 603457386}
-  bagText2: {fileID: 1808823992}
   itemUIs:
   - {fileID: 969579117}
   - {fileID: 714121866}
