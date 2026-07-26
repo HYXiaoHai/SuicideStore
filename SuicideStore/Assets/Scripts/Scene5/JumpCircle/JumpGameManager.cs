@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using TMPro;   // ��Ҫ���� TextMeshPro
+using TMPro;
 using DG.Tweening;
 using UnityEngine.UI;
 
@@ -9,40 +9,47 @@ public class JumpGameManager : MonoBehaviour
 {
     public static JumpGameManager Instance;
 
-    [Header("Ȧ����")]
+    [Header("圆圈设置")]
     public List<GameObject> circlePrefabs = new List<GameObject>();
     public Transform startPoint;
     public Transform endPoint;
 
-    public Image sprite1;
-    public Image sprite2;
-    public Image sprite3;
+    public Image[] sprites;          // 失败时随机显示的图片
 
-    [Header("�ٶ����ã��ĸ�Ȧ��")]
+    [Header("速度设置（四个圈）")]
     public float[] speeds = new float[4] { 1.5f, 2f, 2.5f, 3f };
 
-    [Header("游戏结束UI")]
-    public Image finishUI; // 通关弹窗/图片
+    [Header("游戏机Sprite")]
+    public SpriteRenderer gameMachineSprite;
 
-    [Header("���")]
+    [Header("游戏结束UI")]
+    public Image finishUI;
+
+    [Header("玩家")]
     public GameObject player;
     public PlayerJumpController playerJump;
 
     [Header("UI")]
-    public TextMeshProUGUI countdownText;   // ����ʱ��ʾ���ı���3,2,1,GO��
+    public TextMeshProUGUI countdownText;
+    public TextMeshProUGUI promptText;   // 提示文字
+    public bool needPrompt = true;
 
-    [Header("跳圈SpriteRender")]
+    [Header("跳圈父物体")]
     public GameObject jumpGameFather;
 
     private JumpCircle currentCircle;
-    private int currentIndex = 0;           // ��ǰ���ڽ��е�Ȧ������0��ѧ��1,2,3��ʽ��
-    private bool isGameActive = false;      // ����ʱ������Ϊtrue����ʾ��ʽ��Ϸ������
+    private int currentIndex = 0;
+    private bool isGameActive = false;
     private bool isWaitingForJump = false;
-    private int successCount = 0;           // �ɹ���������ʽȦ������0~3��
-    private int maxsuccessCount = 0;           // �ɹ���������ʽȦ������0~3��
+    private int successCount = 0;
+    private int maxsuccessCount = 0;
     public bool gameCompleted = false;
-    [Header("��Ч")]
+
+    [Header("音效")]
     public AudioClip jumpClip;
+
+    private Coroutine imageShowCoroutine;
+
     void Awake()
     {
         Instance = this;
@@ -51,21 +58,29 @@ public class JumpGameManager : MonoBehaviour
     void Start()
     {
         playerJump.SetCanJump(false);
-        // ��ʼ���ػ����UI
-        if (countdownText != null) countdownText.text = " ";
-        if (countdownText != null) countdownText.gameObject.SetActive(false);
+        needPrompt = true;
+
+        if (countdownText != null)
+        {
+            countdownText.text = " ";
+            countdownText.gameObject.SetActive(false);
+        }
+        if (promptText != null)
+            promptText.alpha = 0f;
     }
 
-    // �ⲿ���ã�������Ȧ��Ϸ���ɷ�������л��󴥷���
     public void StartJumpGame()
     {
         gameCompleted = false;
         playerJump.SetCanJump(true);
-        // ��ʼ��ѧȦ������0��
+
+        // 提示文字淡入
+        if (promptText != null)
+            promptText.DOFade(1f, 0.5f);
+
         StartCircle(0);
     }
 
-    // ��ʼָ��������Ȧ
     public void StartCircle(int index)
     {
         if (index >= speeds.Length)
@@ -88,10 +103,9 @@ public class JumpGameManager : MonoBehaviour
         while (currentCircle != null && currentCircle.transform.position.x < endPoint.position.x)
             yield return null;
         if (currentCircle != null && isWaitingForJump)
-            OnJumpFailed("Ȧ�ѳ�����Χ");
+            OnJumpFailed();
     }
 
-    // ����Ҷ����¼����ã����˲�䣩
     public void OnPlayerJumpLand()
     {
         if (!isWaitingForJump) return;
@@ -102,7 +116,7 @@ public class JumpGameManager : MonoBehaviour
         if (isInCenter)
             OnJumpSuccess();
         else
-            OnJumpFailed("������������");
+            OnJumpFailed();
     }
 
     private void OnJumpSuccess()
@@ -113,29 +127,26 @@ public class JumpGameManager : MonoBehaviour
 
         if (currentIndex == 0)
         {
-            // 教学圈通过，开启倒计时，不直接进入下一个圈
             Debug.Log("教学完成，准备倒计时...");
             Destroy(currentCircle.gameObject);
             StartCoroutine(StartCountdown());
         }
         else
         {
-            // 正式圈通过，计数+1，更新UI
             successCount++;
             maxsuccessCount = Mathf.Max(successCount, maxsuccessCount);
+
             if (maxsuccessCount == 1)
             {
-                sprite1.DOFade(1f, 1f);
+                gameMachineSprite.DOFade(0.75f, 0.5f);
             }
             else if (maxsuccessCount == 2)
             {
-                sprite1.DOFade(0f, 0.5f);
-                sprite2.DOFade(1f, 0.5f);
+                gameMachineSprite.DOFade(0.5f, 0.5f);
             }
             else if (maxsuccessCount == 3)
             {
-                sprite2.DOFade(0f, 0.5f);
-                sprite3.DOFade(1f, 0.5f);
+                // 第三次成功不做特殊处理，胜利时会触发完成
             }
 
             if (countdownText != null)
@@ -167,53 +178,111 @@ public class JumpGameManager : MonoBehaviour
         }
         else
         {
-            yield return new WaitForSeconds(3f); // ���û��UI���ȴ�3��
+            yield return new WaitForSeconds(3f);
         }
 
-        // ����ʱ��������ʽ������Ϸ
         isGameActive = true;
-        // ���ü���������Ϊ��ʽ��Ϸ��ʼ��֮ǰ��ѧȦ�����룩
         successCount = 0;
-        sprite1.color = new Color(1f, 1f, 1f, 0f);
-        sprite2.color = new Color(1f, 1f, 1f, 0f);
-        sprite3.color = new Color(1f, 1f, 1f, 0f);
         if (countdownText != null) countdownText.text = "0";
-        // �ָ������Ծ����
         playerJump.SetCanJump(true);
-        // ��ʼ��ʽ��Ϸ��һ��Ȧ������1�����ڶ���Ȧ��
         StartCircle(1);
     }
 
-    private void OnJumpFailed(string reason)
+    private void OnJumpFailed()
     {
+        // 教学阶段失败
         if (!isGameActive && currentIndex == 0)
         {
-            // ��ѧȦʧ�ܣ���������ѧȦ�������UI����������ʽ��Ϸ��
-            Debug.Log("��ѧȦʧ�ܣ����¿�ʼ��ѧȦ");
+            Debug.Log("教学失败，重新教学");
             if (currentCircle != null) Destroy(currentCircle.gameObject);
+
+            ShakeGameMachine();
             StartCircle(0);
             return;
         }
 
+        // 正式游戏阶段失败
         if (isGameActive)
         {
-            // ������ǰȦ
             if (currentCircle != null) Destroy(currentCircle.gameObject);
-            // ���ü���UI
-            successCount = 0;
-            if (countdownText != null) countdownText.text = "0";
-            // ���õ���2��Ȧ������1���������µ���ʱ
-            StartCircle(1);
+
+            // 显示随机文案（并震动游戏机）
+            ShowRandomImage();
+            ShakeGameMachine();
+
+            // 重新开始当前圈（不重置成功计数，但maxsuccessCount保留）
+            // 注意：successCount用于显示当前连续成功，但失败后应归零，以免误显示
+            //successCount = 0;
+            //if (countdownText != null) countdownText.text = "0";
+
+            StartCircle(currentIndex);
         }
+    }
+
+    private void ShakeGameMachine()
+    {
+        if (gameMachineSprite != null)
+        {
+            gameMachineSprite.transform.DOKill();
+            gameMachineSprite.transform.DOShakePosition(0.3f, strength: 0.3f, vibrato: 10, randomness: 90, fadeOut: true);
+        }
+    }
+
+    private void ShowRandomImage()
+    {
+        // 停止之前的协程
+        if (imageShowCoroutine != null)
+        {
+            StopCoroutine(imageShowCoroutine);
+            // 立即隐藏所有图片
+            foreach (var img in sprites)
+            {
+                img.DOKill();
+                img.color = new Color(img.color.r, img.color.g, img.color.b, 0f);
+            }
+        }
+        imageShowCoroutine = StartCoroutine(ShowImageRoutine());
+    }
+
+    private IEnumerator ShowImageRoutine()
+    {
+        int index = Random.Range(0, sprites.Length);
+        Image image = sprites[index];
+        // 渐显
+        image.DOFade(1f, 0.5f);
+        // 显示1.2秒
+        yield return new WaitForSeconds(1.2f);
+        // 渐隐
+        image.DOFade(0f, 0.5f);
+        yield return new WaitForSeconds(0.5f);
+        imageShowCoroutine = null;
     }
 
     private void OnAllCirclesPassed()
     {
         Debug.Log("全部圆圈通过");
         playerJump.SetCanJump(false);
+
+        // 隐藏提示文字
+        if (promptText != null)
+        {
+            promptText.DOKill();
+            promptText.gameObject.SetActive(false);
+        }
+
+        // 停止随机图片显示
+        if (imageShowCoroutine != null)
+        {
+            StopCoroutine(imageShowCoroutine);
+            imageShowCoroutine = null;
+            foreach (var img in sprites)
+            {
+                img.DOKill();
+                img.color = new Color(img.color.r, img.color.g, img.color.b, 0f);
+            }
+        }
+
         gameCompleted = true;
-        sprite3.DOFade(0f, 0.5f);
-        // 直接显示UI
         if (finishUI != null)
         {
             finishUI.gameObject.SetActive(true);
@@ -228,7 +297,6 @@ public class JumpGameManager : MonoBehaviour
         }
         seq.OnComplete(() =>
         {
-            //执行下一个流程
             BagPackingManager.Instance.StartGame();
         });
         seq.Play();

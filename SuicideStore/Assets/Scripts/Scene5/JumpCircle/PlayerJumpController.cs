@@ -1,3 +1,4 @@
+using DG.Tweening;
 using UnityEngine;
 
 public class PlayerJumpController : MonoBehaviour
@@ -9,6 +10,11 @@ public class PlayerJumpController : MonoBehaviour
     {
         if (!JumpGameManager.Instance.gameCompleted&&canJump && Input.GetKeyDown(KeyCode.Space))
         {
+            if(JumpGameManager.Instance.needPrompt)
+            {
+                JumpGameManager.Instance.promptText.DOFade(0f,0.5f);
+                JumpGameManager.Instance.needPrompt = false;
+            }
             PerformJump();
         }
     }
