@@ -10,7 +10,8 @@ public class S6_Dialogue : MonoBehaviour
 {
     public bool shouldUseFade = true;
     public bool shouldUseAudioFade = false;
-
+    public Image backGround1;
+    public Image backGround2;
     [Header("日记本交互")]
     public Button noteButton;
     public Image noteAni;
@@ -113,6 +114,8 @@ public class S6_Dialogue : MonoBehaviour
             StartType();
         });
         dialogueCanvas.DOFade(1f, 1f);
+        backGround2.DOFade(1f, 1f);
+        backGround1.DOFade(0f, 1f);
     }
 
     void StartType()

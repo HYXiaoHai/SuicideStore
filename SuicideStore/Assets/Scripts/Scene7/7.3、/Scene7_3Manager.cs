@@ -33,7 +33,6 @@ public class Scene7_3Manager : MonoBehaviour
     public GameObject cameraScreen;
     private bool isCameraClick = false;
     [Header("=== 转场设置 ===")]
-    public Image fadeImage;
     public string nextSceneName;
     public float fadeDuration = 0.5f;
 
@@ -67,11 +66,6 @@ public class Scene7_3Manager : MonoBehaviour
         if (cameraScreen != null)
         {
             cameraScreen.SetActive(false);
-        }
-
-        if (fadeImage != null)
-        {
-            fadeImage.gameObject.SetActive(false);
         }
 
         InitializeTrack();
@@ -212,13 +206,18 @@ public class Scene7_3Manager : MonoBehaviour
     {
         if (comicCanvas != null)
         {
-            comicCanvas.enabled = false;
+            comicCanvas.GetComponent<CanvasGroup>().DOFade(0f, 0.5f).OnComplete(() => {
+                comicCanvas.enabled = false;
+                cameraScreen.SetActive(true);
+                cameraScreen.GetComponent<SpriteRenderer>().DOFade(1f, 0.5f);
+            });
         }
 
-        if (cameraScreen != null)
-        {
-            cameraScreen.SetActive(true);
-        }
+        //if (cameraScreen != null)
+        //{
+        //    cameraScreen.SetActive(true);
+        //    cameraScreen.GetComponent<SpriteRenderer>().DOFade(1f,0.5f);
+        //}
 
         Invoke("EnableClick", 0.5f);
     }
@@ -227,28 +226,42 @@ public class Scene7_3Manager : MonoBehaviour
     {
         canClick = true;
     }
-
     IEnumerator FadeToBlackAndLoadScene()
     {
-        if (fadeImage != null)
-        {
-            fadeImage.gameObject.SetActive(true);
-            fadeImage.canvasRenderer.SetAlpha(0);
-            fadeImage.CrossFadeAlpha(1, fadeDuration, false);
-        }
+        yield return new WaitForSeconds(0.3f);
+        // 2. 相机抖动（替代闪白）
+        Transform cam = Camera.main.transform;
+        // 如果之前有抖动动画，先停止
+        cam.DOKill();
+        // 左右晃动 + 轻微旋转，强度 0.3，持续时间 0.2 秒
+        cam.DOShakePosition(0.3f, strength: 0.5f, vibrato: 10, randomness: 90, fadeOut: true);
 
-        yield return new WaitForSeconds(fadeDuration);
 
+        // 2. 短暂停顿（让玩家感受到闪白）
+        yield return new WaitForSeconds(0.5f);
+
+        // 3. 执行原有转场（渐黑并加载场景）
         if (!string.IsNullOrEmpty(nextSceneName))
         {
-                // 并行执行转场淡出和 BGM 淡出
-                TransitionManage.Instance.FadeOut(1f, Color.black, () =>
-                {
-                    // 转场完成后加载新场景
-                    SceneManager.LoadScene(nextSceneName);
-
-                });
+            TransitionManage.Instance.FadeOut(1f, Color.black, () =>
+            {
+                SceneManager.LoadScene(nextSceneName);
+            });
         }
     }
+    //IEnumerator FadeToBlackAndLoadScene()
+    //{
+    //    yield return new WaitForSeconds(fadeDuration);
+    //    if (!string.IsNullOrEmpty(nextSceneName))
+    //    {
+    //            // 并行执行转场淡出和 BGM 淡出
+    //            TransitionManage.Instance.FadeOut(1f, Color.black, () =>
+    //            {
+    //                // 转场完成后加载新场景
+    //                SceneManager.LoadScene(nextSceneName);
+
+    //            });
+    //    }
+    //}
 }
 

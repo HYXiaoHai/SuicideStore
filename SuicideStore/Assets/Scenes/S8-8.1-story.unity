@@ -1696,7 +1696,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 1.191, y: 2.83, z: 9.092}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0.7, y: 245.05}
+  m_AnchoredPosition: {x: 0.7, y: 245.04997}
   m_SizeDelta: {x: 19.97, y: 6.52}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &698766164
@@ -2281,7 +2281,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_Sprite: {fileID: 21300000, guid: 122fd9ef75880184ca1923a09a645bc8, type: 3}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 0}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -2463,7 +2463,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0.97854996, y: 1}
-  m_AnchoredPosition: {x: -448.66022, y: 5.2199707}
+  m_AnchoredPosition: {x: -448.66016, y: 5.2199707}
   m_SizeDelta: {x: -897.31, y: -270.8}
   m_Pivot: {x: 0.5, y: 0.11560389}
 --- !u!114 &825968270
@@ -2538,7 +2538,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0.97854996, y: 1}
-  m_AnchoredPosition: {x: 475.24, y: -289.83994}
+  m_AnchoredPosition: {x: 475.24, y: -289.83997}
   m_SizeDelta: {x: -1107.67, y: -652.74}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &886419558
@@ -2593,6 +2593,7 @@ GameObject:
   - component: {fileID: 913339334}
   - component: {fileID: 913339339}
   - component: {fileID: 913339338}
+  - component: {fileID: 913339340}
   m_Layer: 5
   m_Name: ComicCanvas
   m_TagString: Untagged
@@ -2701,7 +2702,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -2725,6 +2726,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 913339333}
   m_CullTransparentMesh: 1
+--- !u!225 &913339340
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 913339333}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &917343960
 GameObject:
   m_ObjectHideFlags: 0
@@ -4597,9 +4610,8 @@ MonoBehaviour:
   startPoint: {x: -397.5, y: 126.8}
   endPoint: {x: 250, y: 240}
   cameraScreen: {fileID: 792663358}
-  fadeImage: {fileID: 1021848410}
   nextSceneName: S8-8.2-destroy
-  fadeDuration: 0.5
+  fadeDuration: 0.2
   clickClip: {fileID: 8300000, guid: 79c6b3abf5eb3cf45b572ba8e24a2307, type: 3}
   sliderClip: {fileID: 8300000, guid: 4c3f6a001b1fecf4b834026a98d4ae51, type: 3}
   takePhotoClip: {fileID: 8300000, guid: c04c46d7c67c4dd479f89f8eb9a6f0ad, type: 3}
@@ -5145,7 +5157,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -397.5, y: 126.8}
+  m_AnchoredPosition: {x: -397.5, y: 126.79999}
   m_SizeDelta: {x: 139, y: 165.68}
   m_Pivot: {x: 0.50000006, y: 0.40089303}
 --- !u!114 &1858032999
@@ -6276,8 +6288,8 @@ SceneRoots:
   - {fileID: 913339337}
   - {fileID: 66110332}
   - {fileID: 1517301559}
-  - {fileID: 792663360}
   - {fileID: 2615723}
+  - {fileID: 792663360}
   - {fileID: 1021848412}
   - {fileID: 122875738}
   - {fileID: 1334394778}
