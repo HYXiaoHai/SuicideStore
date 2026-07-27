@@ -124,7 +124,7 @@ public class JumpGameManager : MonoBehaviour
         isWaitingForJump = false;
         currentCircle.StopMoving();
         AudioManager.Instance.Play2DSound(jumpClip, 0.8f);
-
+        ShakeGameMachine();
         if (currentIndex == 0)
         {
             Debug.Log("教学完成，准备倒计时...");
@@ -196,7 +196,7 @@ public class JumpGameManager : MonoBehaviour
             Debug.Log("教学失败，重新教学");
             if (currentCircle != null) Destroy(currentCircle.gameObject);
 
-            ShakeGameMachine();
+            //ShakeGameMachine();
             StartCircle(0);
             return;
         }
@@ -208,7 +208,7 @@ public class JumpGameManager : MonoBehaviour
 
             // 显示随机文案（并震动游戏机）
             ShowRandomImage();
-            ShakeGameMachine();
+            //ShakeGameMachine();
 
             // 重新开始当前圈（不重置成功计数，但maxsuccessCount保留）
             // 注意：successCount用于显示当前连续成功，但失败后应归零，以免误显示
@@ -269,7 +269,10 @@ public class JumpGameManager : MonoBehaviour
             promptText.DOKill();
             promptText.gameObject.SetActive(false);
         }
-
+        if(countdownText!=null)
+        {
+            countdownText.gameObject.SetActive(false);
+        }
         // 停止随机图片显示
         if (imageShowCoroutine != null)
         {

@@ -9,10 +9,17 @@ public class PhotoSystem : MonoBehaviour
     [Header("照片设置")]
     public GameObject[] photos;
     public int currentPhotoIndex = 0;
-
+    [Header("按键提示")]
+    public SpriteRenderer aPrompt;
+    public SpriteRenderer dPrompt;
+    public SpriteRenderer spacePrompt;
+    public SpriteRenderer sPrompt;
+    public float aniDuration;//渐隐时长
+    public bool needADSpacePromote = true;
+    public bool needSPromote = true;
     [Header("灯光效果")]
     public Light2D[] lights;
-    public SpriteRenderer[] tishis;
+    //public SpriteRenderer[] tishis;
     public float[] lightTargetIntensities;
     public float[] volumetricTargetIntensities;
     public float lightAnimationDuration = 0.5f;
@@ -37,7 +44,25 @@ public class PhotoSystem : MonoBehaviour
     {
         Initialize();
         SetLightState(0);
-        SetPromoteState(0);
+        //SetPromoteState(0);
+        needSPromote = true;
+        needADSpacePromote = true;
+    }
+
+    private void Update()
+    {
+        if (needADSpacePromote && (Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.D)))
+        {
+            needADSpacePromote = false;
+            aPrompt.DOFade(0f, aniDuration).SetEase(Ease.InQuart).OnComplete(() => { aPrompt.gameObject.SetActive(false); });
+            dPrompt.DOFade(0f, aniDuration).SetEase(Ease.InQuart).OnComplete(() => { dPrompt.gameObject.SetActive(false); });
+            spacePrompt.DOFade(0f, aniDuration).SetEase(Ease.InQuart).OnComplete(() => { spacePrompt.gameObject.SetActive(false); });
+        }
+        if (needSPromote && Input.GetKeyDown(KeyCode.S))
+        {
+            needSPromote = false;
+            sPrompt.DOFade(0f, aniDuration).SetEase(Ease.InQuart).OnComplete(() => { sPrompt.gameObject.SetActive(false); });
+        }
     }
 
     void Initialize()
@@ -123,30 +148,30 @@ public class PhotoSystem : MonoBehaviour
             }
         }
     }
-    //提示控制
-    public void SetPromoteState(int activeIndex)
-    {
-        for (int i = 0; i < tishis.Length; i++)
-        {
-            int localIndex = i;
-            SpriteRenderer promo = tishis[localIndex];
-            if (promo == null) continue;
+    ////提示控制
+    //public void SetPromoteState(int activeIndex)
+    //{
+    //    for (int i = 0; i < tishis.Length; i++)
+    //    {
+    //        int localIndex = i;
+    //        SpriteRenderer promo = tishis[localIndex];
+    //        if (promo == null) continue;
 
-            bool shouldActivate = (activeIndex >= 0 && localIndex == activeIndex);
+    //        bool shouldActivate = (activeIndex >= 0 && localIndex == activeIndex);
 
-            if (shouldActivate)
-            {
-                promo.gameObject.SetActive(true);
-                promo.DOFade(1f, 0.5f);
-            }
-            else
-            {
-                promo.DOFade(0f, 0.5f).OnComplete(() => {
-                    //promo.gameObject.SetActive(false);
-                });
-            }
-        }
-    }
+    //        if (shouldActivate)
+    //        {
+    //            promo.gameObject.SetActive(true);
+    //            promo.DOFade(1f, 0.5f);
+    //        }
+    //        else
+    //        {
+    //            promo.DOFade(0f, 0.5f).OnComplete(() => {
+    //                //promo.gameObject.SetActive(false);
+    //            });
+    //        }
+    //    }
+    //}
 
 
     // 为指定灯光启动心跳效果（在基础值上周期性浮动）
@@ -211,11 +236,11 @@ public class PhotoSystem : MonoBehaviour
         if (photoIndex + 1 < lights.Length)
         {
             SetLightState(photoIndex + 1);
-            SetPromoteState(photoIndex + 1);
+            //SetPromoteState(photoIndex + 1);
         }
         else
         {
-            SetPromoteState(-1);
+            //SetPromoteState(-1);
             SetLightState(-1);   // 所有照片完成，熄灭所有灯光
         }
 

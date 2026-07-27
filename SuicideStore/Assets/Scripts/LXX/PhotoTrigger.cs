@@ -1,19 +1,22 @@
 using UnityEngine;
 using DG.Tweening;
 using UnityEngine.Rendering.Universal;
+using TMPro;
 
 public class PhotoTrigger : MonoBehaviour
 {
     public int photoIndex;
     public PhotoSystem photoSystem;
     public SpriteRenderer ePrompt;
+    public TMP_Text ePromptText;
+    public bool needePromptText;
     public AudioClip clickAudioClip;
     
     public SpriteRenderer interacRenderer;//交互后图片
-    public SpriteRenderer[] downRenderers;//交互后图片
+    public SpriteRenderer[] downRenderers;//交互后其他渐显图片
     public Light2D[] downlights;
 
-    public SpriteRenderer completeSprite1;//最后一个
+    //public SpriteRenderer completeSprite1;//最后一个
 
     private bool isPlayerInside = false;
     private bool isTriggered = false;
@@ -55,11 +58,11 @@ public class PhotoTrigger : MonoBehaviour
     }
     void OnInterac()
     {
-        defualSprite.DOFade(0f,0.5f);
-        interacRenderer.DOFade(1f,0.5f);
+        defualSprite.DOFade(0f,1f);
+        interacRenderer.DOFade(1f,1f);
         foreach (var d in downRenderers)
         {
-            d.DOFade(1f, 0.5f);
+            d.DOFade(1f, 1f);
         }
         foreach (var l in downlights)
         {
@@ -67,8 +70,8 @@ public class PhotoTrigger : MonoBehaviour
             //l.DOFade(1f, 0.5f);
         }
         //downRenderer.DOFade(1f,0.5f);
-        if (completeSprite1!=null)
-        completeSprite1.DOFade(1f, 0.5f);
+        //if (completeSprite1!=null)
+        //completeSprite1.DOFade(1f, 0.5f);
     }
 
     void ShowPrompt()
@@ -78,6 +81,11 @@ public class PhotoTrigger : MonoBehaviour
         ePrompt.transform.localScale = Vector3.zero;
         ePrompt.DOFade(1f, 0.2f).SetEase(Ease.OutQuad);
         ePrompt.transform.DOScale(2.3f, 0.25f).SetEase(Ease.OutElastic, 0.8f, 0.5f);
+
+        if(needePromptText&& ePromptText!=null)
+        {
+            ePromptText.DOFade(1f, 0.2f);
+        }
     }
 
     void HidePrompt()
@@ -88,5 +96,10 @@ public class PhotoTrigger : MonoBehaviour
             ePrompt.gameObject.SetActive(false);
         });
         ePrompt.transform.DOScale(0f, 0.1f);
+
+        if (needePromptText && ePromptText != null)
+        {
+            ePromptText.DOFade(0f, 0.2f);
+        }
     }
 }
