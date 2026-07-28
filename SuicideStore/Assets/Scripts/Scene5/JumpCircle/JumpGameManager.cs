@@ -22,6 +22,12 @@ public class JumpGameManager : MonoBehaviour
     [Header("游戏机Sprite")]
     public SpriteRenderer gameMachineSprite;
 
+    [Header("游戏机的裂痕Sprite")]
+    public SpriteRenderer gameMashineCrack;
+    public Sprite crack1;
+    public Sprite crack2;
+    public Sprite crack3;
+
     [Header("游戏结束UI")]
     public Image finishUI;
 
@@ -67,6 +73,8 @@ public class JumpGameManager : MonoBehaviour
         }
         if (promptText != null)
             promptText.alpha = 0f;
+
+        gameMashineCrack.sprite = null;
     }
 
     public void StartJumpGame()
@@ -139,14 +147,19 @@ public class JumpGameManager : MonoBehaviour
             if (maxsuccessCount == 1)
             {
                 gameMachineSprite.DOFade(0.75f, 0.5f);
+                gameMashineCrack.sprite = crack1;
+                gameMashineCrack.DOFade(0.75f, 0.5f);
             }
             else if (maxsuccessCount == 2)
             {
                 gameMachineSprite.DOFade(0.5f, 0.5f);
+                gameMashineCrack.sprite = crack2;
+                gameMashineCrack.DOFade(0.5f, 0.5f);
             }
             else if (maxsuccessCount == 3)
             {
                 // 第三次成功不做特殊处理，胜利时会触发完成
+                gameMashineCrack.sprite = crack3;
             }
 
             if (countdownText != null)
