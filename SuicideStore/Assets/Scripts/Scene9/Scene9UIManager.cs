@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using System.Collections;
+using DG.Tweening;
 
 // 卡槽：单个固定正确位置
 [Serializable]
@@ -12,6 +13,7 @@ public class CardSlot
     [Tooltip("场景里的点位空物体")]
     public Transform slotTrans;
     [HideInInspector] public Vector3 correctPos;
+    [HideInInspector] public bool isOccupied = false; // 是否已被正确卡片占用
 }
 
 // 卡片：绑定自己应该去哪个卡槽
@@ -82,9 +84,9 @@ public class Scene9UIManager : MonoBehaviour
     void Start()
     {
         if (TransitionManage.Instance != null)
-            TransitionManage.Instance.FadeIn(1f,Color.black);
-            // 记录卡槽坐标
-            foreach (var slot in allSlots)
+            TransitionManage.Instance.FadeIn(1f, Color.black);
+        // 记录卡槽坐标
+        foreach (var slot in allSlots)
         {
             if (slot.slotTrans != null)
                 slot.correctPos = slot.slotTrans.position;
@@ -149,7 +151,7 @@ public class Scene9UIManager : MonoBehaviour
     {
         // 恢复渲染层级
         if (dragCard.mainSprite != null)
-            dragCard.mainSprite.sortingOrder = 0;
+            dragCard.mainSprite.sortingOrder = 1;
 
         // 1. 卡片互换（已锁定卡片不参与互换）
         bool isSwap = false;
@@ -179,6 +181,7 @@ public class Scene9UIManager : MonoBehaviour
             float minDis = float.MaxValue;
             for (int i = 0; i < allSlots.Count; i++)
             {
+                if (allSlots[i].isOccupied) continue;
                 float d = Vector3.Distance(dragCard.mainSprite.transform.position, allSlots[i].correctPos);
                 if (d < minDis)
                 {
@@ -196,17 +199,15 @@ public class Scene9UIManager : MonoBehaviour
         CheckGroupComplete();
     }
 
-    // 鼠标点击检测（修复射线，保证2D卡片可点击）
+    // 鼠标点击检测
     private void OnMouseDown()
     {
         if (mainCam == null) return;
 
         Ray ray = mainCam.ScreenPointToRay(Input.mousePosition);
-        // 兼容2D碰撞体，优先获取碰撞体
         RaycastHit2D hit = Physics2D.Raycast(ray.origin, ray.direction, Mathf.Infinity);
         if (hit)
         {
-            // 遍历卡片，只拾取【未锁定】的卡片
             foreach (var card in allCards)
             {
                 if (card.isLocked || card.mainSprite == null) continue;
@@ -214,7 +215,10 @@ public class Scene9UIManager : MonoBehaviour
                 if (col != null && col == hit.collider)
                 {
                     dragCard = card;
-                    card.mainSprite.sortingOrder = 999; // 拖拽置顶
+                    card.mainSprite.sortingOrder = 999;
+                    // 将卡片旋转归零（带动画）
+                    card.mainSprite.transform.DOKill(); //停止可能正在播放的旋转动画
+                    card.mainSprite.transform.DORotate(Vector3.zero, 0.15f).SetEase(Ease.OutQuad);
                     break;
                 }
             }
@@ -256,10 +260,15 @@ public class Scene9UIManager : MonoBehaviour
             Vector3 rightPos = allSlots[card.targetSlotIndex].correctPos;
             float dis = Vector3.Distance(cardPos, rightPos);
 
-            // 放对位置 → 锁定（一旦锁定，不再解锁）
+            //锁定
             if (dis <= judgeRange)
             {
                 card.isLocked = true;
+                card.mainSprite.sortingOrder = 0;
+                Collider2D col = card.mainSprite.GetComponent<Collider2D>();
+                if (col != null) col.enabled = false;
+                // 标记卡槽被占用
+                allSlots[card.targetSlotIndex].isOccupied = true;
             }
             else
             {
@@ -280,76 +289,93 @@ public class Scene9UIManager : MonoBehaviour
         Debug.Log("分组完成");
         if (currentGroup == 1)
         {
-            StartCoroutine(ShowImagesWithButton(0, group1_CardNum, lock_Group1));
+            //StartCoroutine(ShowImagesWithButton(0, group1_CardNum, lock_Group1));
+            ShowImagesWithButton(0, group1_CardNum, lock_Group1);
         }
         else if (currentGroup == 2)
         {
             int start = group1_CardNum;
-            StartCoroutine(ShowImagesWithButton(start, group2_CardNum, lock_Group2));
+            //StartCoroutine(ShowImagesWithButton(start, group2_CardNum, lock_Group2));
+            ShowImagesWithButton(start, group2_CardNum, lock_Group2);
         }
         else if (currentGroup == 3)
         {
             int start = group1_CardNum + group2_CardNum;
-            StartCoroutine(ShowImagesAndComplete(start, group3_CardNum));
+            //StartCoroutine(ShowImagesAndComplete(start, group3_CardNum));
+            ShowImagesAndComplete(start, 2);
         }
     }
-
-    IEnumerator ShowImagesWithButton(int startIndex, int count, GameObject buttonObj)
+    void ShowImagesWithButton(int startIndex, int count, GameObject buttonObj)
     {
+        Sequence seq = DOTween.Sequence();
+
+        for (int i = startIndex; i < startIndex + count; i++)
+        {
+            bool isLast = (i == startIndex + count - 1);
+            if (i < feedbackImages.Count && feedbackImages[i].spriteRenderer != null)
+            {
+                SpriteRenderer sr = feedbackImages[i].spriteRenderer;
+                sr.enabled = true;
+                sr.color = new Color(sr.color.r, sr.color.g, sr.color.b, 0f);
+
+                //照片淡入（顺序执行）
+                seq.Append(sr.DOFade(1f, fadeInDuration).SetEase(Ease.OutQuad));
+
+                //如果是最后一张，同时淡入按钮
+                if (isLast && buttonObj)
+                {
+                    buttonObj.SetActive(true);
+                    Image btnImage = buttonObj.GetComponent<Image>();
+                    if (btnImage != null)
+                    {
+                        Color c = btnImage.color;
+                        c.a = 0f;
+                        btnImage.color = c;
+                        seq.Join(btnImage.DOFade(1f, fadeInDuration).SetEase(Ease.OutQuad));
+                    }
+                }
+                if (!isLast)
+                    seq.AppendInterval(imageShowDelay);
+            }
+        }
+        seq.OnComplete(() =>
+        {
+            if (buttonObj)
+            {
+                Button btn = buttonObj.GetComponent<Button>();
+                if (btn != null)
+                {
+                    btn.onClick.RemoveAllListeners();
+                    btn.onClick.AddListener(NextGroup);
+                }
+            }
+        });
+
+        seq.Play();
+    }
+
+
+    void ShowImagesAndComplete(int startIndex, int count)
+    {
+        Sequence seq = DOTween.Sequence();
+
         for (int i = startIndex; i < startIndex + count; i++)
         {
             if (i < feedbackImages.Count && feedbackImages[i].spriteRenderer != null)
             {
-                yield return StartCoroutine(FadeInImage(feedbackImages[i].spriteRenderer));
-            }
-            yield return new WaitForSeconds(imageShowDelay);
-        }
-
-        if (buttonObj)
-        {
-            buttonObj.SetActive(true);
-            Button btn = buttonObj.GetComponent<Button>();
-            if (btn != null)
-            {
-                btn.onClick.RemoveAllListeners();
-                btn.onClick.AddListener(NextGroup);
+                SpriteRenderer sr = feedbackImages[i].spriteRenderer;
+                sr.enabled = true;
+                sr.color = new Color(sr.color.r, sr.color.g, sr.color.b, 0f);
+                seq.Append(sr.DOFade(1f, fadeInDuration).SetEase(Ease.OutQuad));
+                if (i < startIndex + count - 1)
+                    seq.AppendInterval(imageShowDelay);
             }
         }
+
+        seq.OnComplete(() => CompleteLevel());
+        seq.Play();
     }
 
-    IEnumerator ShowImagesAndComplete(int startIndex, int count)
-    {
-        for (int i = startIndex; i < startIndex + count; i++)
-        {
-            if (i < feedbackImages.Count && feedbackImages[i].spriteRenderer != null)
-            {
-                yield return StartCoroutine(FadeInImage(feedbackImages[i].spriteRenderer));
-            }
-            yield return new WaitForSeconds(imageShowDelay);
-        }
-
-        CompleteLevel();
-    }
-
-    IEnumerator FadeInImage(SpriteRenderer spriteRenderer)
-    {
-        spriteRenderer.enabled = true;
-        Color color = spriteRenderer.color;
-        color.a = 0f;
-        spriteRenderer.color = color;
-
-        float elapsed = 0f;
-        while (elapsed < fadeInDuration)
-        {
-            elapsed += Time.deltaTime;
-            color.a = Mathf.Lerp(0f, 1f, elapsed / fadeInDuration);
-            spriteRenderer.color = color;
-            yield return null;
-        }
-
-        color.a = 1f;
-        spriteRenderer.color = color;
-    }
 
     // 切换下一组，重置当前组以外卡片状态
     void NextGroup()
@@ -365,6 +391,9 @@ public class Scene9UIManager : MonoBehaviour
             {
                 if (i < allCards.Count)
                     allCards[i].isLocked = false;
+                Collider2D col = allCards[i].mainSprite.GetComponent<Collider2D>();
+                if (col != null) col.enabled = true;
+                allCards[i].mainSprite.sortingOrder = 1;
             }
         }
         else if (currentGroup == 3)
@@ -392,14 +421,14 @@ public class Scene9UIManager : MonoBehaviour
             string nextScene = GameManage.Instance.GetFirstSceneOfLevel(nextLevel);
             if (!string.IsNullOrEmpty(nextScene))
             {
-                    // 并行执行转场淡出和 BGM 淡出
-                    TransitionManage.Instance.FadeOut(1f, Color.black, () =>
-                    {
-                        // 转场完成后加载新场景
-                        SceneManager.LoadScene(nextScene);
-                    });
-                    AudioManager.Instance.FadeOutCurrentBGM(1f, null);
-               
+                // 并行执行转场淡出和 BGM 淡出
+                TransitionManage.Instance.FadeOut(1f, Color.black, () =>
+                {
+                    // 转场完成后加载新场景
+                    SceneManager.LoadScene(nextScene);
+                });
+                AudioManager.Instance.FadeOutCurrentBGM(1f, null);
+
             }
         }
         else
