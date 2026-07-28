@@ -88,7 +88,8 @@ public class DoorTrigger : MonoBehaviour
             if (l != null)
             {
                 Debug.Log("隐藏" + l.gameObject);
-                l.gameObject.SetActive(false);
+                    DOTween.To(() => l.intensity, x => l.intensity = x, 0f, 0.2f).SetEase(Ease.OutQuad).OnComplete(() => { l.gameObject.SetActive(false); });
+                    
             }
         }
 

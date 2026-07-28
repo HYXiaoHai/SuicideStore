@@ -66,7 +66,7 @@ public class PhotoTrigger : MonoBehaviour
         }
         foreach (var l in downlights)
         {
-            DOTween.To(() => l.intensity, x => l.intensity = x, 0.4f, 0.5f).SetEase(Ease.OutQuad);
+            DOTween.To(() => l.intensity, x => l.intensity = x, 1.05f, 0.5f).SetEase(Ease.OutQuad);
             //l.DOFade(1f, 0.5f);
         }
         //downRenderer.DOFade(1f,0.5f);
