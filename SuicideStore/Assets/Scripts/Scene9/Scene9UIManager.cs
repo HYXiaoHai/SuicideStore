@@ -12,8 +12,8 @@ public class CardSlot
 {
     [Tooltip("场景里的点位空物体")]
     public Transform slotTrans;
-    [HideInInspector] public Vector3 correctPos;
     [HideInInspector] public bool isOccupied = false; // 是否已被正确卡片占用
+    [HideInInspector] public Vector3 correctPos;
 }
 
 // 卡片：绑定自己应该去哪个卡槽
@@ -24,7 +24,8 @@ public class SortCard
     public SpriteRenderer mainSprite;
     [Tooltip("这张卡片对应的正确卡槽下标(从0开始)")]
     public int targetSlotIndex;
-    [HideInInspector] public bool isLocked = false; // 放对后锁定
+    public int currentSlotIndex = -1;
+    public bool isLocked = false; // 放对后锁定
 }
 
 // 反馈图片
@@ -98,7 +99,18 @@ public class Scene9UIManager : MonoBehaviour
             if (img.spriteRenderer != null)
                 img.spriteRenderer.enabled = false;
         }
-
+        //为每个卡片物体挂载悬停脚本
+        foreach (var card in allCards)
+        {
+            if (card.mainSprite != null)
+            {
+                CardHover hover = card.mainSprite.gameObject.GetComponent<CardHover>();
+                if (hover == null)
+                    hover = card.mainSprite.gameObject.AddComponent<CardHover>();
+                hover.sortCard = card;
+                hover.sortCard.currentSlotIndex = -1;
+            }
+        }
         // 初始化相机
         if (mainCam != null)
         {
@@ -164,11 +176,26 @@ public class Scene9UIManager : MonoBehaviour
                 otherCard.mainSprite.transform.position
             );
 
+            //if (dist < swapDistance)
+            //{
+            //    Vector3 tempPos = dragCard.mainSprite.transform.position;
+            //    dragCard.mainSprite.transform.position = otherCard.mainSprite.transform.position;
+            //    otherCard.mainSprite.transform.position = tempPos;
+            //    isSwap = true;
+            //    break;
+            //}
             if (dist < swapDistance)
             {
+                // 交换位置
                 Vector3 tempPos = dragCard.mainSprite.transform.position;
                 dragCard.mainSprite.transform.position = otherCard.mainSprite.transform.position;
                 otherCard.mainSprite.transform.position = tempPos;
+
+                // ★ 交换 currentSlotIndex
+                int tempSlot = dragCard.currentSlotIndex;
+                dragCard.currentSlotIndex = otherCard.currentSlotIndex;
+                otherCard.currentSlotIndex = -1;
+
                 isSwap = true;
                 break;
             }
@@ -191,7 +218,13 @@ public class Scene9UIManager : MonoBehaviour
             }
             if (nearestSlotIdx != -1 && minDis < snapRange)
             {
-                dragCard.mainSprite.transform.position = allSlots[nearestSlotIdx].correctPos;
+                //dragCard.mainSprite.transform.position = allSlots[nearestSlotIdx].correctPos;
+                dragCard.mainSprite.transform.DOMove(
+                      allSlots[nearestSlotIdx].correctPos,
+                      0.12f
+                  ).SetEase(Ease.OutQuad);
+                dragCard.currentSlotIndex = nearestSlotIdx;
+                Debug.Log("吸附");
             }
         }
 
@@ -261,7 +294,8 @@ public class Scene9UIManager : MonoBehaviour
             float dis = Vector3.Distance(cardPos, rightPos);
 
             //锁定
-            if (dis <= judgeRange)
+            //if (dis <= judgeRange)
+            if (card.currentSlotIndex == card.targetSlotIndex)
             {
                 card.isLocked = true;
                 card.mainSprite.sortingOrder = 0;
@@ -390,10 +424,13 @@ public class Scene9UIManager : MonoBehaviour
             for (int i = start; i <= end; i++)
             {
                 if (i < allCards.Count)
+                {
                     allCards[i].isLocked = false;
-                Collider2D col = allCards[i].mainSprite.GetComponent<Collider2D>();
-                if (col != null) col.enabled = true;
-                allCards[i].mainSprite.sortingOrder = 1;
+                    allCards[i].currentSlotIndex = -1; // 重置
+                    Collider2D col = allCards[i].mainSprite.GetComponent<Collider2D>();
+                    if (col != null) col.enabled = true;
+                    allCards[i].mainSprite.sortingOrder = 1;
+                }
             }
         }
         else if (currentGroup == 3)
