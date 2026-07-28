@@ -22,6 +22,7 @@ public class SortCard
 {
     [Tooltip("卡片 SpriteRenderer")]
     public SpriteRenderer mainSprite;
+    public SpriteRenderer promotSprite;//提示sprite
     [Tooltip("这张卡片对应的正确卡槽下标(从0开始)")]
     public int targetSlotIndex;
     public int currentSlotIndex = -1;
@@ -109,6 +110,12 @@ public class Scene9UIManager : MonoBehaviour
                     hover = card.mainSprite.gameObject.AddComponent<CardHover>();
                 hover.sortCard = card;
                 hover.sortCard.currentSlotIndex = -1;
+            }
+            if (card.promotSprite != null)
+            {
+                Color c = card.promotSprite.color;
+                c.a = 0f;
+                card.promotSprite.color = c;
             }
         }
         // 初始化相机
@@ -297,12 +304,25 @@ public class Scene9UIManager : MonoBehaviour
             //if (dis <= judgeRange)
             if (card.currentSlotIndex == card.targetSlotIndex)
             {
-                card.isLocked = true;
-                card.mainSprite.sortingOrder = 0;
-                Collider2D col = card.mainSprite.GetComponent<Collider2D>();
-                if (col != null) col.enabled = false;
-                // 标记卡槽被占用
-                allSlots[card.targetSlotIndex].isOccupied = true;
+                if(!card.isLocked)
+                {
+                    card.isLocked = true;
+                    card.mainSprite.sortingOrder = 0;
+                    //提示动画：渐显 → 渐隐
+                    if (card.promotSprite != null)
+                    {
+                        card.promotSprite.DOKill(); // 停止可能正在播放的动画
+                        card.promotSprite.DOFade(1f, 0.5f).OnComplete(() =>
+                        {
+                            card.promotSprite.DOFade(0f, 0.5f);
+                        });
+                    }
+
+                    Collider2D col = card.mainSprite.GetComponent<Collider2D>();
+                    if (col != null) col.enabled = false;
+                    // 标记卡槽被占用
+                    allSlots[card.targetSlotIndex].isOccupied = true;
+                }
             }
             else
             {

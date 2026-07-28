@@ -70,6 +70,7 @@ public class PhotoMapper : MonoBehaviour
     // 内部状态
     private Vector2 photoInitialAnchoredPos;
     private bool isGameStarted = false;
+    private bool isGameEnd = false;
     private bool canMove = true;
 
     private float moveInput;
@@ -98,7 +99,6 @@ public class PhotoMapper : MonoBehaviour
         playerRb.gravityScale = 0f;
         canMove = false;
         wasGrounded = isGrounded;
-
         // 照片初始位置（左侧边界）
         if (photoLeftBound != null && photo != null)
         {
@@ -111,11 +111,14 @@ public class PhotoMapper : MonoBehaviour
         HideAllFootsteps();
         // 立即显示第一个脚印（如果列表非空）
         UpdateFootsteps(0f);
+
+        isGameEnd = false;
     }
 
     void Update()
     {
         if (!isGameStarted) return;
+        if (isGameEnd) return;
 
         // 1. 输入处理
         moveInput = Input.GetAxisRaw("Horizontal");
@@ -336,6 +339,10 @@ public class PhotoMapper : MonoBehaviour
     {
         if (hasTriggeredSwitch) return;
         hasTriggeredSwitch = true;
+
+        if (isGameEnd) return;
+            isGameEnd = true;
+
         playerRb.velocity = Vector2.zero;
         if (playerCollider != null) playerCollider.enabled = false;
 

@@ -356,6 +356,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sortCard:
     mainSprite: {fileID: 0}
+    promotSprite: {fileID: 0}
     targetSlotIndex: 3
     currentSlotIndex: -1
     isLocked: 0
@@ -487,7 +488,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &75468501
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -826,6 +827,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sortCard:
     mainSprite: {fileID: 0}
+    promotSprite: {fileID: 0}
     targetSlotIndex: 0
     currentSlotIndex: -1
     isLocked: 0
@@ -1492,6 +1494,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sortCard:
     mainSprite: {fileID: 0}
+    promotSprite: {fileID: 0}
     targetSlotIndex: 8
     currentSlotIndex: -1
     isLocked: 0
@@ -3147,8 +3150,8 @@ RectTransform:
   - {fileID: 1554534480}
   - {fileID: 2017649754}
   - {fileID: 991635570}
-  - {fileID: 927884441}
   - {fileID: 286375196}
+  - {fileID: 927884441}
   - {fileID: 337637965}
   - {fileID: 239165330}
   - {fileID: 919483137}
@@ -3221,38 +3224,47 @@ MonoBehaviour:
     correctPos: {x: 0, y: 0, z: 0}
   allCards:
   - mainSprite: {fileID: 100855322}
+    promotSprite: {fileID: 836654052}
     targetSlotIndex: 0
     currentSlotIndex: 0
     isLocked: 0
   - mainSprite: {fileID: 961862039}
+    promotSprite: {fileID: 690694552}
     targetSlotIndex: 1
     currentSlotIndex: 0
     isLocked: 0
   - mainSprite: {fileID: 957884902}
+    promotSprite: {fileID: 1566794139}
     targetSlotIndex: 2
     currentSlotIndex: 0
     isLocked: 0
   - mainSprite: {fileID: 37125769}
+    promotSprite: {fileID: 473183869}
     targetSlotIndex: 3
     currentSlotIndex: 0
     isLocked: 0
   - mainSprite: {fileID: 1554534481}
+    promotSprite: {fileID: 1799505922}
     targetSlotIndex: 4
     currentSlotIndex: 0
     isLocked: 0
   - mainSprite: {fileID: 2017649755}
+    promotSprite: {fileID: 1572238679}
     targetSlotIndex: 5
     currentSlotIndex: 0
     isLocked: 0
   - mainSprite: {fileID: 991635571}
+    promotSprite: {fileID: 670774900}
     targetSlotIndex: 6
     currentSlotIndex: 0
     isLocked: 0
   - mainSprite: {fileID: 286375197}
+    promotSprite: {fileID: 1508778905}
     targetSlotIndex: 7
     currentSlotIndex: 0
     isLocked: 0
   - mainSprite: {fileID: 927884442}
+    promotSprite: {fileID: 32284176}
     targetSlotIndex: 8
     currentSlotIndex: 0
     isLocked: 0
@@ -4737,6 +4749,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sortCard:
     mainSprite: {fileID: 0}
+    promotSprite: {fileID: 0}
     targetSlotIndex: 7
     currentSlotIndex: -1
     isLocked: 0
@@ -4890,6 +4903,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sortCard:
     mainSprite: {fileID: 0}
+    promotSprite: {fileID: 0}
     targetSlotIndex: 2
     currentSlotIndex: -1
     isLocked: 0
@@ -5043,6 +5057,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sortCard:
     mainSprite: {fileID: 0}
+    promotSprite: {fileID: 0}
     targetSlotIndex: 1
     currentSlotIndex: -1
     isLocked: 0
@@ -5196,6 +5211,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sortCard:
     mainSprite: {fileID: 0}
+    promotSprite: {fileID: 0}
     targetSlotIndex: 6
     currentSlotIndex: -1
     isLocked: 0
@@ -6604,7 +6620,7 @@ RectTransform:
   m_Father: {fileID: 448622952}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 35, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -7154,7 +7170,7 @@ RectTransform:
   m_Father: {fileID: 252689914}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 35, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -8109,6 +8125,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sortCard:
     mainSprite: {fileID: 0}
+    promotSprite: {fileID: 0}
     targetSlotIndex: 4
     currentSlotIndex: -1
     isLocked: 0
@@ -8313,7 +8330,7 @@ RectTransform:
   m_Father: {fileID: 815716690}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 35, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -8894,7 +8911,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1898597752
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9292,6 +9309,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sortCard:
     mainSprite: {fileID: 0}
+    promotSprite: {fileID: 0}
     targetSlotIndex: 5
     currentSlotIndex: -1
     isLocked: 0
@@ -9457,7 +9475,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &2044990379
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9635,7 +9653,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!225 &2088234818
 CanvasGroup:
   m_ObjectHideFlags: 0
