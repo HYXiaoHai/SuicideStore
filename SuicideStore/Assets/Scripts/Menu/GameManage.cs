@@ -212,7 +212,7 @@ public class GameManage : MonoBehaviour
         }
 
         Color fadeColor = Color.white;
-        if(level == 1||level==3|| level == 6|| level == 7|| level == 8||level == 11||level == 12) fadeColor = Color.black;
+        if(level == 1||level==3|| level == 6|| level == 7|| level == 8|| level == 10 || level == 11||level == 12) fadeColor = Color.black;
 
         currentLevel = level;
         string targetScene = GetFirstSceneOfLevel(level);

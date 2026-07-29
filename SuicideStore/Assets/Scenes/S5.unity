@@ -9636,7 +9636,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 6
+  m_SortingOrder: 7
   m_Sprite: {fileID: 1257599456, guid: a3f017f88de5f15429df4634693ac406, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 0}
   m_FlipX: 0
@@ -13225,6 +13225,7 @@ MonoBehaviour:
   changeDelay: 0.5
   shouldUseFade: 1
   shouldUseAudioFade: 1
+  currentState: 0
   canMove: 1
   isGrounded: 0
 --- !u!1 &1235850048
@@ -19480,7 +19481,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 272.3, y: 54}
+  m_AnchoredPosition: {x: 228, y: 19}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1754898832

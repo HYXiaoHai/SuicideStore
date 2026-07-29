@@ -53,8 +53,8 @@ public class RowManage : MonoBehaviour
     public bool shouldUseFade = false;
     public bool shouldUseAudioFade = false;
     // 状态机
-    private enum GameState { OnWords, OnLine }
-    private GameState currentState;
+    public enum GameState { OnWords, OnLine }
+    public GameState currentState;
 
     // 当前行的边界（文字行走时用）
     private float leftBoundX, rightBoundX;

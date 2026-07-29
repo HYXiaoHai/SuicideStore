@@ -58,7 +58,7 @@ public class Scene10Manage : MonoBehaviour
     void Start()
     {
         if (TransitionManage.Instance != null)
-            TransitionManage.Instance.FadeIn(1f,Color.white);
+            TransitionManage.Instance.FadeIn(1f,Color.black);
 
         //level1GameCanvas.gameObject.SetActive(true);
         level3GameCanvas.gameObject.SetActive(false);
@@ -141,7 +141,7 @@ public class Scene10Manage : MonoBehaviour
     public void Level2Complete()
     {
         //LeleRb.bodyType = RigidbodyType2D.Dynamic;
-        transitionCanvas.DOFade(1f, 2.5f).SetEase(Ease.InQuart).OnComplete(() => {
+        transitionCanvas.DOFade(1f, 1.5f).SetEase(Ease.InQuart).OnComplete(() => {
             //LeleRb.gameObject.SetActive(false);
             leftLevel2Father.SetActive(false);
             rightLevel2Father.SetActive(false);
