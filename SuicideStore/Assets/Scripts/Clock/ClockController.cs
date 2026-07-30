@@ -1,5 +1,6 @@
 using DG.Tweening;
 using System.Collections;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Analytics;
 using UnityEngine.SceneManagement;
@@ -13,6 +14,10 @@ public class ClockController : MonoBehaviour
     public string nextSceneName;
     private CanvasGroup minuteHandCG;
     private CanvasGroup hourHandCG;
+
+    [Header("引导")]
+    public bool needPromote;
+    public TMP_Text promoteText;
 
     [Header("指针")]
     public Transform minuteHand;
@@ -115,6 +120,14 @@ public class ClockController : MonoBehaviour
             if (IsMouseOverMinuteHand())
             {
                 isDragging = true;
+
+                //引导
+                if(needPromote == true&&promoteText!=null)
+                {
+                    promoteText.DOFade(0f,1f);
+                    needPromote = false;
+                }
+
                 if (minuteHandSeq != null && minuteHandSeq.IsPlaying())
                 {
                     StopMinuteHandAni();

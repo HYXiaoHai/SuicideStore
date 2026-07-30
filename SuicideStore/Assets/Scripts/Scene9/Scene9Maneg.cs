@@ -46,6 +46,7 @@ public class Scene9Maneg : MonoBehaviour
     public bool isPuzzleViewOpen = false;//是否处于拼图自由视角
     public CinemachineVirtualCamera puzzleCamera;//拼图视角
     public CinemachineVirtualCamera puzzleCompleteCamera;//拼图完成视角
+    public SpriteRenderer promoSpriteRender;
     //public Slider puzzleSlider;//拉杆 Slider
     public GameObject puzzleParent;//第二关所有物体父级（初始隐藏或透明）
     public PathPuzzleManage puzzleManage;//拼图逻辑管理器
@@ -270,6 +271,7 @@ public class Scene9Maneg : MonoBehaviour
     {
         isPuzzleViewOpen = true;
         puzzleCamera.Priority = 20;
+        promoSpriteRender.DOFade(0f, 0.5f);
         puzzleButton.gameObject.SetActive(false);
     }
 
