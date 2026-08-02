@@ -46,9 +46,6 @@ public class BagPackingManager : MonoBehaviour
 
     void Start()
     {
-        //bagText1.transform.localScale = Vector3.zero;
-        //bagText2.transform.localScale = Vector3.zero;
-
         itemsFromInsideToOutside = 0;
         itemsFromOutsideToInside = 3;
         Debug.Log("打包场景初始化完成");
@@ -70,31 +67,6 @@ public class BagPackingManager : MonoBehaviour
         seq.Play();
     }
 
-    // 由 DraggableItem 调用：物品放到外部区域
-    //public void OnItemPlacedOutside(DraggableItem item)
-    //{
-    //    if (gameCompleted || item.isProcessed) return;
-    //    item.isProcessed = true; // 防止重复计数
-
-    //    // 只计数 ID 0,1,2 的物品（需要拿出到外部的）
-    //    if (item.itemId >= 0 && item.itemId <= 2)
-    //    {
-    //        itemsFromInsideToOutside++;
-    //        // 触发UI显示（原逻辑）
-    //        StartCoroutine(ShowUIAndDisappear(item));
-    //    }
-    //    else
-    //    {
-    //        itemsFromOutsideToInside--;
-    //    }
-
-    //    // 检查胜利条件（拿出3个）
-    //    if (itemsFromInsideToOutside >= 3 && itemsFromOutsideToInside >= 3)
-    //    {
-    //        OnGameComplete();
-    //    }
-    //    item.isProcessed = false;
-    //}
     public void OnItemPlacedOutside(DraggableItem item)
     {
         if (gameCompleted) return;
@@ -107,43 +79,19 @@ public class BagPackingManager : MonoBehaviour
         else if (item.itemId < 0)
         {
             itemsFromOutsideToInside = Mathf.Max(0, itemsFromOutsideToInside - 1);
+            Debug.Log(item.gameObject.name+"拿出");
         }
         CheckVictory();
     }
 
-    // 由 DraggableItem 调用：物品放回书包
-    //public void OnItemReturnToBag(DraggableItem item)
-    //{
-    //    if (gameCompleted || item.isProcessed) return;
-    //    item.isProcessed = true;
-
-    //    // 减少计数（如果之前已计数）
-    //    if (item.itemId >= 0 && item.itemId <= 2)
-    //    {
-    //        itemsFromInsideToOutside = Mathf.Max(0, itemsFromInsideToOutside - 1);
-    //    }
-    //    else
-    //    {
-    //        itemsFromOutsideToInside++;
-    //    }
-    //    // 检查胜利条件（拿出3个）
-    //    if (itemsFromInsideToOutside >= 3 && itemsFromOutsideToInside >= 3)
-    //    {
-    //        OnGameComplete();
-    //    }
-    //    // 恢复初始状态，允许再次拿出
-    //    item.isProcessed = false;
-    //}
     public void OnItemReturnToBag(DraggableItem item)
     {
         if (gameCompleted) return;
-        //if (item.itemId >= 0 && item.itemId <= 2)
-        //{
-        //    itemsFromInsideToOutside = Mathf.Max(0, itemsFromInsideToOutside - 1);
-        //}
+
         if (item.itemId < 0)
         {
             itemsFromOutsideToInside = Mathf.Min(3, itemsFromOutsideToInside + 1);
+            Debug.Log(item.gameObject.name + "拿进");
         }
         CheckVictory();
     }

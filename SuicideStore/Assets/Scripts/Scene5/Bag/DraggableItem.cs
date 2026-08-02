@@ -109,56 +109,6 @@ public class DraggableItem : MonoBehaviour
         UpdateStatus();
     }
 
-    // 结束拖拽（鼠标释放）
-    //private void EndDrag()
-    //{
-    //    if (!isDragging) return;
-    //    isDragging = false;
-
-    //    scaleTween?.Kill();
-    //    scaleTween = transform.DOScale(originalScale, scaleDuration).SetEase(Ease.OutQuad);
-
-    //    // 检测当前位置
-    //    bool inBag = BagPackingManager.Instance.IsInBagArea(transform.position);
-    //    bool inExternal = BagPackingManager.Instance.IsInExternalArea(transform.position);
-
-    //    if (inBag)
-    //    {
-    //        // 放回书包：隐藏物品，恢复包内图片
-    //        gameObject.SetActive(false);
-    //        if (bagItemSprite != null)
-    //        {
-    //            bagItemSprite.gameObject.SetActive(true);
-    //            bagItemSprite.DOKill();
-    //            bagItemSprite.DOFade(1f, 0.2f);
-    //        }
-    //        // 通知管理器（计数器减少）
-    //        BagPackingManager.Instance.OnItemReturnToBag(this);
-    //    }
-    //    else if (inExternal)
-    //    {
-    //        //放到合法外部区域：固定位置（不再移动），并标记为已放置
-    //        transform.position = new Vector3(transform.position.x, transform.position.y, zOffset);
-    //        //通知管理器（计数器增加）
-    //        BagPackingManager.Instance.OnItemPlacedOutside(this);
-    //    }
-    //    else
-    //    {
-    //        // 无效区域：取消放置，隐藏物品，恢复包内图片
-    //        gameObject.SetActive(false);
-    //        if (bagItemSprite != null)
-    //        {
-    //            bagItemSprite.gameObject.SetActive(true);
-    //            bagItemSprite.DOKill();
-    //            bagItemSprite.DOFade(1f, 0.2f);
-    //        }
-    //        // 不计入任何计数
-    //    }
-
-    //    // 重置标记
-    //    isDragging = false;
-    //}
-
     private void EndDrag()
     {
         if (!isDragging) return;
@@ -170,7 +120,7 @@ public class DraggableItem : MonoBehaviour
         bool inBag = BagPackingManager.Instance.IsInBagArea(transform.position);
         bool inExternal = BagPackingManager.Instance.IsInExternalArea(transform.position);
 
-        if (inBag)
+        if (inBag&& !initialInside)
         {
             // 放入书包：隐藏外部物体，恢复包内图片
             Debug.Log("松开 放入书包");
@@ -183,7 +133,7 @@ public class DraggableItem : MonoBehaviour
             }
             BagPackingManager.Instance.OnItemReturnToBag(this);
         }
-        else if (inExternal)
+        else if (inExternal&& initialInside)
         {
             // 放到外部区域：保持外部物体显示（位置固定）
             transform.position = new Vector3(transform.position.x, transform.position.y, zOffset);
