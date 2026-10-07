@@ -206,7 +206,14 @@ public class AudioManager : MonoBehaviour
         bgmFadeRoutine = StartCoroutine(CrossFadeBGM(newClip, fadeDuration));
     }
 
-    public void SwitchBGM(AudioClip newClip, float fadeDuration = -1) => PlayBGM(newClip, fadeDuration);
+    public void SwitchBGM(AudioClip newClip, float fadeDuration = -1)
+    {
+        FadeOutCurrentBGM(fadeDuration, () => {
+            FadeInBGM(newClip, fadeDuration);
+        });
+        //PlayBGM(newClip, fadeDuration);
+
+    }
 
     public void PauseBGM() => bgmSource?.Pause();
     public void ResumeBGM()
